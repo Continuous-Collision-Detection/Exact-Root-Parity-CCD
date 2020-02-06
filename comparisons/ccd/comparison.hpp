@@ -1,4 +1,4 @@
-/// @brief Eigen wrappers for the CCD methods.
+/// @brief Eigen wrappers for different CCD methods
 
 #pragma once
 

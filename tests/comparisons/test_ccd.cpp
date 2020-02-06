@@ -68,7 +68,6 @@ TEST_CASE(
     }
     SECTION("Counter-clockwise triangle") { std::swap(v1, v2); }
 
-    double toi;
     bool hit = vertexFaceCCD(
         v0, v1, v2, v3, v0 + u0, v1 + u1, v2 + u1, v3 + u1, method);
 
@@ -76,4 +75,41 @@ TEST_CASE(
         = { "Float", "RationalRootParity", "RootParity", "BSC" };
     CAPTURE(v0z, u0y, u1y, u0z, EPSILON, methodNames[method]);
     CHECK(hit == ((-u0y + u1y >= 1) && (v0z + u0z >= v3.z())));
+}
+
+TEST_CASE("Zhongshi test case", "[ccd][point-triangle][!mayfail]")
+{
+    using namespace ccd::comparison;
+    CCDMethod method = GENERATE(
+        CCDMethod::FLOAT, CCDMethod::ROOT_PARITY,
+        CCDMethod::RATIONAL_ROOT_PARITY, CCDMethod::BSC);
+
+    double qy = GENERATE(-EPSILON, 0, EPSILON);
+
+    Eigen::Vector3d q;
+    q << 0, qy, 0;
+
+    Eigen::Vector3d b0;
+    b0 << 0, 0, 0;
+    Eigen::Vector3d b1;
+    b1 << 0, 1, 0;
+    Eigen::Vector3d b2;
+    b2 << 1, 0, 0;
+
+    Eigen::Vector3d t0;
+    t0 << 0, 0, 1;
+    Eigen::Vector3d t1;
+    t1 << 0, 1, 1;
+    Eigen::Vector3d t2;
+    t2 << 1, 0, 1;
+
+    Eigen::Vector3d q1;
+    q1 << 0, qy, 0;
+
+    bool hit = vertexFaceCCD(q, b0, b1, b2, q1, t0, t1, t2, method);
+
+    const char* methodNames[4]
+        = { "Float", "RationalRootParity", "RootParity", "BSC" };
+    CAPTURE(qy, methodNames[method]);
+    CHECK(hit == q.y() >= 0);
 }

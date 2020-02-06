@@ -1,4 +1,4 @@
-// Eigen wrappers for the CCD methods.
+// Eigen wrappers for different CCD methods
 
 #include "comparison.hpp"
 
