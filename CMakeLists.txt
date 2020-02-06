@@ -4,8 +4,8 @@ project(CCD)
 ################################################################################
 
 # project-options
-option(${PROJECT_NAME}_WITH_UNIT_TESTS   "Build unit tests using Catch2"  ON)
-option(${PROJECT_NAME}_WITH_COMPARISONS  "Build tests for comparisons"    ON)
+option(CCD_WITH_UNIT_TESTS   "Build unit tests using Catch2"  ON)
+option(CCD_WITH_COMPARISONS  "Build tests for comparisons"    ON)
 
 # libigl
 option(LIBIGL_USE_STATIC_LIBRARY     "Use libigl as static library" OFF)
@@ -31,7 +31,7 @@ option(LIBIGL_WITH_PREDICATES        "Use exact predicates"         OFF)
 ################################################################################
 
 ### Configuration
-set(${PROJECT_NAME}_EXTERNAL "${CMAKE_CURRENT_SOURCE_DIR}/external")
+set(CCD_EXTERNAL "${CMAKE_CURRENT_SOURCE_DIR}/external")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 include(Warnings)
@@ -69,40 +69,22 @@ target_link_libraries(${PROJECT_NAME} PUBLIC igl::core)
 # Logger
 target_link_libraries(${PROJECT_NAME} PUBLIC spdlog::spdlog)
 
+# Extra warnings
+target_link_libraries(${PROJECT_NAME} PRIVATE warnings::all)
+
 ################################################################################
 # Tests
 ################################################################################
 
-if(${PROJECT_NAME}_WITH_UNIT_TESTS)
+if(CCD_WITH_UNIT_TESTS)
   # Catch2
   if(NOT TARGET Catch2::Catch2)
-      download_catch2()
-      add_subdirectory(${${PROJECT_NAME}_EXTERNAL}/Catch2 catch2)
-      list(APPEND CMAKE_MODULE_PATH ${${PROJECT_NAME}_EXTERNAL}/Catch2/contrib)
+      ccd_download_catch2()
+      add_subdirectory(${CCD_EXTERNAL}/Catch2 catch2)
+      list(APPEND CMAKE_MODULE_PATH ${CCD_EXTERNAL}/Catch2/contrib)
   endif()
 
   include(CTest)
   enable_testing()
   add_subdirectory(tests)
-endif()
-
-################################################################################
-# Comparisons
-################################################################################
-
-if(${PROJECT_NAME}_WITH_COMPARISONS)
-  ## Comparison library that warps all comparisons
-  add_library(${PROJECT_NAME}_comparisons
-    comparisons/ccd/comparison.cpp
-  )
-  target_include_directories(${PROJECT_NAME}_comparisons PUBLIC comparisons)
-  # Link against Eigen in libigl
-  target_link_libraries(${PROJECT_NAME}_comparisons PUBLIC igl::core)
-  # Etienne Vouga's CTCD Library
-  target_link_libraries(${PROJECT_NAME}_comparisons PUBLIC EVCTCD)
-  target_include_directories(${PROJECT_NAME}_comparisons PUBLIC ${${PROJECT_NAME}_EXTERNAL}/EVCTCD/include)
-  # exact-ccd for Brochu et al. [2012] and Tang et al. [2014]
-  target_link_libraries(${PROJECT_NAME}_comparisons PUBLIC exact-ccd::exact-ccd)
-  # Rational implmentation of Brochu et al. [2012]
-  target_link_libraries(${PROJECT_NAME}_comparisons PUBLIC RationalCCD)
 endif()
