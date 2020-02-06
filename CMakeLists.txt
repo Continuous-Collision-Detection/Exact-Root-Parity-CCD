@@ -43,7 +43,7 @@ include(${PROJECT_NAME}Dependencies)
 ################################################################################
 
 add_library(${PROJECT_NAME}
-  src/CCD.cpp
+  src/ccd.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC src)
@@ -57,8 +57,7 @@ add_executable(${PROJECT_NAME}_bin
   src/main.cpp
 )
 
-target_include_directories(${PROJECT_NAME}_bin PRIVATE src)
-# target_link_libraries(${PROJECT_NAME}_bin PUBLIC ${PROJECT_NAME})
+target_link_libraries(${PROJECT_NAME}_bin PUBLIC ${PROJECT_NAME})
 
 ################################################################################
 # Required Libraries
