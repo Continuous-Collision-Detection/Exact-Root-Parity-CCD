@@ -37,16 +37,22 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 include(Warnings)
 include(UseColors)
 include(${PROJECT_NAME}Dependencies)
-
+include(CCDUtils)
 ################################################################################
 # Library
 ################################################################################
 
-add_library(${PROJECT_NAME}
-  src/ccd.cpp
-)
+include(src/SOURCE.cmake)
 
-target_include_directories(${PROJECT_NAME} PUBLIC src)
+#prepend_current_path(SOURCES)
+add_library(${PROJECT_NAME} ${SOURCES})
+CCD_copy_headers(${SOURCES})
+CCD_set_source_group(${SOURCES})
+target_sources(${PROJECT_NAME} PRIVATE ${SOURCES})
+target_include_directories(${PROJECT_NAME} PUBLIC src/)
+# target_link_libraries(${PROJECT_NAME} PRIVATE CCD)
+
+#target_include_directories(${PROJECT_NAME} PUBLIC src/)
 
 ################################################################################
 # Executable
@@ -71,6 +77,14 @@ target_link_libraries(${PROJECT_NAME} PUBLIC spdlog::spdlog)
 
 # Extra warnings
 target_link_libraries(${PROJECT_NAME} PRIVATE warnings::all)
+#GMP
+find_package(GMPECCD)
+
+IF(NOT ${GMP_FOUND})
+        MESSAGE(FATAL_ERROR "Cannot find GMP")
+ENDIF()
+target_include_directories(${PROJECT_NAME} PUBLIC ${GMP_INCLUDE_DIRS} src)
+target_link_libraries(${PROJECT_NAME} PUBLIC ${GMP_LIBRARIES})
 
 ################################################################################
 # Tests

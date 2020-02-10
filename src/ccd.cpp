@@ -1,6 +1,7 @@
 /// Our exact CCD method
 #include "ccd.hpp"
-
+#include "Rational.hpp"
+#include "Utils.hpp"
 namespace ccd {
 
 // Detect collisions between a vertex and a triangular face.
