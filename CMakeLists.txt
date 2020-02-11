@@ -44,7 +44,7 @@ include(CCDUtils)
 
 include(src/SOURCE.cmake)
 
-#prepend_current_path(SOURCES)
+prepend_current_path(SOURCES)
 add_library(${PROJECT_NAME} ${SOURCES})
 CCD_copy_headers(${SOURCES})
 CCD_set_source_group(${SOURCES})

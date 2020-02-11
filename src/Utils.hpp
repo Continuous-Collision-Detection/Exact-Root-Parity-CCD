@@ -4,12 +4,15 @@
 
 #include <Eigen/Core>
 
-namespace eccd
+namespace ccd
 {
 
 typedef Eigen::Matrix<Rational, 3, 1> Vector3r;
 typedef Eigen::Matrix<double, 3, 1> Vector3d;
-
+static const int COPLANAR = -1;
+static const int INTERSECTED = 1;
+static const int NOT_INTERSECTED1 = 2;
+static const int NOT_INTERSECTED2 = 3;
 template <typename V1, typename V2>
 Vector3r cross(const V1 &v1, const V2 &v2)
 {
@@ -37,5 +40,11 @@ int origin_ray_triangle_inter(const Vector3d &dir, const Vector3r &t1, const Vec
 bool segment_segment_inter(const Vector3r &s0, const Vector3r &e0, const Vector3r &s1, const Vector3r &e1, Vector3r &res, int axis);
 
 int segment_triangle_inter(const Vector3d &e0, const Vector3d &e1, const Vector3d &t1, const Vector3d &t2, const Vector3d &t3);
+int segment_triangle_inter(
+    const Vector3r& e0,
+    const Vector3r& e1,
+    const Vector3r& t1,
+    const Vector3r& t2,
+    const Vector3r& t3);
 
 } // namespace eccd

@@ -37,7 +37,17 @@ bool vertexFaceCCD(
     const Eigen::Vector3d& vertex_end,
     const Eigen::Vector3d& face_vertex0_end,
     const Eigen::Vector3d& face_vertex1_end,
+    const Eigen::Vector3d& face_vertex2_end,const double eps);
+bool vertexFaceCCD(
+    const Eigen::Vector3d& vertex_start,
+    const Eigen::Vector3d& face_vertex0_start,
+    const Eigen::Vector3d& face_vertex1_start,
+    const Eigen::Vector3d& face_vertex2_start,
+    const Eigen::Vector3d& vertex_end,
+    const Eigen::Vector3d& face_vertex0_end,
+    const Eigen::Vector3d& face_vertex1_end,
     const Eigen::Vector3d& face_vertex2_end);
+
 
 /**
  * @brief Detect collisions between two edges as they move.
@@ -74,5 +84,5 @@ bool edgeEdgeCCD(
     const Eigen::Vector3d& edge0_vertex1_end,
     const Eigen::Vector3d& edge1_vertex0_end,
     const Eigen::Vector3d& edge1_vertex1_end);
-
+void test();
 } // namespace ccd
