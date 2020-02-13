@@ -34,11 +34,27 @@ void write(const Vector3d &v, std::ostream &out);
 Vector3d read(std::istream &in);
 
 int orient3d(const Vector3r &a, const Vector3r &b, const Vector3r &c, const Vector3r &d);
-
-int origin_ray_triangle_inter(const Vector3d &dir, const Vector3r &t1, const Vector3r &t2, const Vector3r &t3);
+int orient2d(
+    const Vector3r& a,
+    const Vector3r& b,
+    const Vector3r& c,
+    const int axis);
+int origin_ray_triangle_inter(
+    const Vector3d& dir,
+    const Vector3r& t1,
+    const Vector3r& t2,
+    const Vector3r& t3);
 
 bool segment_segment_inter(const Vector3r &s0, const Vector3r &e0, const Vector3r &s1, const Vector3r &e1, Vector3r &res, int axis);
-
+// this function can also tell us if they are parallel and overlapped
+// and also tell us if the parallel case has seg-seg overlapping: 
+int segment_segment_inter_2(
+    const Vector3r& s0,
+    const Vector3r& e0,
+    const Vector3r& s1,
+    const Vector3r& e1,
+    Vector3r& res,
+    int axis);
 int segment_triangle_inter(const Vector3d &e0, const Vector3d &e1, const Vector3d &t1, const Vector3d &t2, const Vector3d &t3);
 int segment_triangle_inter(
     const Vector3r& e0,

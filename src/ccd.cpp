@@ -37,14 +37,24 @@ bool vertexFaceCCD(
         face_vertex2_start, vertex_end, face_vertex0_end, face_vertex1_end,
         face_vertex2_end);
 
+	// step 1. bounding box checking
     Vector3d bmin(-eps, -eps, -eps), bmax(eps, eps, eps);
     bool bbox_intersection = vfprism.is_prism_bbox_cut_bbox(bmin, bmax);
     if (!bbox_intersection)
         return false;// if bounding box not intersected, then not intersected
+    
+	// step 2. prism edges & prism bottom triangles check
+	// prism edges test, segment degenerate cases already handled
     for (int i = 0; i < 9; i++) {
-        i;
+        if (is_seg_intersect_cube(
+                eps, vfprism.p_vertices[vfprism.prism_edge_id[i][0]],
+                vfprism.p_vertices[vfprism.prism_edge_id[i][1]]))
+            return true;
 	}
-	
+
+	// prism top/bottom triangle test
+
+
 
 
 

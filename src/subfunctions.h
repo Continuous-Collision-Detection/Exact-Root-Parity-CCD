@@ -14,40 +14,47 @@ bool box_box_intersection(
     return 1;
 }
 
-//bool is_seg_intersect_cube(
-//    const cube& cb, const Vector3r& e0, const Vector3r& e1);
+bool is_seg_intersect_cube(
+    const double& eps, const Vector3r& e0, const Vector3r& e1);
+bool is_seg_intersect_cube_2d(
+    const double eps, const Vector3r& e0, const Vector3r& e1, int axis);
+void projected_cube_edges(
+    const double eps,
+    const int axis,
+    Vector3r& e0,
+    Vector3r& e1,
+    Vector3r& e2,
+    Vector3r& e3);
+    // cube is centered at origin, and corner is (eps,eps,eps)
+bool is_point_intersect_cube(
+    const double eps, const Vector3r& p);
 int seg_cut_plane(
     const Vector3r& seg0,
     const Vector3r& seg1,
     const Vector3r& t0,
     const Vector3r& t1,
-    const Vector3r& t2)
-{
-    int o1, o2;
-    o1 = orient3d(seg0, t0, t1, t2);
-    o2 = orient3d(seg1, t0, t1, t2);
-    if (o1 == 1 && o2 == 1)
-        return NOT_INTERSECTED1;
-    if (o1 == -1 && o2 == -1)
-        return NOT_INTERSECTED2;
-    if (o1 == 0 && o2 == 0)
-        return COPLANAR;
-    return INTERSECTED;
-}
-    // void get_tri_corners(
-//    const Vector3d& triangle0,
-//    const Vector3d& triangle1,
-//    const Vector3d& triangle2,
-//    Vector3d& mint,
-//    Vector3d& maxt)
-//{
-//    mint[0] = std::min(std::min(triangle0[0], triangle1[0]), triangle2[0]);
-//    mint[1] = std::min(std::min(triangle0[1], triangle1[1]), triangle2[1]);
-//    mint[2] = std::min(std::min(triangle0[2], triangle1[2]), triangle2[2]);
-//    maxt[0] = std::max(std::max(triangle0[0], triangle1[0]), triangle2[0]);
-//    maxt[1] = std::max(std::max(triangle0[1], triangle1[1]), triangle2[1]);
-//    maxt[2] = std::max(std::max(triangle0[2], triangle1[2]), triangle2[2]);
-//}
+    const Vector3r& t2);
+
+//Causion: open triangle!
+bool is_cube_intersect_triangle(
+    const double eps,
+    const Vector3r& t0,
+    const Vector3r& t1,
+    const Vector3r& t2);
+bool is_seg_intersect_triangle(
+    const Vector3r& s0,
+    const Vector3r& s1,
+    const Vector3r& t0,
+    const Vector3r& t1,
+    const Vector3r& t2);
+//segment and triangle are coplanar, check intersection
+bool is_coplanar_seg_intersect_triangle(
+    const Vector3r& s0,
+    const Vector3r& s1,
+    const Vector3r& t0,
+    const Vector3r& t1,
+    const Vector3r& t2,
+    const int axis);
 void get__corners(const std::vector<Vector3d>& p, Vector3d& min, Vector3d& max);
 template <typename T>
 void get__corners(const std::array<T, 6>& p, T& min, T& max)

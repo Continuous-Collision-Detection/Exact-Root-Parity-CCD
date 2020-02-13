@@ -11,6 +11,20 @@ int orient3d(const Vector3r &a, const Vector3r &b, const Vector3r &c, const Vect
     const Rational det = (a - d).dot(cross(b - d, c - d));
     return det.get_sign();
 }
+int orient2d(
+    const Vector3r& a,
+    const Vector3r& b,
+    const Vector3r& c,
+    const int axis)
+{
+    Vector3r v1, v2;
+    v1 = a - b;
+    v2 = c - b;
+    const int i1 = (axis + 1) % 3;
+    const int i2 = (axis + 2) % 3;
+    const Rational det = v1[i1] * v2[i2] - v1[i2] * v2[i1];
+    return det.get_sign();
+}
 
 int origin_ray_triangle_inter(const Vector3d &dirf, const Vector3r &t1, const Vector3r &t2, const Vector3r &t3)
 {
@@ -87,6 +101,64 @@ bool segment_segment_inter(const Vector3r &s0, const Vector3r &e0, const Vector3
     assert(res[0] == p1[0] && res[1] == p1[1] && res[2] == p1[2]);
 #endif
     return true;
+}
+
+int segment_segment_inter_2
+(const Vector3r& s0,
+ const Vector3r& e0,
+ const Vector3r& s1,
+ const Vector3r& e1,
+ Vector3r& res,
+ int axis)
+{
+    const int i1 = (axis + 1) % 3;
+    const int i2 = (axis + 2) % 3;
+
+    const Rational dd = e0[i1] * e1[i2] - e0[i1] * s1[i2] - e0[i2] * e1[i1] + e0[i2] * s1[i1] + e1[i1] * s0[i2] - e1[i2] * s0[i1] + s0[i1] * s1[i2] - s0[i2] * s1[i1];
+
+    if (dd.get_sign() == 0)//parallel
+    {
+        Vector3r dir1, dir2;
+
+        dir1 = s1 - s0;
+        dir2 = e0 - s1;
+        if (dir1.dot(dir2) >= 0)
+            return 2;//s1 on s0-e0
+        
+		dir1 = e1 - s0;
+        dir2 = e0 - e1;
+        if (dir1.dot(dir2) >= 0)
+            return 2;//e1 on s0-e0
+        
+		dir1 = s0 - s1;
+        dir2 = e1 - s0;
+        if (dir1.dot(dir2) >= 0)
+            return 2; // s0 on s1-e1
+        
+		dir1 = e0 - s1;
+        dir2 = e1 - e0;
+        if (dir1.dot(dir2) >= 0)
+            return 2; // e0 on s1-e1
+
+        return 0;
+    }
+
+    const Rational t0 = (e1[i1] * s0[i2] - e1[i1] * s1[i2] - e1[i2] * s0[i1] + e1[i2] * s1[i1] + s0[i1] * s1[i2] - s0[i2] * s1[i1]) / dd;
+    const Rational t1 = (e0[i1] * s0[i2] - e0[i1] * s1[i2] - e0[i2] * s0[i1] + e0[i2] * s1[i1] + s0[i1] * s1[i2] - s0[i2] * s1[i1]) / dd;
+
+    
+    if (t0 < 0 || t0 > 1 || t1 < 0 || t1 > 1)
+    {
+        return 0;// not intersected
+    }
+
+    res = (1 - t0) * s0 + t0 * e0;
+#ifndef NDEBUG
+    const Vector3r p1 = (1 - t1) * s1 + t1 * e1;
+
+    assert(res[0] == p1[0] && res[1] == p1[1] && res[2] == p1[2]);
+#endif
+    return 1;// intersected at one cross point, or end point
 }
 
 void write(const Vector3d &v, std::ostream &out)

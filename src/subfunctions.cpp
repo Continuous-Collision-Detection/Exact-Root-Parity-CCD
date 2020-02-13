@@ -21,7 +21,26 @@ void get__corners(const std::vector<Vector3d>& p, Vector3d& min, Vector3d& max)
             max[2] = p[i][2];
     }
 }
-//bool is_seg_intersect_cube(
+int seg_cut_plane(
+    const Vector3r& seg0,
+    const Vector3r& seg1,
+    const Vector3r& t0,
+    const Vector3r& t1,
+    const Vector3r& t2)
+{
+    int o1, o2;
+    o1 = orient3d(seg0, t0, t1, t2);
+    o2 = orient3d(seg1, t0, t1, t2);
+    if (o1 == 1 && o2 == 1)
+        return NOT_INTERSECTED1;
+    if (o1 == -1 && o2 == -1)
+        return NOT_INTERSECTED2;
+    if (o1 == 0 && o2 == 0)
+        return COPLANAR;
+    return INTERSECTED;
+}
+
+// bool is_seg_intersect_cube(
 //    const cube& cb, const Vector3r& e0, const Vector3r& e1)
 //{
 //	//if (e0[0] == e1[0] && e0[1] == e1[1] && e0[2] == e1[2])
@@ -48,10 +67,11 @@ void get__corners(const std::vector<Vector3d>& p, Vector3d& min, Vector3d& max)
 // //                   cb.vr[cb.faceid[i][3]])
 // //               == 1)
 // //               return true;
-// //           inter_palne = true; 
-//	//	}    
+// //           inter_palne = true;
+//	//	}
 //	//	//
-//	//}// the rest cases: totally inside, totally outside, totally in one (closed) rectangle
+//	//}// the rest cases: totally inside, totally outside, totally in one
+//(closed) rectangle
 // //   if (inter_palne)
 // //       return false;
 //	//
@@ -61,6 +81,151 @@ void get__corners(const std::vector<Vector3d>& p, Vector3d& min, Vector3d& max)
 //	return 0;
 //
 //}
+
+bool is_seg_intersect_cube(
+    const double& eps, const Vector3r& e0, const Vector3r& e1)
+{
+    if (is_point_intersect_cube(eps, e0))
+        return true;
+    if (is_point_intersect_cube(eps, e1))
+        return true;
+    if (e0[0] == e1[0] && e0[1] == e1[1] && e0[2] == e1[2])
+        return false; // degenerate case: the segment is degenerated as a point
+    // if intersected, must be coplanar with the edge, or intersect edge or face
+    if (is_seg_intersect_cube_2d(eps, e0, e1, 0)
+        && is_seg_intersect_cube_2d(eps, e0, e1, 1)
+        && is_seg_intersect_cube_2d(eps, e0, e1, 2))
+        return true;
+    return false;
+}
+bool is_seg_intersect_cube_2d(
+    const double eps, const Vector3r& e0, const Vector3r& e1, int axis)
+{
+    Vector3r p0, p1, p2, p3, res;
+    projected_cube_edges(eps, axis, p0, p1, p2, p3);
+    const int i1 = (axis + 1) % 3;
+    const int i2 = (axis + 2) % 3;
+    if (e0[i1] <= eps && e0[i1] >= -eps && e0[i2] <= eps && e0[i2] >= -eps)
+        return true;
+    if (e1[i1] <= eps && e1[i1] >= -eps && e1[i2] <= eps && e1[i2] >= -eps)
+        return true;
+    if (segment_segment_inter_2(e0, e1, p0, p1, res, axis) >= 0)
+        return true; // check if segments has intersection, or if cube points
+                     // p0, p1 on e0-e1
+    if (segment_segment_inter_2(e0, e1, p1, p2, res, axis) >= 0)
+        return true;
+    if (segment_segment_inter_2(e0, e1, p2, p3, res, axis) >= 0)
+        return true;
+    if (segment_segment_inter_2(e0, e1, p3, p0, res, axis) >= 0)
+        return true;
+
+    return false;
+}
+void projected_cube_edges(
+    const double eps,
+    const int axis,
+    Vector3r& e0,
+    Vector3r& e1,
+    Vector3r& e2,
+    Vector3r& e3)
+{
+    const int i1 = (axis + 1) % 3;
+    const int i2 = (axis + 2) % 3;
+    e0[axis] = 0;
+    e1[axis] = 0;
+    e2[axis] = 0;
+    e3[axis] = 0;
+
+    e0[i1] = -eps;
+    e0[i2] = eps;
+
+    e1[i1] = eps;
+    e1[i2] = eps;
+
+    e2[i1] = eps;
+    e2[i2] = -eps;
+
+    e3[i1] = -eps;
+    e3[i2] = -eps;
+}
+bool is_point_intersect_cube(const double eps, const Vector3r& p)
+{
+    if (p[0] <= eps && p[0] >= -eps) {
+        if (p[1] <= eps && p[1] >= -eps) {
+            if (p[2] <= eps && p[2] >= -eps) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+bool is_cube_intersect_triangle(
+    const double eps,
+    const Vector3r& t0,
+    const Vector3r& t1,
+    const Vector3r& t2)
+{
+    // the vertices of triangle are checked before going here, the edges are
+    // also checked so, only need to check if cube edge has intersection with
+    // the open triangle.
+    Vector3r tnormal = (t0 - t1).cross(t0 - t2);
+    if (tnormal[0] == 0 && tnormal[1] == 0 && tnormal[2] == 0) {
+        return false;// if degenerated as a segment or point, then no intersection
+    }
+
+}
+
+//  triangle not degenerated
+bool is_seg_intersect_triangle(
+    const Vector3r& s0,
+    const Vector3r& s1,
+    const Vector3r& t0,
+    const Vector3r& t1,
+    const Vector3r& t2)
+{
+    int o1 = orient3d(s0, t0, t1, t2);
+    bool degeneration = false;
+    if (s0[0] == s1[0] && s0[1] == s1[1] && s0[2] == s1[2]) {
+        degeneration = true;
+        if (o1 != 0)
+            return false;//degenerated as a point but not on the plane
+    }
+	int o2 = orient3d(s1, t0, t1, t2);
+    if (o1 * o2 > 0)
+        return false;// segment on the same side of the triangle
+
+	int axis = 0;
+    if (fabs())
+    if (o1 == 0 && o2 == 0) {
+    
+	}
+}
+bool is_coplanar_seg_intersect_triangle(
+    const Vector3r& s0,
+    const Vector3r& s1,
+    const Vector3r& t0,
+    const Vector3r& t1,
+    const Vector3r& t2,
+    const int axis)
+{
+    int o1, o2, o3;
+    o1 = orient2d(s0, t0, t1, axis);
+    o2 = orient2d(s0, t1, t2, axis);
+    o3 = orient2d(s0, t2, t0, axis);
+    if (o1 * o2 >= 0 && o1 * o3 >= 0 && o2 * o3 >= 0) {
+        return true;// if same orientation, then point is inside
+    }
+    o1 = orient2d(s1, t0, t1, axis);
+    o2 = orient2d(s1, t1, t2, axis);
+    o3 = orient2d(s1, t2, t0, axis);
+    if (o1 * o2 >= 0 && o1 * o3 >= 0 && o2 * o3 >= 0) {
+        return true; // if same orientation, then point is inside
+    }
+	//since we already check triangle edge-box intersection, so no need to check here
+    return false;
+}
+
 prism::prism(
     const Vector3d& vs,
     const Vector3d& fs0,
@@ -86,7 +251,8 @@ prism::prism(
     p_vertices[2] = get_prism_corner(0, 0, 1);
     p_vertices[3] = get_prism_corner(1, 0, 0);
     p_vertices[4] = get_prism_corner(1, 1, 0);
-    p_vertices[5] = get_prism_corner(1, 0, 1);//these are the 6 vertices of the prism,right hand law
+    p_vertices[5] = get_prism_corner(
+        1, 0, 1); // these are the 6 vertices of the prism,right hand law
     std::array<int, 2> eid;
 
     eid[0] = 0;
@@ -99,7 +265,7 @@ prism::prism(
     eid[1] = 0;
     prism_edge_id[2] = eid;
 
-	eid[0] = 3;
+    eid[0] = 3;
     eid[1] = 4;
     prism_edge_id[3] = eid;
     eid[0] = 4;
@@ -109,7 +275,7 @@ prism::prism(
     eid[1] = 3;
     prism_edge_id[5] = eid;
 
-	eid[0] = 0;
+    eid[0] = 0;
     eid[1] = 3;
     prism_edge_id[6] = eid;
     eid[0] = 1;
@@ -118,7 +284,6 @@ prism::prism(
     eid[0] = 2;
     eid[1] = 5;
     prism_edge_id[8] = eid;
-
 }
 Vector3r prism::get_prism_corner(int u, int v, int t)
 {
@@ -152,7 +317,7 @@ cube::cube(double eps)
     faceid[2] = { { 0, 4, 5, 1 } };
     faceid[3] = { { 1, 5, 6, 2 } };
     faceid[4] = { { 3, 2, 6, 7 } };
-    faceid[5] = { { 0, 3, 7, 4 } };//orientation out
+    faceid[5] = { { 0, 3, 7, 4 } }; // orientation out
     bmax = vr[2];
     bmin = vr[4];
 }
