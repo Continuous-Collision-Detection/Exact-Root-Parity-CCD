@@ -17,7 +17,6 @@ bool vertexFaceCCD(
     const Eigen::Vector3d& face_vertex2_end)
 {
     throw "not implemented";
-    
 }
 
 bool vertexFaceCCD(
@@ -37,28 +36,36 @@ bool vertexFaceCCD(
         face_vertex2_start, vertex_end, face_vertex0_end, face_vertex1_end,
         face_vertex2_end);
 
-	// step 1. bounding box checking
+    // step 1. bounding box checking
     Vector3d bmin(-eps, -eps, -eps), bmax(eps, eps, eps);
-    bool bbox_intersection = vfprism.is_prism_bbox_cut_bbox(bmin, bmax);
-    if (!bbox_intersection)
-        return false;// if bounding box not intersected, then not intersected
-    
-	// step 2. prism edges & prism bottom triangles check
-	// prism edges test, segment degenerate cases already handled
+    bool intersection = vfprism.is_prism_bbox_cut_bbox(bmin, bmax);
+    if (!intersection)
+        return false; // if bounding box not intersected, then not intersected
+
+    // step 2. prism edges & prism bottom triangles check
+    // prism edges test, segment degenerate cases already handled
     for (int i = 0; i < 9; i++) {
         if (is_seg_intersect_cube(
                 eps, vfprism.p_vertices[vfprism.prism_edge_id[i][0]],
                 vfprism.p_vertices[vfprism.prism_edge_id[i][1]]))
             return true;
-	}
+    }
 
-	// prism top/bottom triangle test
+    // prism top/bottom triangle test
+    cube cb(eps);
+    if (is_cube_edges_intersect_triangle(
+            cb, vfprism.p_vertices[0], vfprism.p_vertices[1],
+            vfprism.p_vertices[2]))
+        return true;
+    if (is_cube_edges_intersect_triangle(
+            cb, vfprism.p_vertices[3], vfprism.p_vertices[4],
+            vfprism.p_vertices[5]))
+        return true;
+
+    // step 3 tet facets- cube edges
 
 
-
-
-
-	return false;
+    return false;
 }
 
 // Detect collisions between two edges as they move.

@@ -20,8 +20,19 @@ int orient2d(
     Vector3r v1, v2;
     v1 = a - b;
     v2 = c - b;
-    const int i1 = (axis + 1) % 3;
-    const int i2 = (axis + 2) % 3;
+    int i1, i2;
+    if (axis == 0) {
+        i1 = 1;
+        i2 = 2;
+	}
+    if (axis == 1) {
+        i1 = 0;
+        i2 = 2;
+    }
+    if (axis == 2) {
+        i1 = 0;
+        i2 = 1;
+    }
     const Rational det = v1[i1] * v2[i2] - v1[i2] * v2[i1];
     return det.get_sign();
 }
@@ -240,7 +251,7 @@ int segment_triangle_inter(
         - e1[1] * t2[2] * t3[0] - e1[2] * t1[0] * t2[1] + e1[2] * t1[0] * t3[1]
         + e1[2] * t1[1] * t2[0] - e1[2] * t1[1] * t3[0] - e1[2] * t2[0] * t3[1]
         + e1[2] * t2[1] * t3[0];
-    if (d.get_sign() == 0)
+    if (d.get_sign() == 0)//coplanar
         return -1;
 
     const Rational t = (e0[0] * t1[1] * t2[2] - e0[0] * t1[1] * t3[2]

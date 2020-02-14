@@ -3,6 +3,19 @@
 #include <array>
 #include <vector>
 namespace ccd {
+class cube {
+public:
+    cube(double eps);
+    // std::array<Vector3d, 8> vd;
+    std::array<Vector3r, 8> vr;
+    std::array<std::array<int, 2>, 12> edgeid;
+    std::array<std::array<int, 4>, 6> faceid;
+    Vector3r bmin;
+    Vector3r bmax;
+    double epsilon;
+};
+
+
 template <typename T, typename Y>
 bool box_box_intersection(
     const T& min1, const T& max1, const Y& min2, const Y& max2)
@@ -36,8 +49,8 @@ int seg_cut_plane(
     const Vector3r& t2);
 
 //Causion: open triangle!
-bool is_cube_intersect_triangle(
-    const double eps,
+bool is_cube_edges_intersect_triangle(
+    ccd::cube& cb,
     const Vector3r& t0,
     const Vector3r& t1,
     const Vector3r& t2);
@@ -46,7 +59,8 @@ bool is_seg_intersect_triangle(
     const Vector3r& s1,
     const Vector3r& t0,
     const Vector3r& t1,
-    const Vector3r& t2);
+    const Vector3r& t2,
+    const int& axis);
 //segment and triangle are coplanar, check intersection
 bool is_coplanar_seg_intersect_triangle(
     const Vector3r& s0,
@@ -116,16 +130,7 @@ private:
     Vector3r get_prism_corner(int u, int v, int t);
 };
 
-class cube {
-public:
-    cube(double eps);
-    //std::array<Vector3d, 8> vd;
-    std::array<Vector3r, 8> vr;
-    std::array<std::array<int, 2>, 12> edgeid;
-    std::array<std::array<int, 4>, 6> faceid;
-    Vector3r bmin;
-    Vector3r bmax;
-};
+
 
 
 } // namespace ccd

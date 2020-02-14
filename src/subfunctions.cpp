@@ -1,5 +1,33 @@
 #include "subfunctions.h"
 namespace ccd {
+cube::cube(double eps)
+{
+    vr[0] = Vector3r(-eps, -eps, eps), vr[1] = Vector3r(eps, -eps, eps),
+    vr[2] = Vector3r(eps, eps, eps), vr[3] = Vector3r(-eps, eps, eps),
+    vr[4] = Vector3r(-eps, -eps, -eps), vr[5] = Vector3r(eps, -eps, -eps),
+    vr[6] = Vector3r(eps, eps, -eps), vr[7] = Vector3r(-eps, eps, -eps);
+    edgeid[0] = { { 0, 1 } };
+    edgeid[1] = { { 1, 2 } };
+    edgeid[2] = { { 2, 3 } };
+    edgeid[3] = { { 3, 0 } };
+    edgeid[4] = { { 4, 5 } };
+    edgeid[5] = { { 5, 6 } };
+    edgeid[6] = { { 6, 7 } };
+    edgeid[7] = { { 7, 4 } };
+    edgeid[8] = { { 0, 4 } };
+    edgeid[9] = { { 1, 5 } };
+    edgeid[10] = { { 2, 6 } };
+    edgeid[11] = { { 3, 7 } };
+    faceid[0] = { { 0, 1, 2, 3 } };
+    faceid[1] = { { 4, 7, 6, 5 } };
+    faceid[2] = { { 0, 4, 5, 1 } };
+    faceid[3] = { { 1, 5, 6, 2 } };
+    faceid[4] = { { 3, 2, 6, 7 } };
+    faceid[5] = { { 0, 3, 7, 4 } }; // orientation out
+    bmax = vr[2];
+    bmin = vr[4];
+    epsilon = eps;
+}
 
 void get__corners(const std::vector<Vector3d>& p, Vector3d& min, Vector3d& max)
 {
@@ -40,47 +68,7 @@ int seg_cut_plane(
     return INTERSECTED;
 }
 
-// bool is_seg_intersect_cube(
-//    const cube& cb, const Vector3r& e0, const Vector3r& e1)
-//{
-//	//if (e0[0] == e1[0] && e0[1] == e1[1] && e0[2] == e1[2])
-//	//{
-// //       for (int i = 0; i < 3; i++) {
-// //               if (e0[i] < cb.bmin[i] || e0[i] > cb.bmax[i])
-// //                   return false;
-//	//	}
-// //       return true;
-//	//}
-// //   Vector3r t0, t1, t2;
-// //   int o1[6], o2[6], inter[6];
-// //   bool inter_palne = false;
-// //   for (int i = 0; i < 6; i++) {
-// //       t0 = cb.vr[cb.faceid[i][0]];
-// //       t1 = cb.vr[cb.faceid[i][1]];
-// //       t2 = cb.vr[cb.faceid[i][2]];
-// //       inter[i] = seg_cut_plane(e0, e1, t0, t1, t2);
-// //       if (inter[i] == INTERSECTED) {
-// //           if(segment_triangle_inter(e0, e1, t0, t1, t2)==1)
-// //               return true;
-// //           if (segment_triangle_inter(
-// //                   e0, e1, cb.vr[cb.faceid[i][0]], cb.vr[cb.faceid[i][2]],
-// //                   cb.vr[cb.faceid[i][3]])
-// //               == 1)
-// //               return true;
-// //           inter_palne = true;
-//	//	}
-//	//	//
-//	//}// the rest cases: totally inside, totally outside, totally in one
-//(closed) rectangle
-// //   if (inter_palne)
-// //       return false;
-//	//
-//
-//
-//
-//	return 0;
-//
-//}
+
 
 bool is_seg_intersect_cube(
     const double& eps, const Vector3r& e0, const Vector3r& e1)
@@ -160,20 +148,37 @@ bool is_point_intersect_cube(const double eps, const Vector3r& p)
     return false;
 }
 
-bool is_cube_intersect_triangle(
-    const double eps,
-    const Vector3r& t0,
-    const Vector3r& t1,
-    const Vector3r& t2)
+bool is_cube_edges_intersect_triangle(
+    ccd::cube& cb, const Vector3r& t0, const Vector3r& t1, const Vector3r& t2)
 {
     // the vertices of triangle are checked before going here, the edges are
     // also checked so, only need to check if cube edge has intersection with
     // the open triangle.
-    Vector3r tnormal = (t0 - t1).cross(t0 - t2);
-    if (tnormal[0] == 0 && tnormal[1] == 0 && tnormal[2] == 0) {
-        return false;// if degenerated as a segment or point, then no intersection
+    Vector3r normal = cross(t0 - t1,t0 - t2);
+    if (normal[0] == 0 && normal[1] == 0 && normal[2] == 0) {
+        return false;// if triangle degenerated as a segment or point, then no intersection, because before here we already check that
     }
-
+    int axis = 0;// maybe axis calculation can move to the function is_seg_intersect_triangle? but it is cheap, so whatever
+    if (normal[0] * normal[0].get_sign() >= normal[1] * normal[1].get_sign())
+        if (normal[0] * normal[0].get_sign()
+            >= normal[2] * normal[2].get_sign())
+            axis = 0;
+    if (normal[1] * normal[1].get_sign() >= normal[0] * normal[0].get_sign())
+        if (normal[1] * normal[1].get_sign()
+            >= normal[2] * normal[2].get_sign())
+            axis = 1;
+    if (normal[2] * normal[2].get_sign() >= normal[1] * normal[1].get_sign())
+        if (normal[2] * normal[2].get_sign()
+            >= normal[0] * normal[0].get_sign())
+            axis = 2;
+    Vector3r s0, s1;
+    for (int i = 0; i < 12; i++) {
+        s0 = cb.vr[cb.edgeid[i][0]];
+        s1 = cb.vr[cb.edgeid[i][1]];
+        if (is_seg_intersect_triangle(s0, s1, t0, t1, t2, axis))
+            return true;
+	}
+    return false;
 }
 
 //  triangle not degenerated
@@ -182,7 +187,8 @@ bool is_seg_intersect_triangle(
     const Vector3r& s1,
     const Vector3r& t0,
     const Vector3r& t1,
-    const Vector3r& t2)
+    const Vector3r& t2,
+    const int & axis)
 {
     int o1 = orient3d(s0, t0, t1, t2);
     bool degeneration = false;
@@ -195,11 +201,20 @@ bool is_seg_intersect_triangle(
     if (o1 * o2 > 0)
         return false;// segment on the same side of the triangle
 
-	int axis = 0;
-    if (fabs())
-    if (o1 == 0 && o2 == 0) {
-    
+    if (o1 == 0 && o2 == 0) {// if coplanar
+        
+        if (is_coplanar_seg_intersect_triangle(s0, s1, t0, t1, t2, axis)) {
+            return true;
+        } else {
+            return false;
+        }
 	}
+    // not degenerated segment, not coplanar with triangle
+    if (segment_triangle_inter(s0, s1, t0, t1, t2) == 1)
+        return true;
+    else {
+        return false;
+    }
 }
 bool is_coplanar_seg_intersect_triangle(
     const Vector3r& s0,
@@ -293,33 +308,6 @@ Vector3r prism::get_prism_corner(int u, int v, int t)
     return (1 - tr) * vsr + tr * ver
         - ((1 - tr) * fs0r + t * fe0r) * (1 - ur - vr)
         - ((1 - tr) * fs1r + t * fe1r) * ur - ((1 - tr) * fs2r + t * fe2r) * vr;
-}
-cube::cube(double eps)
-{
-    vr[0] = Vector3r(-eps, -eps, eps), vr[1] = Vector3r(eps, -eps, eps),
-    vr[2] = Vector3r(eps, eps, eps), vr[3] = Vector3r(-eps, eps, eps),
-    vr[4] = Vector3r(-eps, -eps, -eps), vr[5] = Vector3r(eps, -eps, -eps),
-    vr[6] = Vector3r(eps, eps, -eps), vr[7] = Vector3r(-eps, eps, -eps);
-    edgeid[0] = { { 0, 1 } };
-    edgeid[1] = { { 1, 2 } };
-    edgeid[2] = { { 2, 3 } };
-    edgeid[3] = { { 3, 0 } };
-    edgeid[4] = { { 4, 5 } };
-    edgeid[5] = { { 5, 6 } };
-    edgeid[6] = { { 6, 7 } };
-    edgeid[7] = { { 7, 4 } };
-    edgeid[8] = { { 0, 4 } };
-    edgeid[9] = { { 1, 5 } };
-    edgeid[10] = { { 2, 6 } };
-    edgeid[11] = { { 3, 7 } };
-    faceid[0] = { { 0, 1, 2, 3 } };
-    faceid[1] = { { 4, 7, 6, 5 } };
-    faceid[2] = { { 0, 4, 5, 1 } };
-    faceid[3] = { { 1, 5, 6, 2 } };
-    faceid[4] = { { 3, 2, 6, 7 } };
-    faceid[5] = { { 0, 3, 7, 4 } }; // orientation out
-    bmax = vr[2];
-    bmin = vr[4];
 }
 
 } // namespace ccd
