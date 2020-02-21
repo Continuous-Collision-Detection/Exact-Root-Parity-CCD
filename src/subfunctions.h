@@ -92,7 +92,26 @@ void get__corners(const std::array<T, 6>& p, T& min, T& max)
             max[2] = p[i][2];
     }
 }
-
+Vector3d get_prism_corner_double(
+    const Vector3d& vertex_start,
+    const Vector3d& face_vertex0_start,
+    const Vector3d& face_vertex1_start,
+    const Vector3d& face_vertex2_start,
+    const Vector3d& vertex_end,
+    const Vector3d& face_vertex0_end,
+    const Vector3d& face_vertex1_end,
+    const Vector3d& face_vertex2_end,int i);
+std::array<Vector3d, 6> get_prism_vertices_double(
+    const Vector3d& x0,
+    const Vector3d& x1,
+    const Vector3d& x2,
+    const Vector3d& x3,
+    const Vector3d& x0b,
+    const Vector3d& x1b,
+    const Vector3d& x2b,
+    const Vector3d& x3b,
+    double& k,
+    bool& correct,double& maxerror);
 class prism {
 public:
     prism(
@@ -114,6 +133,7 @@ public:
     }
     std::array<std::array<int, 2>, 9> prism_edge_id;
     std::array<Vector3r, 6> p_vertices;
+   
 
 private:
     Vector3r vsr;
@@ -128,6 +148,7 @@ private:
     
 
     Vector3r get_prism_corner(int u, int v, int t);
+    
 };
 
 

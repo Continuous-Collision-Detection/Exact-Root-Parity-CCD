@@ -1,4 +1,5 @@
 #include "subfunctions.h"
+#include <exact_subtraction.hpp>
 namespace ccd {
 cube::cube(double eps)
 {
@@ -49,6 +50,114 @@ void get__corners(const std::vector<Vector3d>& p, Vector3d& min, Vector3d& max)
             max[2] = p[i][2];
     }
 }
+
+std::array<Vector3d, 6> get_prism_vertices_double(
+    const Vector3d& x0,
+    const Vector3d& x1,
+    const Vector3d& x2,
+    const Vector3d& x3,
+    const Vector3d& x0b,
+    const Vector3d& x1b,
+    const Vector3d& x2b,
+    const Vector3d& x3b,
+    double& k,
+    bool& correct,
+    double& maxerror)
+{
+    std::vector<std::pair<double, double>> sub;
+    sub.reserve(18);
+    std::pair<double, double> temp;
+    correct = true;
+    for (int i = 0; i < 3; i++) {
+        temp.first = x0[i];
+        temp.second = x1[i];
+        sub.push_back(temp);
+    }
+    for (int i = 0; i < 3; i++) {
+        temp.first = x0[i];
+        temp.second = x3[i];
+        sub.push_back(temp);
+    }
+    for (int i = 0; i < 3; i++) {
+        temp.first = x0[i];
+        temp.second = x2[i];
+        sub.push_back(temp);
+    }
+    //
+    for (int i = 0; i < 3; i++) {
+        temp.first = x0b[i];
+        temp.second = x1b[i];
+        sub.push_back(temp);
+    }
+    for (int i = 0; i < 3; i++) {
+        temp.first = x0b[i];
+        temp.second = x3b[i];
+        sub.push_back(temp);
+    }
+    for (int i = 0; i < 3; i++) {
+        temp.first = x0b[i];
+        temp.second = x2b[i];
+        sub.push_back(temp);
+    }
+    std::vector<std::pair<double, double>> sub_record
+        = sub; // record the origin data
+    k = displaceSubtractions_double(sub);
+    std::array<Vector3d, 6> result;
+    int ct = 0;
+    maxerror = 0;
+    for (int i = 0; i < 6; i++) {
+        for (int j = 0; j < 3; j++) {
+            result[i][j] = sub[ct].first - sub[ct].second;
+
+            if (Rational(sub[ct].first) - Rational(sub[ct].second)
+                != result[i][j]) {
+                correct = false;
+            }
+            double mns = sub_record[ct].first - sub_record[ct].second;
+            Rational m = Rational(result[i][j])
+                - Rational(mns);
+            double md = m.to_double();
+            if (fabs(md) > maxerror) {
+                maxerror = fabs(md);
+            }
+
+            ct++;
+        }
+    }
+    return result;
+}
+
+Vector3d get_prism_corner_double(
+    const Vector3d& vertex_start,       // x0
+    const Vector3d& face_vertex0_start, // x1
+    const Vector3d& face_vertex1_start, // x2
+    const Vector3d& face_vertex2_start, // x3
+    const Vector3d& vertex_end,
+    const Vector3d& face_vertex0_end,
+    const Vector3d& face_vertex1_end,
+    const Vector3d& face_vertex2_end,
+    int i)
+{
+    Vector3d x0 = vertex_start, x1 = face_vertex0_start,
+             x2 = face_vertex1_start, x3 = face_vertex2_start, x0b = vertex_end,
+             x1b = face_vertex0_end, x2b = face_vertex1_end,
+             x3b = face_vertex2_end;
+    if (i == 0)
+        return x0 - x1;
+    if (i == 1)
+        return x0 - x3;
+    if (i == 2)
+        return x0 - x2;
+    if (i == 3)
+        return x0b - x1b;
+    if (i == 4)
+        return x0b - x3b;
+    if (i == 5)
+        return x0b - x2b;
+
+    else
+        return Vector3d();
+}
 int seg_cut_plane(
     const Vector3r& seg0,
     const Vector3r& seg1,
@@ -67,8 +176,6 @@ int seg_cut_plane(
         return COPLANAR;
     return INTERSECTED;
 }
-
-
 
 bool is_seg_intersect_cube(
     const double& eps, const Vector3r& e0, const Vector3r& e1)
@@ -154,11 +261,13 @@ bool is_cube_edges_intersect_triangle(
     // the vertices of triangle are checked before going here, the edges are
     // also checked so, only need to check if cube edge has intersection with
     // the open triangle.
-    Vector3r normal = cross(t0 - t1,t0 - t2);
+    Vector3r normal = cross(t0 - t1, t0 - t2);
     if (normal[0] == 0 && normal[1] == 0 && normal[2] == 0) {
-        return false;// if triangle degenerated as a segment or point, then no intersection, because before here we already check that
+        return false; // if triangle degenerated as a segment or point, then no
+                      // intersection, because before here we already check that
     }
-    int axis = 0;// maybe axis calculation can move to the function is_seg_intersect_triangle? but it is cheap, so whatever
+    int axis = 0; // maybe axis calculation can move to the function
+                  // is_seg_intersect_triangle? but it is cheap, so whatever
     if (normal[0] * normal[0].get_sign() >= normal[1] * normal[1].get_sign())
         if (normal[0] * normal[0].get_sign()
             >= normal[2] * normal[2].get_sign())
@@ -177,7 +286,7 @@ bool is_cube_edges_intersect_triangle(
         s1 = cb.vr[cb.edgeid[i][1]];
         if (is_seg_intersect_triangle(s0, s1, t0, t1, t2, axis))
             return true;
-	}
+    }
     return false;
 }
 
@@ -188,27 +297,27 @@ bool is_seg_intersect_triangle(
     const Vector3r& t0,
     const Vector3r& t1,
     const Vector3r& t2,
-    const int & axis)
+    const int& axis)
 {
     int o1 = orient3d(s0, t0, t1, t2);
     bool degeneration = false;
     if (s0[0] == s1[0] && s0[1] == s1[1] && s0[2] == s1[2]) {
         degeneration = true;
         if (o1 != 0)
-            return false;//degenerated as a point but not on the plane
+            return false; // degenerated as a point but not on the plane
     }
-	int o2 = orient3d(s1, t0, t1, t2);
+    int o2 = orient3d(s1, t0, t1, t2);
     if (o1 * o2 > 0)
-        return false;// segment on the same side of the triangle
+        return false; // segment on the same side of the triangle
 
-    if (o1 == 0 && o2 == 0) {// if coplanar
-        
+    if (o1 == 0 && o2 == 0) { // if coplanar
+
         if (is_coplanar_seg_intersect_triangle(s0, s1, t0, t1, t2, axis)) {
             return true;
         } else {
             return false;
         }
-	}
+    }
     // not degenerated segment, not coplanar with triangle
     if (segment_triangle_inter(s0, s1, t0, t1, t2) == 1)
         return true;
@@ -229,7 +338,7 @@ bool is_coplanar_seg_intersect_triangle(
     o2 = orient2d(s0, t1, t2, axis);
     o3 = orient2d(s0, t2, t0, axis);
     if (o1 * o2 >= 0 && o1 * o3 >= 0 && o2 * o3 >= 0) {
-        return true;// if same orientation, then point is inside
+        return true; // if same orientation, then point is inside
     }
     o1 = orient2d(s1, t0, t1, axis);
     o2 = orient2d(s1, t1, t2, axis);
@@ -237,7 +346,8 @@ bool is_coplanar_seg_intersect_triangle(
     if (o1 * o2 >= 0 && o1 * o3 >= 0 && o2 * o3 >= 0) {
         return true; // if same orientation, then point is inside
     }
-	//since we already check triangle edge-box intersection, so no need to check here
+    // since we already check triangle edge-box intersection, so no need to
+    // check here
     return false;
 }
 
@@ -263,9 +373,9 @@ prism::prism(
     }
     p_vertices[0] = get_prism_corner(0, 0, 0);
     p_vertices[1] = get_prism_corner(0, 1, 0);
-    p_vertices[2] = get_prism_corner(0, 0, 1);
-    p_vertices[3] = get_prism_corner(1, 0, 0);
-    p_vertices[4] = get_prism_corner(1, 1, 0);
+    p_vertices[2] = get_prism_corner(1, 0, 0);
+    p_vertices[3] = get_prism_corner(0, 0, 1);
+    p_vertices[4] = get_prism_corner(0, 1, 1);
     p_vertices[5] = get_prism_corner(
         1, 0, 1); // these are the 6 vertices of the prism,right hand law
     std::array<int, 2> eid;

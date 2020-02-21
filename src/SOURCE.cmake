@@ -6,6 +6,7 @@ src/Utils.cpp
 src/Utils.hpp
 src/subfunctions.h
 src/subfunctions.cpp
+src/exact_subtraction.hpp
 #src/AABB.h
 #src/AABB.cpp
 )
