@@ -123,13 +123,6 @@ bool read_result(const string inputFileName, vector<bool>& data)
 
 
 void test1() {
-
-}
-
-int main(int argc, char* argv[])
-{
-    // TODO: Put something more relevant here
-    //ccd::test();
     std::vector<sccd> data;
     read_CSV("D:\\vs\\collision\\CCD\\data\\cow-head-collisions.csv", data);
     std::vector<bool> results;
@@ -137,16 +130,16 @@ int main(int argc, char* argv[])
     results.resize(fn);
     double k;
     int count = 0;
-    double maxvalue = 0, merror = 0,maxerror;
-    
+    double maxvalue = 0, merror = 0, maxerror;
+
     bool correct;
     for (int i = 0; i < fn; i++) {
         if (i % 200 == 0)
             std::cout << "i " << i << std::endl;
 
-		get_prism_vertices_double(
+        get_prism_vertices_double(
             data[i].pts, data[i].v1s, data[i].v2s, data[i].v3s, data[i].pte,
-            data[i].v1e, data[i].v2e, data[i].v3e,k,correct,maxerror);
+            data[i].v1e, data[i].v2e, data[i].v3e, k, correct, maxerror);
         if (k != 0)
             count++;
         if (fabs(k) > maxvalue)
@@ -157,13 +150,19 @@ int main(int argc, char* argv[])
             cout << "wrong minus, " << i << std::endl;
         if (maxerror > merror) {
             merror = maxerror;
-		}
-        
+        }
     }
-    cout << "percentage of using k " << double(count) / double(fn) << std::endl;
-    cout << "max of k " << maxvalue << std::endl;
-    cout << "max error " << merror << std::endl;
-	
-    std::cout << "Exact CCD" << std::endl;
+    // cout << "percentage of using k " << double(count) / double(fn) <<
+    // std::endl; cout << "max of k " << maxvalue << std::endl; cout << "max
+    // error " << merror << std::endl;
+
+    // std::cout << "Exact CCD" << std::endl;
+}
+
+int main(int argc, char* argv[])
+{
+    // TODO: Put something more relevant here
+    //ccd::test();
+    
     return 1;
 }

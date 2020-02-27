@@ -1,6 +1,8 @@
 #include "subfunctions.h"
 #include <exact_subtraction.hpp>
 namespace ccd {
+
+// cube
 cube::cube(double eps)
 {
     vr[0] = Vector3r(-eps, -eps, eps), vr[1] = Vector3r(eps, -eps, eps),
@@ -30,6 +32,7 @@ cube::cube(double eps)
     epsilon = eps;
 }
 
+// get aabb corners
 void get__corners(const std::vector<Vector3d>& p, Vector3d& min, Vector3d& max)
 {
     min = p[0];
@@ -114,8 +117,7 @@ std::array<Vector3d, 6> get_prism_vertices_double(
                 correct = false;
             }
             double mns = sub_record[ct].first - sub_record[ct].second;
-            Rational m = Rational(result[i][j])
-                - Rational(mns);
+            Rational m = Rational(result[i][j]) - Rational(mns);
             double md = m.to_double();
             if (fabs(md) > maxerror) {
                 maxerror = fabs(md);
@@ -376,8 +378,8 @@ prism::prism(
     p_vertices[2] = get_prism_corner(1, 0, 0);
     p_vertices[3] = get_prism_corner(0, 0, 1);
     p_vertices[4] = get_prism_corner(0, 1, 1);
-    p_vertices[5] = get_prism_corner(
-        1, 0, 1); // these are the 6 vertices of the prism,right hand law
+    p_vertices[5] = get_prism_corner(1, 0, 1); 
+	// these are the 6 vertices of the prism,right hand law
     std::array<int, 2> eid;
 
     eid[0] = 0;
@@ -418,6 +420,88 @@ Vector3r prism::get_prism_corner(int u, int v, int t)
     return (1 - tr) * vsr + tr * ver
         - ((1 - tr) * fs0r + t * fe0r) * (1 - ur - vr)
         - ((1 - tr) * fs1r + t * fe1r) * ur - ((1 - tr) * fs2r + t * fe2r) * vr;
+}
+
+bilinear::bilinear(
+    const Vector3r& v0,
+    const Vector3r& v1,
+    const Vector3r& v2,
+    const Vector3r& v3)
+{
+    int ori = orient3d(v0, v1, v2, v3);
+    if (ori == 0) {
+        is_degenerated = true;
+    } else {
+        is_degenerated = false;
+    }
+    if (ori == 1) {
+        facets.resize(4);
+        facets[0] = { { 0, 1, 2 } }; // 0,1 are one pair
+        facets[1] = { { 0, 2, 3 } };
+
+        facets[2] = { { 3, 1, 0 } }; // 2,3 are one pair
+        facets[3] = { { 3, 2, 1 } };
+    }
+    if (ori == -1) {
+        facets.resize(4);
+        facets[0] = { { 0, 2, 1 } }; // 0,1 are one pair
+        facets[1] = { { 0, 3, 2 } };
+
+        facets[2] = { { 3, 0, 1 } }; // 2,3 are one pair
+        facets[3] = { { 3, 1, 2 } };
+    }
+}
+// the facets of the tet are all oriented to outside. check if p is inside of
+// OPEN tet
+bool is_point_inside_tet(const bilinear& bl, const Vector3r& p)
+{
+
+    for (int i = 0; i < 4; i++) { // facets.size()==4
+        if (orient3d(
+                p, bl.v[bl.facets[i][0]], bl.v[bl.facets[i][1]],
+                bl.v[bl.facets[i][2]])
+            >= 0) {
+            return false;
+        }
+    }
+    return true; // all the orientations are -1, then point inside
+}
+// vin is true, this vertex has intersection with open tet
+bool is_cube_intersect_tet_opposite_faces(
+    const bilinear& bl, const cube& cube, std::array<bool, 8>& vin)
+{
+    for (int i = 0; i < 8; i++) {
+        if (is_point_inside_tet(bl, cube.vr[i])) {
+            vin[i] = true;
+        } else {
+            vin[i] = false;
+        }
+    }
+
+    bool side1 = false;
+    bool side2 = false;
+
+    for (int i = 0; i < 12; i++) {
+        if (vin[cube.edgeid[i][0]]
+            && vin[cube.edgeid[i][1]]) { // two points of edge are all
+                                         // inside of open tet
+            continue;
+        }
+        for (int j = 0; j < 4; j++) {
+            if (segment_triangle_inter(
+                    cube.vr[cube.edgeid[i][0]], cube.vr[cube.edgeid[i][1]],
+                    bl.v[bl.facets[j][0]], bl.v[bl.facets[j][1]],
+                    bl.v[bl.facets[j][2]])) {
+                if (j == 0 || j == 1)
+                    side1 = true;
+                if (j == 2 || j == 3)
+                    side2 = true;
+                if (side1 && side2)
+                    return true;
+            }
+        }
+    }
+    return false;
 }
 
 } // namespace ccd

@@ -14,7 +14,20 @@ public:
     Vector3r bmax;
     double epsilon;
 };
-
+class bilinear {
+public:
+    // v0, v1 are vertices of one triangle, v2, v3 are the vertices of another
+    // one.
+    bilinear(
+        const Vector3r& v0,
+        const Vector3r& v1,
+        const Vector3r& v2,
+        const Vector3r& v3);
+    bool is_degenerated;
+    std::vector<std::array<int, 3>> facets;
+    std::array<int, 2> phi_f = {{2,2}};
+    std::array<Vector3r, 4> v = { { v0, v1, v2, v3 } };
+};
 
 template <typename T, typename Y>
 bool box_box_intersection(
@@ -38,9 +51,8 @@ void projected_cube_edges(
     Vector3r& e1,
     Vector3r& e2,
     Vector3r& e3);
-    // cube is centered at origin, and corner is (eps,eps,eps)
-bool is_point_intersect_cube(
-    const double eps, const Vector3r& p);
+// cube is centered at origin, and corner is (eps,eps,eps)
+bool is_point_intersect_cube(const double eps, const Vector3r& p);
 int seg_cut_plane(
     const Vector3r& seg0,
     const Vector3r& seg1,
@@ -48,12 +60,9 @@ int seg_cut_plane(
     const Vector3r& t1,
     const Vector3r& t2);
 
-//Causion: open triangle!
+// Causion: open triangle!
 bool is_cube_edges_intersect_triangle(
-    ccd::cube& cb,
-    const Vector3r& t0,
-    const Vector3r& t1,
-    const Vector3r& t2);
+    ccd::cube& cb, const Vector3r& t0, const Vector3r& t1, const Vector3r& t2);
 bool is_seg_intersect_triangle(
     const Vector3r& s0,
     const Vector3r& s1,
@@ -61,7 +70,7 @@ bool is_seg_intersect_triangle(
     const Vector3r& t1,
     const Vector3r& t2,
     const int& axis);
-//segment and triangle are coplanar, check intersection
+// segment and triangle are coplanar, check intersection
 bool is_coplanar_seg_intersect_triangle(
     const Vector3r& s0,
     const Vector3r& s1,
@@ -74,7 +83,7 @@ template <typename T>
 void get__corners(const std::array<T, 6>& p, T& min, T& max)
 {
 
- min = p[0];
+    min = p[0];
     max = p[0];
     for (int i = 0; i < 6; i++) {
         if (min[0] > p[i][0])
@@ -100,7 +109,8 @@ Vector3d get_prism_corner_double(
     const Vector3d& vertex_end,
     const Vector3d& face_vertex0_end,
     const Vector3d& face_vertex1_end,
-    const Vector3d& face_vertex2_end,int i);
+    const Vector3d& face_vertex2_end,
+    int i);
 std::array<Vector3d, 6> get_prism_vertices_double(
     const Vector3d& x0,
     const Vector3d& x1,
@@ -111,7 +121,8 @@ std::array<Vector3d, 6> get_prism_vertices_double(
     const Vector3d& x2b,
     const Vector3d& x3b,
     double& k,
-    bool& correct,double& maxerror);
+    bool& correct,
+    double& maxerror);
 class prism {
 public:
     prism(
@@ -133,7 +144,6 @@ public:
     }
     std::array<std::array<int, 2>, 9> prism_edge_id;
     std::array<Vector3r, 6> p_vertices;
-   
 
 private:
     Vector3r vsr;
@@ -145,13 +155,8 @@ private:
     Vector3r fe1r;
     Vector3r fe2r;
 
-    
-
     Vector3r get_prism_corner(int u, int v, int t);
-    
 };
-
-
-
-
+bool is_cube_intersect_tet_opposite_faces(
+    const bilinear& bl, const cube& cube, std::array<bool, 8>& vin);
 } // namespace ccd
