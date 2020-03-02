@@ -327,7 +327,7 @@ bool is_seg_intersect_triangle(
         }
     }
     // not degenerated segment, not coplanar with triangle
-    if (segment_triangle_inter(s0, s1, t0, t1, t2) == 1)
+    if (segment_triangle_inter(s0, s1, t0, t1, t2) > 0)
         return true;
     else {
         return false;
@@ -454,18 +454,18 @@ bilinear::bilinear(
     if (ori == 1) {
         facets.resize(4);
         facets[0] = { { 0, 1, 2 } }; // 0,1 are one pair
-        facets[1] = { { 0, 2, 3 } };
+        facets[1] = { { 2, 3, 0 } };
 
-        facets[2] = { { 3, 1, 0 } }; // 2,3 are one pair
+        facets[2] = { { 1, 0, 3 } }; // 2,3 are one pair
         facets[3] = { { 3, 2, 1 } };
     }
     if (ori == -1) {
         facets.resize(4);
-        facets[0] = { { 0, 2, 1 } }; // 0,1 are one pair
+        facets[0] = { { 2, 1, 0 } }; // 0,1 are one pair
         facets[1] = { { 0, 3, 2 } };
 
         facets[2] = { { 3, 0, 1 } }; // 2,3 are one pair
-        facets[3] = { { 3, 1, 2 } };
+        facets[3] = { { 1, 2, 3 } };
     }
 }
 // the facets of the tet are all oriented to outside. check if p is inside of
@@ -611,7 +611,8 @@ bool is_cube_intersect_tet_opposite_faces(
             if (segment_triangle_inter(
                     cube.vr[cube.edgeid[i][0]], cube.vr[cube.edgeid[i][1]],
                     bl.v[bl.facets[j][0]], bl.v[bl.facets[j][1]],
-                    bl.v[bl.facets[j][2]])) {
+                    bl.v[bl.facets[j][2]])
+                > 0) {
                 if (j == 0 || j == 1)
                     side1 = true;
                 if (j == 2 || j == 3)

@@ -69,4 +69,11 @@ int segment_triangle_inter(
     const Vector3r& t2,
     const Vector3r& t3);
 
+int ray_triangle_inter(
+    const Vector3r& p0,
+    const Vector3r& dir,
+    const Vector3r& t1,
+    const Vector3r& t2,
+    const Vector3r& t3);
+
 } // namespace eccd
