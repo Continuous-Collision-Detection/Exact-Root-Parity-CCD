@@ -73,14 +73,14 @@ bool vertexFaceCCD(
     bilinear bl2(
         vfprism.p_vertices[0], vfprism.p_vertices[2], vfprism.p_vertices[5],
         vfprism.p_vertices[3]);
-	
-    if (is_cube_intersect_tet_opposite_faces(bl0, cb, v_tet[0]))
+    bool bl_dege[3];
+    if (is_cube_intersect_tet_opposite_faces(bl0, cb, v_tet[0], bl_dege[0]))
         return true;
-    if (is_cube_intersect_tet_opposite_faces(bl1, cb, v_tet[1]))
+    if (is_cube_intersect_tet_opposite_faces(bl1, cb, v_tet[1], bl_dege[1]))
         return true;
-    if (is_cube_intersect_tet_opposite_faces(bl2, cb, v_tet[2]))
+    if (is_cube_intersect_tet_opposite_faces(bl2, cb, v_tet[2], bl_dege[2]))
         return true;
-    if ()
+    //if ()
 
 
 

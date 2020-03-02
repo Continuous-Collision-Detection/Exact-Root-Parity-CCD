@@ -13,6 +13,12 @@ static const int COPLANAR = -1;
 static const int INTERSECTED = 1;
 static const int NOT_INTERSECTED1 = 2;
 static const int NOT_INTERSECTED2 = 3;
+static const Vector3r ORIGIN = Vector3r(0, 0, 0);
+
+static const int BI_DEGE_PLANE = 1;
+static const int BI_DEGE_XOR_02 = 2;
+static const int BI_DEGE_XOR_13 = 3;
+
 template <typename V1, typename V2>
 Vector3r cross(const V1 &v1, const V2 &v2)
 {

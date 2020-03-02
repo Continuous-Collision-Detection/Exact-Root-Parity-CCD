@@ -257,31 +257,37 @@ bool is_point_intersect_cube(const double eps, const Vector3r& p)
     return false;
 }
 
+int get_triangle_project_axis(const Vector3r& t0, const Vector3r& t1, const Vector3r& t2){
+    Vector3r normal = cross(t0 - t1, t0 - t2);
+    if (normal[0] == 0 && normal[1] == 0 && normal[2] == 0) {
+        return 3; // if triangle degenerated as a segment or point, then no
+                      // intersection, because before here we already check that
+    }
+    
+    if (normal[0] * normal[0].get_sign() >= normal[1] * normal[1].get_sign())
+        if (normal[0] * normal[0].get_sign()
+            >= normal[2] * normal[2].get_sign())
+            return  0;
+    if (normal[1] * normal[1].get_sign() >= normal[0] * normal[0].get_sign())
+        if (normal[1] * normal[1].get_sign()
+            >= normal[2] * normal[2].get_sign())
+            return 1;
+    if (normal[2] * normal[2].get_sign() >= normal[1] * normal[1].get_sign())
+        if (normal[2] * normal[2].get_sign()
+            >= normal[0] * normal[0].get_sign())
+            return 2;
+}
 bool is_cube_edges_intersect_triangle(
-    ccd::cube& cb, const Vector3r& t0, const Vector3r& t1, const Vector3r& t2)
+    const ccd::cube& cb, const Vector3r& t0, const Vector3r& t1, const Vector3r& t2)
 {
     // the vertices of triangle are checked before going here, the edges are
     // also checked so, only need to check if cube edge has intersection with
     // the open triangle.
-    Vector3r normal = cross(t0 - t1, t0 - t2);
-    if (normal[0] == 0 && normal[1] == 0 && normal[2] == 0) {
-        return false; // if triangle degenerated as a segment or point, then no
+
+    int axis = get_triangle_project_axis(t0, t1, t2);
+    if (axis == 3)
+        return false;// if triangle degenerated as a segment or point, then no
                       // intersection, because before here we already check that
-    }
-    int axis = 0; // maybe axis calculation can move to the function
-                  // is_seg_intersect_triangle? but it is cheap, so whatever
-    if (normal[0] * normal[0].get_sign() >= normal[1] * normal[1].get_sign())
-        if (normal[0] * normal[0].get_sign()
-            >= normal[2] * normal[2].get_sign())
-            axis = 0;
-    if (normal[1] * normal[1].get_sign() >= normal[0] * normal[0].get_sign())
-        if (normal[1] * normal[1].get_sign()
-            >= normal[2] * normal[2].get_sign())
-            axis = 1;
-    if (normal[2] * normal[2].get_sign() >= normal[1] * normal[1].get_sign())
-        if (normal[2] * normal[2].get_sign()
-            >= normal[0] * normal[0].get_sign())
-            axis = 2;
     Vector3r s0, s1;
     for (int i = 0; i < 12; i++) {
         s0 = cb.vr[cb.edgeid[i][0]];
@@ -327,6 +333,8 @@ bool is_seg_intersect_triangle(
         return false;
     }
 }
+
+//seg does not intersect triangle edges
 bool is_coplanar_seg_intersect_triangle(
     const Vector3r& s0,
     const Vector3r& s1,
@@ -350,6 +358,14 @@ bool is_coplanar_seg_intersect_triangle(
     }
     // since we already check triangle edge-box intersection, so no need to
     // check here
+    Vector3r res;
+    if (segment_segment_inter_2(t0, t1, s0, s1, res, axis))
+        return true;
+    if (segment_segment_inter_2(t1, t2, s0, s1, res, axis))
+        return true;
+    if (segment_segment_inter_2(t0, t2, s0, s1, res, axis))
+        return true;
+
     return false;
 }
 
@@ -378,8 +394,8 @@ prism::prism(
     p_vertices[2] = get_prism_corner(1, 0, 0);
     p_vertices[3] = get_prism_corner(0, 0, 1);
     p_vertices[4] = get_prism_corner(0, 1, 1);
-    p_vertices[5] = get_prism_corner(1, 0, 1); 
-	// these are the 6 vertices of the prism,right hand law
+    p_vertices[5] = get_prism_corner(1, 0, 1);
+    // these are the 6 vertices of the prism,right hand law
     std::array<int, 2> eid;
 
     eid[0] = 0;
@@ -428,6 +444,7 @@ bilinear::bilinear(
     const Vector3r& v2,
     const Vector3r& v3)
 {
+    v = { { v0, v1, v2, v3 } };
     int ori = orient3d(v0, v1, v2, v3);
     if (ori == 0) {
         is_degenerated = true;
@@ -466,16 +483,119 @@ bool is_point_inside_tet(const bilinear& bl, const Vector3r& p)
     }
     return true; // all the orientations are -1, then point inside
 }
-// vin is true, this vertex has intersection with open tet
-bool is_cube_intersect_tet_opposite_faces(
-    const bilinear& bl, const cube& cube, std::array<bool, 8>& vin)
+
+bool same_point(const Vector3r& p1, const Vector3r& p2)
 {
-    for (int i = 0; i < 8; i++) {
-        if (is_point_inside_tet(bl, cube.vr[i])) {
-            vin[i] = true;
-        } else {
-            vin[i] = false;
+    if (p1[0] == p2[0] && p1[1] == p2[1] && p1[2] == p2[2]) {
+        return true;
+    }
+    return false;
+}
+Vector3r tri_norm(const Vector3r& t0, const Vector3r& t1, const Vector3r& t2)
+{
+    Vector3r s1, s2;
+    s1 = t1 - t0;
+    s2 = t2 - t1;
+    return cross(s1, s2);
+}
+int bilinear_degeneration(const bilinear& bl)
+{
+    Vector3r norm0, norm1;
+
+    // split 0-2 edge
+    norm0 = tri_norm(bl.v[0], bl.v[1], bl.v[2]);
+    norm1 = tri_norm(bl.v[0], bl.v[2], bl.v[3]);
+    if (norm0.dot(norm1) <= 0) {
+        return BI_DEGE_XOR_02;
+    }
+    // split 1-3 edge
+    norm0 = tri_norm(bl.v[0], bl.v[1], bl.v[3]);
+    norm1 = tri_norm(bl.v[3], bl.v[1], bl.v[2]);
+    if (norm0.dot(norm1) <= 0) {
+        return BI_DEGE_XOR_13;
+    }
+    return BI_DEGE_PLANE;
+}
+
+bool XOR(const bool a, const bool b)
+{
+    if (a && b)
+        return false;
+    if (!a && !b)
+        return false;
+    return true;
+}
+bool is_cube_intersect_degenerated_bilinear(const bilinear& bl, const cube& cube)
+{
+    int dege = bilinear_degeneration(bl);
+    int axis;
+    bool res;
+    if (dege == BI_DEGE_PLANE) {
+        
+        axis = get_triangle_project_axis(bl.v[0], bl.v[1], bl.v[3]);
+        if (is_cube_edges_intersect_triangle(cube, bl.v[0], bl.v[1], bl.v[3]))
+            return true;
+        if (is_cube_edges_intersect_triangle(cube, bl.v[3], bl.v[1], bl.v[2]))
+            return true;
+        return false;
+    } else {
+        axis = get_triangle_project_axis(bl.v[0], bl.v[1], bl.v[3]);
+        if (axis == 3)
+            axis = get_triangle_project_axis(bl.v[3], bl.v[1], bl.v[2]);
+        if (axis == 3)
+            return false;// both 2 triangles are all degenerated as a segment
+        if (dege == BI_DEGE_XOR_02) {// triangle 0-1-2 and 0-2-3
+            for (int i = 0; i < 12; i++) {
+                res = XOR(
+                    is_seg_intersect_triangle(
+                        cube.vr[cube.edgeid[i][0]], cube.vr[cube.edgeid[i][1]],
+                        bl.v[0], bl.v[1], bl.v[2], axis),
+                    is_seg_intersect_triangle(
+                        cube.vr[cube.edgeid[i][0]], cube.vr[cube.edgeid[i][1]],
+                        bl.v[0], bl.v[2], bl.v[3], axis));
+                if (res == true)
+                    return true;
+			}
+            return false;
         }
+
+		if (dege == BI_DEGE_XOR_13) { // triangle 0-1-3 and 3-1-2
+            for (int i = 0; i < 12; i++) {
+                res = XOR(
+                    is_seg_intersect_triangle(
+                        cube.vr[cube.edgeid[i][0]], cube.vr[cube.edgeid[i][1]],
+                        bl.v[0], bl.v[1], bl.v[3], axis),
+                    is_seg_intersect_triangle(
+                        cube.vr[cube.edgeid[i][0]], cube.vr[cube.edgeid[i][1]],
+                        bl.v[3], bl.v[1], bl.v[2], axis));
+                if (res == true)
+                    return true;
+            }
+            return false;
+        }
+    }
+    std::cout << "!! THIS CANNOT HAPPEN" << std::endl;
+    return false;
+}
+
+// vin is true, this vertex has intersection with open tet
+// if tet is degenerated, just tell us if cube is intersected with the shape
+bool is_cube_intersect_tet_opposite_faces(
+    const bilinear& bl, const cube& cube, std::array<bool, 8>& vin, bool bilinear_degenerate)
+{
+    if (!bl.is_degenerated) {
+        bilinear_degenerate = false;
+        for (int i = 0; i < 8; i++) {
+
+            if (is_point_inside_tet(bl, cube.vr[i])) {
+                vin[i] = true;
+            } else {
+                vin[i] = false;
+            }
+        }
+    } else {
+        bilinear_degenerate = true;
+        return is_cube_intersect_degenerated_bilinear(bl, cube);
     }
 
     bool side1 = false;
@@ -501,6 +621,8 @@ bool is_cube_intersect_tet_opposite_faces(
             }
         }
     }
+    if (side1 && side2)
+        return true;
     return false;
 }
 

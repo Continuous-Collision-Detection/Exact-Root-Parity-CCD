@@ -26,7 +26,8 @@ public:
     bool is_degenerated;
     std::vector<std::array<int, 3>> facets;
     std::array<int, 2> phi_f = {{2,2}};
-    std::array<Vector3r, 4> v = { { v0, v1, v2, v3 } };
+    std::array<Vector3r, 4> v;
+    
 };
 
 template <typename T, typename Y>
@@ -62,7 +63,7 @@ int seg_cut_plane(
 
 // Causion: open triangle!
 bool is_cube_edges_intersect_triangle(
-    ccd::cube& cb, const Vector3r& t0, const Vector3r& t1, const Vector3r& t2);
+   const ccd::cube& cb, const Vector3r& t0, const Vector3r& t1, const Vector3r& t2);
 bool is_seg_intersect_triangle(
     const Vector3r& s0,
     const Vector3r& s1,
@@ -158,5 +159,8 @@ private:
     Vector3r get_prism_corner(int u, int v, int t);
 };
 bool is_cube_intersect_tet_opposite_faces(
-    const bilinear& bl, const cube& cube, std::array<bool, 8>& vin);
+    const bilinear& bl,
+    const cube& cube,
+    std::array<bool, 8>& vin,
+    bool bilinear_degenerate);
 } // namespace ccd
