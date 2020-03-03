@@ -517,14 +517,7 @@ int bilinear_degeneration(const bilinear& bl)
     return BI_DEGE_PLANE;
 }
 
-bool XOR(const bool a, const bool b)
-{
-    if (a && b)
-        return false;
-    if (!a && !b)
-        return false;
-    return true;
-}
+
 bool is_cube_intersect_degenerated_bilinear(const bilinear& bl, const cube& cube)
 {
     int dege = bilinear_degeneration(bl);
@@ -532,7 +525,9 @@ bool is_cube_intersect_degenerated_bilinear(const bilinear& bl, const cube& cube
     bool res;
     if (dege == BI_DEGE_PLANE) {
         
-        axis = get_triangle_project_axis(bl.v[0], bl.v[1], bl.v[3]);
+        axis = get_triangle_project_axis(
+            bl.v[0], bl.v[1],
+            bl.v[3]); // TODO consider move axis into is_seg_intersect_triangle
         if (is_cube_edges_intersect_triangle(cube, bl.v[0], bl.v[1], bl.v[3]))
             return true;
         if (is_cube_edges_intersect_triangle(cube, bl.v[3], bl.v[1], bl.v[2]))

@@ -29,7 +29,14 @@ Vector3r cross(const V1 &v1, const V2 &v2)
 
     return res;
 }
-
+bool XOR(const bool a, const bool b)
+{
+    if (a && b)
+        return false;
+    if (!a && !b)
+        return false;
+    return true;
+}
 template<typename V>
 void print(const V &v)
 {
@@ -69,7 +76,13 @@ int segment_triangle_inter(
     const Vector3r& t2,
     const Vector3r& t3);
 
-int ray_triangle_inter(
+int ray_halfopen_triangle_inter(
+    const Vector3r& p0,
+    const Vector3r& dir,
+    const Vector3r& t1,
+    const Vector3r& t2,
+    const Vector3r& t3);
+int ray_open_triangle_inter(
     const Vector3r& p0,
     const Vector3r& dir,
     const Vector3r& t1,

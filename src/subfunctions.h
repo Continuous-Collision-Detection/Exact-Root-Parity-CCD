@@ -163,4 +163,7 @@ bool is_cube_intersect_tet_opposite_faces(
     const cube& cube,
     std::array<bool, 8>& vin,
     bool bilinear_degenerate);
+int bilinear_degeneration(const bilinear& bl);
+int get_triangle_project_axis(
+    const Vector3r& t0, const Vector3r& t1, const Vector3r& t2);
 } // namespace ccd
