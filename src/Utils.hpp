@@ -37,6 +37,19 @@ bool XOR(const bool a, const bool b)
         return false;
     return true;
 }
+int int_XOR(const int a, const int b)
+{
+    if (a == -1 || b == -1)
+        return -1;
+    if (a == b)
+        return 0;
+    if (a == 0)
+        return b;
+    if (b == 0)
+        return a;
+    std::cout << "impossible XOR cases" << std::endl;
+}
+
 template<typename V>
 void print(const V &v)
 {

@@ -310,6 +310,7 @@ int segment_triangle_inter(
     return 0;
 }
 // -1,0,1,2
+// 2: point is on the closed triangle
 int ray_halfopen_triangle_inter(// TODO need to be tested
     const Vector3r& e0,// e0 is the endpoint of ray
     const Vector3r& e1,// e1 is direction
@@ -381,9 +382,15 @@ int ray_halfopen_triangle_inter(// TODO need to be tested
    /* if (t < 0 || t > 1)
         return 0;*/
 
-    if (u >= 0 && u <= 1 && v >= 0 && v <= 1 && u + v <= 1 && t >= 0) {
-        if (t.get_sign() == 0)
-            return 2;// point is on the triangle
+    if (u >= 0 && u <= 1 && v >= 0 && v <= 1 && u + v <= 1 && t >= 0) {//caution
+        if (t.get_sign() == 0) {
+            if (u == 1 || v == 1)
+                return 2; // point is on the halfopen triangle
+            if (u + v == 1)
+                return 0; // point is on the halfopen triangle
+            return 2;
+        }
+            
         // on a corner
         if (u.get_sign() == 0 || v.get_sign() == 0)// TODO need to be tested
             return -1;
@@ -393,7 +400,95 @@ int ray_halfopen_triangle_inter(// TODO need to be tested
 
     return 0;
 }
+int ray_halfopen_triangle_inter_detailed( // TODO need to be tested
+    const Vector3r& e0,          // e0 is the endpoint of ray
+    const Vector3r& e1,          // e1 is direction, on_edge is used only when returns 2
+    const Vector3r& t1,
+    const Vector3r& t2,
+    const Vector3r& t3,bool& on_edge)
+{
 
+    const Rational d = e0[0] * t1[1] * t2[2] - e0[0] * t1[1] * t3[2]
+        - e0[0] * t1[2] * t2[1] + e0[0] * t1[2] * t3[1] + e0[0] * t2[1] * t3[2]
+        - e0[0] * t2[2] * t3[1] - e0[1] * t1[0] * t2[2] + e0[1] * t1[0] * t3[2]
+        + e0[1] * t1[2] * t2[0] - e0[1] * t1[2] * t3[0] - e0[1] * t2[0] * t3[2]
+        + e0[1] * t2[2] * t3[0] + e0[2] * t1[0] * t2[1] - e0[2] * t1[0] * t3[1]
+        - e0[2] * t1[1] * t2[0] + e0[2] * t1[1] * t3[0] + e0[2] * t2[0] * t3[1]
+        - e0[2] * t2[1] * t3[0] - e1[0] * t1[1] * t2[2] + e1[0] * t1[1] * t3[2]
+        + e1[0] * t1[2] * t2[1] - e1[0] * t1[2] * t3[1] - e1[0] * t2[1] * t3[2]
+        + e1[0] * t2[2] * t3[1] + e1[1] * t1[0] * t2[2] - e1[1] * t1[0] * t3[2]
+        - e1[1] * t1[2] * t2[0] + e1[1] * t1[2] * t3[0] + e1[1] * t2[0] * t3[2]
+        - e1[1] * t2[2] * t3[0] - e1[2] * t1[0] * t2[1] + e1[2] * t1[0] * t3[1]
+        + e1[2] * t1[1] * t2[0] - e1[2] * t1[1] * t3[0] - e1[2] * t2[0] * t3[1]
+        + e1[2] * t2[1] * t3[0];
+    if (d.get_sign() == 0) // coplanar direction
+        return -1;         // shoot another ray
+
+    const Rational t = (e0[0] * t1[1] * t2[2] - e0[0] * t1[1] * t3[2]
+                        - e0[0] * t1[2] * t2[1] + e0[0] * t1[2] * t3[1]
+                        + e0[0] * t2[1] * t3[2] - e0[0] * t2[2] * t3[1]
+                        - e0[1] * t1[0] * t2[2] + e0[1] * t1[0] * t3[2]
+                        + e0[1] * t1[2] * t2[0] - e0[1] * t1[2] * t3[0]
+                        - e0[1] * t2[0] * t3[2] + e0[1] * t2[2] * t3[0]
+                        + e0[2] * t1[0] * t2[1] - e0[2] * t1[0] * t3[1]
+                        - e0[2] * t1[1] * t2[0] + e0[2] * t1[1] * t3[0]
+                        + e0[2] * t2[0] * t3[1] - e0[2] * t2[1] * t3[0]
+                        - t1[0] * t2[1] * t3[2] + t1[0] * t2[2] * t3[1]
+                        + t1[1] * t2[0] * t3[2] - t1[1] * t2[2] * t3[0]
+                        - t1[2] * t2[0] * t3[1] + t1[2] * t2[1] * t3[0])
+        / d;
+    const Rational u = (-e0[0] * e1[1] * t1[2] + e0[0] * e1[1] * t3[2]
+                        + e0[0] * e1[2] * t1[1] - e0[0] * e1[2] * t3[1]
+                        - e0[0] * t1[1] * t3[2] + e0[0] * t1[2] * t3[1]
+                        + e0[1] * e1[0] * t1[2] - e0[1] * e1[0] * t3[2]
+                        - e0[1] * e1[2] * t1[0] + e0[1] * e1[2] * t3[0]
+                        + e0[1] * t1[0] * t3[2] - e0[1] * t1[2] * t3[0]
+                        - e0[2] * e1[0] * t1[1] + e0[2] * e1[0] * t3[1]
+                        + e0[2] * e1[1] * t1[0] - e0[2] * e1[1] * t3[0]
+                        - e0[2] * t1[0] * t3[1] + e0[2] * t1[1] * t3[0]
+                        + e1[0] * t1[1] * t3[2] - e1[0] * t1[2] * t3[1]
+                        - e1[1] * t1[0] * t3[2] + e1[1] * t1[2] * t3[0]
+                        + e1[2] * t1[0] * t3[1] - e1[2] * t1[1] * t3[0])
+        / d;
+    const Rational v = (e0[0] * e1[1] * t1[2] - e0[0] * e1[1] * t2[2]
+                        - e0[0] * e1[2] * t1[1] + e0[0] * e1[2] * t2[1]
+                        + e0[0] * t1[1] * t2[2] - e0[0] * t1[2] * t2[1]
+                        - e0[1] * e1[0] * t1[2] + e0[1] * e1[0] * t2[2]
+                        + e0[1] * e1[2] * t1[0] - e0[1] * e1[2] * t2[0]
+                        - e0[1] * t1[0] * t2[2] + e0[1] * t1[2] * t2[0]
+                        + e0[2] * e1[0] * t1[1] - e0[2] * e1[0] * t2[1]
+                        - e0[2] * e1[1] * t1[0] + e0[2] * e1[1] * t2[0]
+                        + e0[2] * t1[0] * t2[1] - e0[2] * t1[1] * t2[0]
+                        - e1[0] * t1[1] * t2[2] + e1[0] * t1[2] * t2[1]
+                        + e1[1] * t1[0] * t2[2] - e1[1] * t1[2] * t2[0]
+                        - e1[2] * t1[0] * t2[1] + e1[2] * t1[1] * t2[0])
+        / d;
+
+    // std::cout << t << std::endl;
+    // std::cout << u << std::endl;
+    // std::cout << v << std::endl;
+
+    /* if (t < 0 || t > 1)
+         return 0;*/
+
+    if (u >= 0 && u <= 1 && v >= 0 && v <= 1 && u + v < 1 && t >= 0) {
+        if (t.get_sign() == 0) {
+            if (u.get_sign() == 0 || v.get_sign() == 0)
+                on_edge = true;
+            else
+                on_edge = false;
+			return 2; // point is on the halfopen triangle
+		}
+            
+        // on a corner
+        if (u.get_sign() == 0 || v.get_sign() == 0) // TODO need to be tested
+            return -1;
+
+        return 1;
+    }
+
+    return 0;
+}
 // if return 1, intersected with open triangle;
 // if -1, parallel or hit on edge, need another ray;
 // if 0, not intersected

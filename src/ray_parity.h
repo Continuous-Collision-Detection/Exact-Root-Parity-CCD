@@ -50,11 +50,9 @@ bool ray_degenerated_bilinear_parity(
     const bilinear& bl,
     const Vector3r& pt,
     const Vector3r& dir,
-    const int dege,
-    const int axis)
+    const int dege
+    )//TODO consider if it is correct when one of triangle is degenerated as a segment
 {
-    if (axis == 3)
-        return false; // both 2 triangles are all degenerated as a segment
     bool res;
     int r1, r2;
     if (dege == BI_DEGE_PLANE) {
@@ -81,28 +79,23 @@ bool ray_degenerated_bilinear_parity(
     } else {
 
         if (dege == BI_DEGE_XOR_02) { // triangle 0-1-2 and 0-2-3
-            r1 = ray_halfopen_triangle_inter( // TODO need to check
+            r1 = ray_halfopen_triangle_inter( 
                 pt, dir, bl.v[bl.facets[0][0]], bl.v[bl.facets[0][1]],
-                bl.v[bl.facets[0][2]]);
+                bl.v[bl.facets[0][2]]);//0: not hit, 1: hit on open triangle, 2: pt on halfopen T, since already checked, accept it 
             r2 = ray_halfopen_triangle_inter(
                 pt, dir, bl.v[bl.facets[1][0]], bl.v[bl.facets[1][1]],
                 bl.v[bl.facets[1][2]]);
-            TODO use a int input xor
+            return int_XOR(r1, r2);
         }
 
         if (dege == BI_DEGE_XOR_13) { // triangle 0-1-3 and 3-1-2
-            for (int i = 0; i < 12; i++) {
-                res = XOR(
-                    is_seg_intersect_triangle(
-                        cube.vr[cube.edgeid[i][0]], cube.vr[cube.edgeid[i][1]],
-                        bl.v[0], bl.v[1], bl.v[3], axis),
-                    is_seg_intersect_triangle(
-                        cube.vr[cube.edgeid[i][0]], cube.vr[cube.edgeid[i][1]],
-                        bl.v[3], bl.v[1], bl.v[2], axis));
-                if (res == true)
-                    return true;
-            }
-            return false;
+            r1 = ray_halfopen_triangle_inter( 
+                pt, dir, bl.v[bl.facets[2][0]], bl.v[bl.facets[2][1]],
+                bl.v[bl.facets[2][2]]);//0: not hit, 1: hit on open triangle, 2: pt on halfopen T, since already checked, accept it 
+            r2 = ray_halfopen_triangle_inter(
+                pt, dir, bl.v[bl.facets[3][0]], bl.v[bl.facets[3][1]],
+                bl.v[bl.facets[3][2]]);
+            return int_XOR(r1, r2);
         }
     }
     std::cout << "!! THIS CANNOT HAPPEN" << std::endl;
@@ -187,7 +180,51 @@ int ray_bilinear_parity(
                 return 0;
         }
     } else {// degenerated bilinear
-
+        int degetype = bilinear_degeneration(bl);
+        return ray_degenerated_bilinear_parity(bl, pt, dir, degetype);// TODO this can not fix the case one triangle totally segment
     }
+}
+
+// check if point has intersection with prism by counting parity
+bool point_inside_prism(const prism& psm, const Vector3r& pt, const Vector3r& dir)
+{
+    int S = 0;
+
+    const int n_patches = func.n_patches();
+
+
+    for (int patch = 0; patch < n_patches; ++patch) {
+        
+        int is_ray_patch = ray_patch(func, patch, dir);
+        std::cout << "is_ray_patch " << is_ray_patch << std::endl;
+       
+        if (is_ray_patch == 2)
+            return 1;
+
+        if (is_ray_patch == -1)
+            return -1;
+
+        if (is_ray_patch == 1)
+            S++;
+    }
+
+    const auto caps = func.top_bottom_faces();
+
+    for (const auto& tri : caps) {
+        std::cout << "ori "
+                  << orient3d(Vector3r(0, 0, 0), tri[0], tri[1], tri[2])
+                  << std::endl;
+        int res = origin_ray_triangle_inter(dir, tri[0], tri[1], tri[2]);
+        std::cout << "res " << res << std::endl;
+        if (res == 2)
+            return 1;
+        if (res == -1)
+            return -1;
+
+        if (res > 0)
+            S++;
+    }
+    std::cout << "intersection nbrs " << S << std::endl;
+    return ((S % 2) == 1) ? 1 : 0;
 }
 } // namespace ccd
