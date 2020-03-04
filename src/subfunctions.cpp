@@ -427,8 +427,39 @@ prism::prism(
     eid[0] = 2;
     eid[1] = 5;
     prism_edge_id[8] = eid;
+    bilinears.resize(3);
+    bilinears[0]
+        = { { p_vertices[1], p_vertices[0], p_vertices[3], p_vertices[4] } };
+    bilinears[1]
+        = { { p_vertices[2], p_vertices[1], p_vertices[4], p_vertices[5] } };
+    bilinears[2]
+        = { { p_vertices[0], p_vertices[2], p_vertices[5], p_vertices[3] } };
+    
 }
-Vector3r prism::get_prism_corner(int u, int v, int t)
+bool prism::is_triangle_degenerated(const int up_or_bottom)
+{
+    // up
+    if (up_or_bottom == 0) {
+        Vector3r pt = cross(
+            p_vertices[0] - p_vertices[1], p_vertices[0] - p_vertices[2]);
+        if (same_point(pt, ORIGIN))
+            return true;
+        else
+            return false;
+    }
+    // bottom
+    if (up_or_bottom == 1) {
+        Vector3r pt = cross(
+            p_vertices[3] - p_vertices[4], p_vertices[3] - p_vertices[5]);
+        if (same_point(pt, ORIGIN))
+            return true;
+        else
+            return false;
+    }
+    std::cout << "!! wrong input in prism triangle degeneration test" << std::endl;
+    return false;
+}
+    Vector3r prism::get_prism_corner(int u, int v, int t)
 {
     const Rational ur(u);
     const Rational vr(v);

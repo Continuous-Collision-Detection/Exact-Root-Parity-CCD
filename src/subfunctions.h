@@ -143,8 +143,11 @@ public:
         get__corners(p_vertices, pmin, pmax);
         return box_box_intersection(pmin, pmax, min, max);
     }
+	// 0 means up, 1 means bottom
+    bool is_triangle_degenerated(const int up_or_bottom);
     std::array<std::array<int, 2>, 9> prism_edge_id;
     std::array<Vector3r, 6> p_vertices;
+    std::vector<std::array<Vector3r, 4>> bilinears;
 
 private:
     Vector3r vsr;

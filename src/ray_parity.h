@@ -184,18 +184,28 @@ int ray_bilinear_parity(
         return ray_degenerated_bilinear_parity(bl, pt, dir, degetype);// TODO this can not fix the case one triangle totally segment
     }
 }
+int ray_triangle_parity(const Vector3r& pt, const Vector3r& dir, const bool is_triangle_degenerated) {
+    if (is_triangle_degenerated
+		)
+}
 
-// check if point has intersection with prism by counting parity
-bool point_inside_prism(const prism& psm, const Vector3r& pt, const Vector3r& dir)
+
+
+    // check if point has intersection with prism by counting parity
+bool point_inside_prism( prism& psm, const Vector3r& pt, const Vector3r& dir, const std::vector<bool>& is_pt_in_tet)
 {
     int S = 0;
+    bool point_in_tet;
+    bool is_degenerate;
 
-    const int n_patches = func.n_patches();
 
+    for (int patch = 0; patch < psm.bilinears.size(); ++patch) {
+        bilinear tempbl(
+            psm.bilinears[patch][0], psm.bilinears[patch][1],
+            psm.bilinears[patch][2], psm.bilinears[patch][3]);
 
-    for (int patch = 0; patch < n_patches; ++patch) {
-        
-        int is_ray_patch = ray_patch(func, patch, dir);
+        int is_ray_patch = ray_bilinear_parity(
+            tempbl, pt, dir, tempbl.is_degenerated, is_pt_in_tet[patch]);
         std::cout << "is_ray_patch " << is_ray_patch << std::endl;
        
         if (is_ray_patch == 2)
@@ -208,13 +218,11 @@ bool point_inside_prism(const prism& psm, const Vector3r& pt, const Vector3r& di
             S++;
     }
 
-    const auto caps = func.top_bottom_faces();
+    
 
     for (const auto& tri : caps) {
-        std::cout << "ori "
-                  << orient3d(Vector3r(0, 0, 0), tri[0], tri[1], tri[2])
-                  << std::endl;
-        int res = origin_ray_triangle_inter(dir, tri[0], tri[1], tri[2]);
+        
+        int res = 
         std::cout << "res " << res << std::endl;
         if (res == 2)
             return 1;
