@@ -603,11 +603,20 @@ bool is_cube_intersect_degenerated_bilinear(const bilinear& bl, const cube& cube
     std::cout << "!! THIS CANNOT HAPPEN" << std::endl;
     return false;
 }
-
-// vin is true, this vertex has intersection with open tet
+bool is_seg_intersect_not_degenerated_bilinear(
+    bilinear& bl, const Vector3r& p0, const Vector3r& p1, const bool pin0, const bool pin1)
+{
+    if (pin0 && pin1) {
+		TODO
+	}
+    if (pin0) {
+    
+	}
+}
+    // vin is true, this vertex has intersection with open tet
 // if tet is degenerated, just tell us if cube is intersected with the shape
 bool is_cube_intersect_tet_opposite_faces(
-    const bilinear& bl, const cube& cube, std::array<bool, 8>& vin, bool bilinear_degenerate)
+    const bilinear& bl, const cube& cube, std::array<bool, 8>& vin, bool& bilinear_degenerate)
 {
     if (!bl.is_degenerated) {
         bilinear_degenerate = false;
@@ -629,7 +638,8 @@ bool is_cube_intersect_tet_opposite_faces(
 
     for (int i = 0; i < 12; i++) {
         if (vin[cube.edgeid[i][0]]
-            && vin[cube.edgeid[i][1]]) { // two points of edge are all
+            || vin[cube.edgeid[i][1]]) { // at least one of the two points of
+                                         // edge are
                                          // inside of open tet
             continue;
         }
