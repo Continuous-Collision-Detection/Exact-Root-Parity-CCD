@@ -81,7 +81,17 @@ int segment_segment_inter_2(
     const Vector3r& e1,
     Vector3r& res,
     int axis);
-int segment_triangle_inter(const Vector3d &e0, const Vector3d &e1, const Vector3d &t1, const Vector3d &t2, const Vector3d &t3);
+int ray_segment_inter(
+    const Vector3r& p0,
+    const Vector3r& dir,
+    const Vector3r& t1,
+    const Vector3r& t2);
+int segment_triangle_inter(
+    const Vector3d& e0,
+    const Vector3d& e1,
+    const Vector3d& t1,
+    const Vector3d& t2,
+    const Vector3d& t3);
 int segment_triangle_inter(
     const Vector3r& e0,
     const Vector3r& e1,
@@ -101,5 +111,5 @@ int ray_open_triangle_inter(
     const Vector3r& t1,
     const Vector3r& t2,
     const Vector3r& t3);
-
+bool same_point(const Vector3r& p1, const Vector3r& p2);
 } // namespace eccd

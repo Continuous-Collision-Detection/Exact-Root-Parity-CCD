@@ -133,7 +133,7 @@ int segment_segment_inter_2
 
         dir1 = s1 - s0;
         dir2 = e0 - s1;
-        if (dir1.dot(dir2) >= 0)
+        if (dir1.dot(dir2) >= 0)//TODO this is wrong, parallel but no touch cases are missing
             return 2;//s1 on s0-e0
         
 		dir1 = e1 - s0;
@@ -171,8 +171,69 @@ int segment_segment_inter_2
 #endif
     return 1;// intersected at one cross point, or end point
 }
+int ray_segment_inter(// TODO finish this part, ask teseo
+    const Vector3r& s0,
+    const Vector3r& dir,//e0 is the direction
+    const Vector3r& s1,
+    const Vector3r& e1)
 
-void write(const Vector3d &v, std::ostream &out)
+{
+    Vector3r e0 = s0 + dir;
+    Vector3r tmp = cross(dir, s1 - e1);
+    if (same_point(tmp, ORIGIN)) {
+		
+	}
+	const int i1 = (axis + 1) % 3;
+    const int i2 = (axis + 2) % 3;
+
+    const Rational dd = e0[i1] * e1[i2] - e0[i1] * s1[i2] - e0[i2] * e1[i1]
+        + e0[i2] * s1[i1] + e1[i1] * s0[i2] - e1[i2] * s0[i1] + s0[i1] * s1[i2]
+        - s0[i2] * s1[i1];
+
+    if (dd.get_sign() == 0) // parallel or overlap
+    {
+        Vector3r s1s0 = s0 - s1;
+        Vector3r e1s0 = s0 - e1;
+        Vector3r tmp1 = cross(s1s0, e1s0);
+        if (!same_point(tmp1, ORIGIN))
+            return 0;//parallel but not overlap
+        Vector3r dir2 = e1 - s1;
+        if (dir.dot(dir2) >= 0) {
+            if ((e1 - s0).dot(dir) >= 0
+                && same_point(cross(e1 - s0, dir), ORIGIN))
+                return -1;//overlap, s0 on the seg checked before, so overlap, need another ray 
+            else
+                return 0;
+		}else{
+            if ((e1 - s0).dot(dir) > 0)
+                return 2;
+            else
+                return 0;
+		}
+
+        return 0;
+    }
+
+    const Rational t0 = (e1[i1] * s0[i2] - e1[i1] * s1[i2] - e1[i2] * s0[i1]
+                         + e1[i2] * s1[i1] + s0[i1] * s1[i2] - s0[i2] * s1[i1])
+        / dd;
+    const Rational t1 = (e0[i1] * s0[i2] - e0[i1] * s1[i2] - e0[i2] * s0[i1]
+                         + e0[i2] * s1[i1] + s0[i1] * s1[i2] - s0[i2] * s1[i1])
+        / dd;
+
+    if (t0 < 0 || t0 > 1 || t1 < 0 || t1 > 1) {
+        return 0; // not intersected
+    }
+
+    res = (1 - t0) * s0 + t0 * e0;
+#ifndef NDEBUG
+    const Vector3r p1 = (1 - t1) * s1 + t1 * e1;
+
+    assert(res[0] == p1[0] && res[1] == p1[1] && res[2] == p1[2]);
+#endif
+    return 1; // intersected at one cross point, or end point
+}
+void write(const Vector3d& v, std::ostream& out)
 {
     out.write(reinterpret_cast<const char *>(&v[0]), sizeof(v[0]));
     out.write(reinterpret_cast<const char *>(&v[1]), sizeof(v[1]));
@@ -310,15 +371,15 @@ int segment_triangle_inter(
     return 0;
 }
 // -1,0,1,2
-// 2: point is on the closed triangle
+// 2: point is on the halfopen triangle
 int ray_halfopen_triangle_inter(// TODO need to be tested
     const Vector3r& e0,// e0 is the endpoint of ray
-    const Vector3r& e1,// e1 is direction
+    const Vector3r& dir,//   direction
     const Vector3r& t1,
     const Vector3r& t2,
     const Vector3r& t3)
 {
-
+    Vector3r e1 = e0 + dir;
     const Rational d = e0[0] * t1[1] * t2[2] - e0[0] * t1[1] * t3[2]
         - e0[0] * t1[2] * t2[1] + e0[0] * t1[2] * t3[1] + e0[0] * t2[1] * t3[2]
         - e0[0] * t2[2] * t3[1] - e0[1] * t1[0] * t2[2] + e0[1] * t1[0] * t3[2]
@@ -490,7 +551,7 @@ int ray_halfopen_triangle_inter_detailed( // TODO need to be tested
     return 0;
 }
 // if return 1, intersected with open triangle;
-// if -1, parallel or hit on edge, need another ray;
+// if -1, parallel or hit on edge, need another ray;//TODO need to fix this, only touch and parallel need another ray
 // if 0, not intersected
 // if 2, point on open triangle
 int ray_open_triangle_inter( 

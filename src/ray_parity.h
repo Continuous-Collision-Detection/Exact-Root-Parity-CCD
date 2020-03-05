@@ -184,15 +184,37 @@ int ray_bilinear_parity(
         return ray_degenerated_bilinear_parity(bl, pt, dir, degetype);// TODO this can not fix the case one triangle totally segment
     }
 }
-int ray_triangle_parity(const Vector3r& pt, const Vector3r& dir, const bool is_triangle_degenerated) {
-    if (is_triangle_degenerated
-		)
+int ray_triangle_parity(
+    const Vector3r& pt,
+    const Vector3r& dir,
+    const Vector3r& t0,
+    const Vector3r& t1,
+    const Vector3r& t2,
+    const bool is_triangle_degenerated)
+{
+    if (!is_triangle_degenerated) {
+        return ray_open_triangle_inter(pt, dir, t0, t1, t2);
+        // 0 not hit, 1 hit on open triangle, -1 parallel or hit on edge, need
+        // another shoot. TODO with -1 need to cleaned
+    } else {
+        int i1 = ray_segment_inter(pt, dir, t0, t1);
+        if (i1 != 0)
+            return i1;
+        int i2 = ray_segment_inter(pt, dir, t1, t2);
+        if (i2 != 0)
+            return i2;
+        int i3 = ray_segment_inter(pt, dir, t2, t0);
+
+        return i3; // TODO maybe we dont need return 1 because either ignor or
+                   // shoot another ray
+    }
 }
 
 
 
+
     // check if point has intersection with prism by counting parity
-bool point_inside_prism( prism& psm, const Vector3r& pt, const Vector3r& dir, const std::vector<bool>& is_pt_in_tet)
+int point_inside_prism( prism& psm, const Vector3r& pt, const Vector3r& dir, const std::vector<bool>& is_pt_in_tet)
 {
     int S = 0;
     bool point_in_tet;
@@ -218,21 +240,61 @@ bool point_inside_prism( prism& psm, const Vector3r& pt, const Vector3r& dir, co
             S++;
     }
 
+    int res;
+    res = ray_triangle_parity(
+        pt, dir, psm.p_vertices[0], psm.p_vertices[1], psm.p_vertices[2],
+        psm.is_triangle_degenerated(0));
+
+	if (res == 2)
+        return 1;// it should be impossible TODO check if it is checked before
+    if (res == -1)
+        return -1;
+
+    if (res > 0)
+        S++;
+    res = ray_triangle_parity(
+        pt, dir, psm.p_vertices[3], psm.p_vertices[4], psm.p_vertices[5],
+        psm.is_triangle_degenerated(1));
+
+    if (res == 2)
+        return 1; // it should be impossible TODO check if it is checked before
+    if (res == -1)
+        return -1;
+
+    if (res > 0)
+        S++;
     
-
-    for (const auto& tri : caps) {
-        
-        int res = 
-        std::cout << "res " << res << std::endl;
-        if (res == 2)
-            return 1;
-        if (res == -1)
-            return -1;
-
-        if (res > 0)
-            S++;
-    }
     std::cout << "intersection nbrs " << S << std::endl;
     return ((S % 2) == 1) ? 1 : 0;
 }
+ 
+bool retrial_ccd(
+    prism& psm,
+    const Vector3r& pt,
+    const std::vector<bool>& is_pt_in_tet)
+{
+    static const int max_trials = 8;// TODO maybe dont need to set this
+    Vector3r dir(1, 0, 0);
+
+    int res = -1;
+    int trials;
+    for (trials = 0; trials < max_trials; ++trials) {
+        res = point_inside_prism(psm, pt, dir, is_pt_in_tet);
+
+        if (res >= 0)
+            break;
+
+        dir = Vector3d::Random();
+    }
+
+    if (trials == max_trials) {
+
+        std::cout << "All rays are on edges, increase trials" << std::endl;
+        throw "All rays are on edges, increase trials";
+        return false;
+    }
+
+    return res >= 1; // what is this mean?
+}
+
 } // namespace ccd
