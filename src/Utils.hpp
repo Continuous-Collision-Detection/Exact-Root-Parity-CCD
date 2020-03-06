@@ -4,8 +4,7 @@
 
 #include <Eigen/Core>
 
-namespace ccd
-{
+namespace ccd {
 
 typedef Eigen::Matrix<Rational, 3, 1> Vector3r;
 typedef Eigen::Matrix<double, 3, 1> Vector3d;
@@ -19,8 +18,7 @@ static const int BI_DEGE_PLANE = 1;
 static const int BI_DEGE_XOR_02 = 2;
 static const int BI_DEGE_XOR_13 = 3;
 
-template <typename V1, typename V2>
-Vector3r cross(const V1 &v1, const V2 &v2)
+template <typename V1, typename V2> Vector3r cross(const V1& v1, const V2& v2)
 {
     Vector3r res;
     res[0] = v1[1] * v2[2] - v1[2] * v2[1];
@@ -50,30 +48,33 @@ int int_XOR(const int a, const int b)
     std::cout << "impossible XOR cases" << std::endl;
 }
 
-template<typename V>
-void print(const V &v)
+template <typename V> void print(const V& v)
 {
     std::cout << v[0] << " " << v[1] << " " << v[2] << std::endl;
 }
 
-void write(const Vector3d &v, std::ostream &out);
-Vector3d read(std::istream &in);
+void write(const Vector3d& v, std::ostream& out);
+Vector3d read(std::istream& in);
 
-int orient3d(const Vector3r &a, const Vector3r &b, const Vector3r &c, const Vector3r &d);
+int orient3d(
+    const Vector3r& a, const Vector3r& b, const Vector3r& c, const Vector3r& d);
 int orient2d(
-    const Vector3r& a,
-    const Vector3r& b,
-    const Vector3r& c,
-    const int axis);
+    const Vector3r& a, const Vector3r& b, const Vector3r& c, const int axis);
 int origin_ray_triangle_inter(
     const Vector3d& dir,
     const Vector3r& t1,
     const Vector3r& t2,
     const Vector3r& t3);
 
-bool segment_segment_inter(const Vector3r &s0, const Vector3r &e0, const Vector3r &s1, const Vector3r &e1, Vector3r &res, int axis);
+bool segment_segment_inter(
+    const Vector3r& s0,
+    const Vector3r& e0,
+    const Vector3r& s1,
+    const Vector3r& e1,
+    Vector3r& res,
+    int axis);
 // this function can also tell us if they are parallel and overlapped
-// and also tell us if the parallel case has seg-seg overlapping: 
+// and also tell us if the parallel case has seg-seg overlapping:
 int segment_segment_inter_2(
     const Vector3r& s0,
     const Vector3r& e0,
@@ -98,7 +99,12 @@ int segment_triangle_inter(
     const Vector3r& t1,
     const Vector3r& t2,
     const Vector3r& t3);
-
+int line_triangle_inter(
+    const Vector3r& e0,
+    const Vector3r& e1,
+    const Vector3r& t1,
+    const Vector3r& t2,
+    const Vector3r& t3);
 int ray_halfopen_triangle_inter(
     const Vector3r& p0,
     const Vector3r& dir,
@@ -112,4 +118,4 @@ int ray_open_triangle_inter(
     const Vector3r& t2,
     const Vector3r& t3);
 bool same_point(const Vector3r& p1, const Vector3r& p2);
-} // namespace eccd
+} // namespace ccd

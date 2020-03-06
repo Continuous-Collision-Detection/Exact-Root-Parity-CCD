@@ -81,7 +81,7 @@ bool vertexFaceCCD(
         return true;
     if (is_cube_intersect_tet_opposite_faces(bl2, cb, v_tet[2], bl_dege[2]))
         return true;
-
+    
 
     
 	
