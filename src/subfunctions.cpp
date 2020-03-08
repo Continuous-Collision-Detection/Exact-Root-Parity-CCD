@@ -638,9 +638,135 @@ bool line_shoot_same_pair_tet(
         return true;
     return false;
 }
+Rational quadratic_function_value(
+    const Rational& a, const Rational& b, const Rational& c, const Rational& t)
+{
 
-bool rootfinder(const bilinear& bl,)
-    // segment intersect two opposite faces not included. compare phi, then use root
+    if (t.get_sign() == 0) {
+        return c;
+    } else {
+        return a * t * t + b * t + c;
+    }
+}
+// f(t)=at^2+bt+c, when t is [t0, t1]
+bool quadratic_function_rootfinder(
+    const Rational& a,
+    const Rational& b,
+    const Rational& c,
+    const Rational t0,
+    const Rational t1)
+{
+    Rational ft0, ft1;
+    ft0 = quadratic_function_value(a, b, c, t0);
+    ft1 = quadratic_function_value(a, b, c, t1);
+    if (ft0.get_sign() == 0 || ft1.get_sign() == 0)
+        return true;
+    if (ft0.get_sign() != ft1.get_sign())
+        return true;
+    // the following are cases which signs of endpoints are same
+    if (a.get_sign() == 0)
+        return false;
+    Rational t = -b / (2 * a);
+    if (t < t1 && t > t0) {
+        Rational ft
+            = (4 * a * c - b * b); // actually it should be /4a. we only
+                                   // care about the signs so doesnt matter
+        int ftsign = a.get_sign() > 0 ? ft.get_sign() : (-1) * ft.get_sign();
+        if (ft0.get_sign() != ftsign)
+            return true;
+    }
+    return false;
+}
+// v0 is one point, dir is the direction,
+// x0 - x3 are four points defined the shape
+void get_quadratic_function(
+    const Rational& v00,
+    const Rational& v01,
+    const Rational& v02,
+    const Rational& dir0,
+    const Rational& dir1,
+    const Rational& dir2,
+    const Vector3r x0,
+    const Vector3r x1,
+    const Vector3r x2,
+    const Vector3r x3,
+    Rational& a,
+    Rational& b,
+    Rational& c)
+{
+    Rational x00 = x0[0], x01 = x0[1], x02 = x0[2];
+    Rational x10 = x1[0], x11 = x1[1], x12 = x1[2];
+    Rational x20 = x2[0], x21 = x2[1], x22 = x2[2];
+    Rational x30 = x3[0], x31 = x3[1], x32 = x3[2];
+
+    Rational x101 = x11 - x01, x100 = x10 - x00, x102 = x12 - x02,
+             x201 = x21 - x01, x200 = x20 - x00, x300 = x30 - x00,
+             x301 = x31 - x01, x310 = x30 - x10, x211 = x21 - x11,
+             x311 = x31 - x11, x210 = x20 - x10, x202 = x22 - x02,
+             x302 = x32 - x02, x212 = x22 - x12, x312 = x32 - x12;
+    a = (dir0 * (x101 * x202 - x102 * x201)
+         + dir1 * (-x100 * x202 + x102 * x200)
+         + dir2 * (x100 * x201 - x101 * x200))
+            * (dir0 * (-x201 * x302 + x202 * x301)
+               + dir1 * (x200 * x302 - x202 * x300)
+               + dir2 * (-x200 * x301 + x201 * x300))
+        - (dir0 * (-x211 * x312 + x212 * x311)
+           + dir1 * (x210 * x312 - x212 * x310)
+           + dir2 * (-x210 * x311 + x211 * x310))
+            * (dir0 * (x101 * x302 - x102 * x301)
+               + dir1 * (-x100 * x302 + x102 * x300)
+               + dir2 * (x100 * x301 - x101 * x300));
+    b = ((v00 - x00) * (x101 * x202 - x102 * x201)
+         + (v01 - x01) * (-x100 * x202 + x102 * x200)
+         + (v02 - x02) * (x100 * x201 - x101 * x200))
+            * (dir0 * (-x201 * x302 + x202 * x301)
+               + dir1 * (x200 * x302 - x202 * x300)
+               + dir2 * (-x200 * x301 + x201 * x300))
+        + (dir0 * (x101 * x202 - x102 * x201)
+           + dir1 * (-x100 * x202 + x102 * x200)
+           + dir2 * (x100 * x201 - x101 * x200))
+            * ((v00 - x00) * (-x201 * x302 + x202 * x301)
+               + (v01 - x01) * (x200 * x302 - x202 * x300)
+               + (v02 - x02) * (-x200 * x301 + x201 * x300))
+        - ((v00 - x10) * (-x211 * x312 + x212 * x311)
+           + (v01 - x11) * (x210 * x312 - x212 * x310)
+           + (v02 - x12) * (-x210 * x311 + x211 * x310))
+            * (dir0 * (x101 * x302 - x102 * x301)
+               + dir1 * (-x100 * x302 + x102 * x300)
+               + dir2 * (x100 * x301 - x101 * x300))
+        - (dir0 * (-x211 * x312 + x212 * x311)
+           + dir1 * (x210 * x312 - x212 * x310)
+           + dir2 * (-x210 * x311 + x211 * x310))
+            * ((v00 - x00) * (x101 * x302 - x102 * x301)
+               + (v01 - x01) * (-x100 * x302 + x102 * x300)
+               + (v02 - x02) * (x100 * x301 - x101 * x300));
+    c = ((v00 - x00) * (x101 * x202 - x102 * x201)
+         + (v01 - x01) * (-x100 * x202 + x102 * x200)
+         + (v02 - x02) * (x100 * x201 - x101 * x200))
+            * ((v00 - x00) * (-x201 * x302 + x202 * x301)
+               + (v01 - x01) * (x200 * x302 - x202 * x300)
+               + (v02 - x02) * (-x200 * x301 + x201 * x300))
+        - ((v00 - x10) * (-x211 * x312 + x212 * x311)
+           + (v01 - x11) * (x210 * x312 - x212 * x310)
+           + (v02 - x12) * (-x210 * x311 + x211 * x310))
+            * ((v00 - x00) * (x101 * x302 - x102 * x301)
+               + (v01 - x01) * (-x100 * x302 + x102 * x300)
+               + (v02 - x02) * (x100 * x301 - x101 * x300));
+}
+bool rootfinder(
+    const bilinear& bl,
+    const Vector3r& p0,
+    const Vector3r& p1,
+    const bool p0in,
+    const bool p1in,
+    const int pairid)
+{
+    
+    if (p0in && p1in) {
+
+    }
+}
+// segment intersect two opposite faces not included. compare phi, then use root
 // finder
 bool is_seg_intersect_not_degenerated_bilinear(
     bilinear& bl,
@@ -744,7 +870,7 @@ bool is_seg_intersect_not_degenerated_bilinear(
     std::cout
         << " it cannot happen here in is_seg_intersect_not_degenerated_bilinear"
         << std::endl;
-	return false;
+    return false;
 }
 // vin is true, this vertex has intersection with open tet
 // if tet is degenerated, just tell us if cube is intersected with the shape
