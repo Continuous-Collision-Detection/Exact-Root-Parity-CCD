@@ -81,36 +81,34 @@ bool vertexFaceCCD(
         return true;
     if (is_cube_intersect_tet_opposite_faces(bl2, cb, v_tet[2], bl_dege[2]))
         return true;
-    
 
+    if (is_cube_edge_intersect_bilinear(bl0, cb, v_tet[0]))
+        return true;
+    if (is_cube_edge_intersect_bilinear(bl1, cb, v_tet[1]))
+        return true;
+    if (is_cube_edge_intersect_bilinear(bl2, cb, v_tet[2]))
+        return true;
     
 	
 	//down here is the last part of the algorithm
-	//
-	//int min_v = 3;
- //   int curr_v;
- //   int target = 0;
- //   for (int i = 0; i < 8; i++) {
- //       curr_v = v_tet[0][i] + v_tet[1][i] + v_tet[2][i];
- //       if (curr_v < min_v) {
- //           min_v = curr_v;
- //           target = i;
- //       }
- //   }
- //   if (min_v == 0) { // TODO think about it when should we shoot a ray
- //       std::vector<bool> p_tet;
- //       p_tet.resize(3);
- //       p_tet[0] = v_tet[0][target];
- //       p_tet[1] = v_tet[1][target];
- //       p_tet[2] = v_tet[2][target];
- //       return retrial_ccd(vfprism, cb.vr[target], p_tet);
- //       // if ()
- //   }
- //   
+	
+	int min_v = 3;
+    int curr_v;
+    int target = 0;
+    for (int i = 0; i < 8; i++) {
+        curr_v = v_tet[0][i] + v_tet[1][i] + v_tet[2][i];
+        if (curr_v < min_v) {
+            min_v = curr_v;
+            target = i;
+        }
+    }
 
-
-
-    return false;
+    std::vector<bool> p_tet;
+    p_tet.resize(3);
+    p_tet[0] = v_tet[0][target];
+    p_tet[1] = v_tet[1][target];
+    p_tet[2] = v_tet[2][target];
+    return retrial_ccd(vfprism, cb.vr[target], p_tet);
 }
 
 // Detect collisions between two edges as they move.

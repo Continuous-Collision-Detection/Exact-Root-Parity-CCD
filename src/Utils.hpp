@@ -117,5 +117,12 @@ int ray_open_triangle_inter(
     const Vector3r& t1,
     const Vector3r& t2,
     const Vector3r& t3);
+int line_triangle_inter_return_t(
+    const Vector3r& e0,
+    const Vector3r& e1,
+    const Vector3r& t1,
+    const Vector3r& t2,
+    const Vector3r& t3,
+    Rational& t);
 bool same_point(const Vector3r& p1, const Vector3r& p2);
 } // namespace ccd

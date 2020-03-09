@@ -654,7 +654,7 @@ bool quadratic_function_rootfinder(
     const Rational& b,
     const Rational& c,
     const Rational t0,
-    const Rational t1)
+    const Rational t1)// t0 t1 no matter which is bigger
 {
     Rational ft0, ft1;
     ft0 = quadratic_function_value(a, b, c, t0);
@@ -753,6 +753,16 @@ void get_quadratic_function(
                + (v01 - x01) * (-x100 * x302 + x102 * x300)
                + (v02 - x02) * (x100 * x301 - x101 * x300));
 }
+bool get_function_find_root(
+    const bilinear& bl, const Vector3r& p0, const Vector3r& p1, const Rational &t0, const Rational &t1)
+{
+    Rational a, b, c;
+    Vector3r dir = p1 - p0;
+    get_quadratic_function(
+        p0[0], p0[1], p0[2], dir[0], dir[1], dir[2], bl.v[0], bl.v[1], bl.v[2],
+        bl.v[3], a, b, c);
+    return quadratic_function_rootfinder(a, b, c, t0, t1);
+}
 bool rootfinder(
     const bilinear& bl,
     const Vector3r& p0,
@@ -763,8 +773,48 @@ bool rootfinder(
 {
     
     if (p0in && p1in) {
-
+		// t0=0, t1=1
+        return get_function_find_root(bl, p0, p1, Rational(0), Rational(1));
     }
+    int fid = 2 * pairid;// it should be 0 or 2
+    Rational t;
+    if (p0in) {
+        bool res1=line_triangle_inter_return_t(
+            p0, p1, bl.v[bl.facets[fid][0]], bl.v[bl.facets[fid][1]],
+            bl.v[bl.facets[fid][2]], t);
+        if (!res1) {
+            line_triangle_inter_return_t(
+                p0, p1, bl.v[bl.facets[fid+1][0]], bl.v[bl.facets[fid+1][1]],
+                bl.v[bl.facets[fid+1][2]], t);
+        }
+        // we got t
+        return get_function_find_root(bl, p0, p1, 0, t);
+    }
+    if (p1in) { // change the order of input to get t just because we want
+                // domain to be [0, t]
+        bool res1 = line_triangle_inter_return_t(
+            p1, p0, bl.v[bl.facets[fid][0]], bl.v[bl.facets[fid][1]],
+            bl.v[bl.facets[fid][2]], t);
+        if (!res1) {
+            line_triangle_inter_return_t(
+                p1, p0, bl.v[bl.facets[fid + 1][0]],
+                bl.v[bl.facets[fid + 1][1]], bl.v[bl.facets[fid + 1][2]], t);
+        }
+        // we got t
+        return get_function_find_root(bl, p1, p0, 0, t);
+    }
+
+    Rational t1;
+    line_triangle_inter_return_t(
+        p0, p1, bl.v[bl.facets[fid][0]], bl.v[bl.facets[fid][1]],
+        bl.v[bl.facets[fid][2]], t);
+
+    line_triangle_inter_return_t(
+        p0, p1, bl.v[bl.facets[fid + 1][0]], bl.v[bl.facets[fid + 1][1]],
+        bl.v[bl.facets[fid + 1][2]], t1);
+
+    // we got t, t1
+    return get_function_find_root(bl, p0, p1, t, t1);
 }
 // segment intersect two opposite faces not included. compare phi, then use root
 // finder
@@ -782,8 +832,13 @@ bool is_seg_intersect_not_degenerated_bilinear(
         Rational phi1 = phi(p1, bl.v);
         if (phi0 == 0 || phi1 == 0 || phi0 != phi1)
             return true;
-        if (line_shoot_same_pair_tet(p0, p1, phi1.get_sign(), bl))
-            return rootfinder();
+        if (line_shoot_same_pair_tet(p0, p1, phi1.get_sign(), bl)) {
+            if (phi1.get_sign() == bl.phi_f[0])
+                return rootfinder(bl, p0, p1, pin0, pin1, 0);
+            else
+                return rootfinder(bl, p0, p1, pin0, pin1, 1);
+		}
+            
         else
             return false; // if the phis are the same, and shoot same pair, need
                           // to use rootfinder
@@ -817,8 +872,13 @@ bool is_seg_intersect_not_degenerated_bilinear(
         } // TODO write phi_f into a function to avoid the get phi function
 
         else {
-            if (line_shoot_same_pair_tet(p0, p1, phi0.get_sign(), bl))
-                return rootfinder();
+            if (line_shoot_same_pair_tet(p0, p1, phi0.get_sign(), bl)) {
+                if (phi0.get_sign() == bl.phi_f[0])
+                    return rootfinder(bl, p0, p1, pin0, pin1, 0);
+                else
+                    return rootfinder(bl, p0, p1, pin0, pin1, 1);
+			}
+                
             else
                 return false; // if the phis are the same, and shoot same pair,
                               // need to use rootfinder
@@ -850,8 +910,12 @@ bool is_seg_intersect_not_degenerated_bilinear(
         } // TODO write phi_f into a function to avoid the get phi function
 
         else {
-            if (line_shoot_same_pair_tet(p0, p1, phi1.get_sign(), bl))
-                return rootfinder();
+            if (line_shoot_same_pair_tet(p0, p1, phi1.get_sign(), bl)) {
+                if (phi1.get_sign() == bl.phi_f[0])
+                    return rootfinder(bl, p0, p1, pin0, pin1, 0);
+                else
+                    return rootfinder(bl, p0, p1, pin0, pin1, 1);
+            }
             else
                 return false; // if the phis are the same, and shoot same pair,
                               // need to use rootfinder
@@ -860,10 +924,19 @@ bool is_seg_intersect_not_degenerated_bilinear(
     if (!pin0
         && !pin1) { // not intersect tet (false), or intersect same side(root
                     // finder) or intersect diff side(checked before)
-        if (line_shoot_same_pair_tet(p0, p1, 1, bl))
-            return rootfinder();
-        else if (line_shoot_same_pair_tet(p0, p1, -1, bl))
-            return rootfinder();
+        if (line_shoot_same_pair_tet(p0, p1, 1, bl)) {
+            if (1 == bl.phi_f[0])
+                return rootfinder(bl, p0, p1, pin0, pin1, 0);
+            else
+                return rootfinder(bl, p0, p1, pin0, pin1, 1);
+		}
+            
+        else if (line_shoot_same_pair_tet(p0, p1, -1, bl)) {
+            if (-1 == bl.phi_f[0])
+                return rootfinder(bl, p0, p1, pin0, pin1, 0);
+            else
+                return rootfinder(bl, p0, p1, pin0, pin1, 1);
+			}
         return false; // if the phis are the same, and shoot same pair,
                       // need to use rootfinder
     }
@@ -872,7 +945,19 @@ bool is_seg_intersect_not_degenerated_bilinear(
         << std::endl;
     return false;
 }
-// vin is true, this vertex has intersection with open tet
+
+bool is_cube_edge_intersect_bilinear(
+    bilinear& bl, const cube& cb, const std::array<bool, 8>&pin)
+{
+    for (int i = 0; i < 12; i++) {
+        if (is_seg_intersect_not_degenerated_bilinear(
+                bl, cb.vr[cb.edgeid[i][0]], cb.vr[cb.edgeid[i][1]],
+                pin[cb.edgeid[i][0]], pin[cb.edgeid[i][0]]))
+            return true;
+	}
+    return false;
+}
+    // vin is true, this vertex has intersection with open tet
 // if tet is degenerated, just tell us if cube is intersected with the shape
 bool is_cube_intersect_tet_opposite_faces(
     const bilinear& bl,
