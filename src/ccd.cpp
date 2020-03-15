@@ -74,22 +74,29 @@ bool vertexFaceCCD(
     bilinear bl2(
         vfprism.p_vertices[0], vfprism.p_vertices[2], vfprism.p_vertices[5],
         vfprism.p_vertices[3]);
-    bool bl_dege[3];
-    if (is_cube_intersect_tet_opposite_faces(bl0, cb, v_tet[0], bl_dege[0]))
+    bool bl_dege[3],cube_inter_tet[3];
+    if (is_cube_intersect_tet_opposite_faces(bl0, cb, v_tet[0], bl_dege[0], cube_inter_tet[0]))
         return true;
-    if (is_cube_intersect_tet_opposite_faces(bl1, cb, v_tet[1], bl_dege[1]))
+    if (is_cube_intersect_tet_opposite_faces(bl1, cb, v_tet[1], bl_dege[1], cube_inter_tet[1]))
         return true;
-    if (is_cube_intersect_tet_opposite_faces(bl2, cb, v_tet[2], bl_dege[2]))
+    if (is_cube_intersect_tet_opposite_faces(bl2, cb, v_tet[2], bl_dege[2], cube_inter_tet[2]))
         return true;
 
-    if (is_cube_edge_intersect_bilinear(bl0, cb, v_tet[0]))
-        return true;
-    if (is_cube_edge_intersect_bilinear(bl1, cb, v_tet[1]))
-        return true;
-    if (is_cube_edge_intersect_bilinear(bl2, cb, v_tet[2]))
-        return true;
-    
-	
+	// if cube intersect any tet, need check if intersect bilinear;
+		// if cube not intersect any tet, shoot a ray
+	//TODO we can also have some information about the edge-face intersection above
+	if (cube_inter_tet[0]) {
+		if (is_cube_edge_intersect_bilinear(bl0, cb, v_tet[0]))
+			return true;
+	}
+	if (cube_inter_tet[1]) {
+		if (is_cube_edge_intersect_bilinear(bl1, cb, v_tet[1]))
+			return true;
+	}
+	if (cube_inter_tet[2]) {
+		if (is_cube_edge_intersect_bilinear(bl2, cb, v_tet[2]))
+			return true;
+	}
 	//down here is the last part of the algorithm
 	
 	int min_v = 3;

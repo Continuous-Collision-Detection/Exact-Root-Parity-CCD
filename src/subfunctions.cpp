@@ -528,13 +528,7 @@ bool same_point(const Vector3r& p1, const Vector3r& p2)
     }
     return false;
 }
-Vector3r tri_norm(const Vector3r& t0, const Vector3r& t1, const Vector3r& t2)
-{
-    Vector3r s1, s2;
-    s1 = t1 - t0;
-    s2 = t2 - t1;
-    return cross(s1, s2);
-}
+// we already know the bilinear is degenerated, next check which kind
 int bilinear_degeneration(const bilinear& bl)
 {
     Vector3r norm0, norm1;
@@ -963,13 +957,15 @@ bool is_cube_intersect_tet_opposite_faces(
     const bilinear& bl,
     const cube& cube,
     std::array<bool, 8>& vin,
-    bool& bilinear_degenerate)
+    bool& bilinear_degenerate,bool &cube_inter_tet)
 {
+	cube_inter_tet = false;
     if (!bl.is_degenerated) {
         bilinear_degenerate = false;
         for (int i = 0; i < 8; i++) {
 
             if (is_point_inside_tet(bl, cube.vr[i])) {
+				cube_inter_tet = true;
                 vin[i] = true;
             } else {
                 vin[i] = false;
@@ -996,6 +992,7 @@ bool is_cube_intersect_tet_opposite_faces(
                     bl.v[bl.facets[j][0]], bl.v[bl.facets[j][1]],
                     bl.v[bl.facets[j][2]])
                 > 0) {
+				cube_inter_tet = true;
                 if (j == 0 || j == 1)
                     side1 = true;
                 if (j == 2 || j == 3)

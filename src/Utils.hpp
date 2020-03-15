@@ -125,4 +125,11 @@ int line_triangle_inter_return_t(
     const Vector3r& t3,
     Rational& t);
 bool same_point(const Vector3r& p1, const Vector3r& p2);
+Vector3r tri_norm(const Vector3r& t0, const Vector3r& t1, const Vector3r& t2)
+{
+	Vector3r s1, s2;
+	s1 = t1 - t0;
+	s2 = t2 - t1;
+	return cross(s1, s2);
+}
 } // namespace ccd
