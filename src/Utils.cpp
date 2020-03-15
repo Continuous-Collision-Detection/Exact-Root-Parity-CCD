@@ -241,7 +241,26 @@ int ray_segment_intersection(
 	if (same_point(e1, s1))//degenerated case
 		return point_on_ray(s0, dir0, s1);
 	Vector3r dir1 = e1 - s1;
+	Vector3r norm = cross(dir1, dir0);
+	if (same_point(norm, ORIGIN))
+	{
+		int inter1 = point_on_ray(s0, dir0, s1);
+		int inter2 = point_on_ray(s0, dir0, e1);
+		if (inter1 == 0 && inter2 == 0) return 0;
+		if (inter1 == 2 && inter2 == 2) return 2;
+		if (inter1 > 0 && inter2 == 0) return 2;
+		if (inter2 > 0 && inter1 == 0) return 2;
+		return 1;
+	}
+	else {
+		Vector3r norm1 = cross(s0 - s1, dir0);
+		if(same_point(norm1,ORIGIN))
+			xx
+		Vector3r norm2 = cross(e1 - s0, dir0);
+		if (norm.dot(norm1) > 0 && norm.dot(norm2) > 0) {
 
+		}
+	}
 }
 
 // no need this any more
