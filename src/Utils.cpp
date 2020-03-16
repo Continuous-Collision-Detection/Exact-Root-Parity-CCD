@@ -155,6 +155,15 @@ bool colinear_point_on_segment(
         return true;
     return false;
 }
+bool point_on_segment(const Vector3r& pt, const Vector3r& s0, const Vector3r& s1) {
+	Vector3r dir1 = pt - s0;
+	Vector3r dir2 = s1 - pt;
+	Vector3r norm = cross(dir1, dir2);
+	if (same_point(norm, ORIGIN))
+		return colinear_point_on_segment(pt, s0, s1);
+	else
+		return false;
+}
 // check if two parallel segments (or any segment is degenerated as a point) have intersection
 bool parallel_segments_inter(
     const Vector3r& s0,
@@ -191,7 +200,7 @@ bool segment_segment_intersection(
 
     bool dege0 = is_segment_degenerated(s0, e0);
     bool dege1 = is_segment_degenerated(s1, e1);
-    if (!dege0 && !dege1) {
+    if (!dege0 && !dege1) {// two segments not degenerated
         if (same_point(
                 cross(e0 - s0, e1 - s1),
                 ORIGIN)) // if two segments not degenerated are parallel
@@ -216,6 +225,16 @@ bool segment_segment_intersection(
 			return true;
 		return false;
 	}
+	if (dege0&&dege1) {
+		if (same_point(s0, s1))
+			return true;
+		else
+			return false;
+	}
+	if (dege0) {
+
+	}
+		
 }
 // 0 not intersected; 1 intersected; 2 pt on s0
 int point_on_ray(const Vector3r& s0,
@@ -306,7 +325,82 @@ Vector3d read(std::istream& in)
 
     return res;
 }
+// 2 on edge, 1 interior, 0 not intersect, 3 intersect OPEN edge t2-t3
+// norm follows right hand law
+int point_inter_triangle(
+	const Vector3r&pt, 
+	const Vector3d& t1,
+	const Vector3d& t2,
+	const Vector3d& t3,
+	const bool& dege, const Vector3r& norm, const bool halfopen) {
+	if (dege) {// check 2 edges are enough
+		if (point_on_segment(pt, t1, t2))
+			return 2;
+		if (point_on_segment(pt, t1, t3))
+			return 2;
+		return 0;
+	}
+	else {
+		if (orient3d(pt, t1, t2, t3) != 0)
+			return false;
+		/*if (point_on_segment(pt, t1, t2))
+			return 2;
+		if (point_on_segment(pt, t1, t3))
+			return 2;
+		if (point_on_segment(pt, t2, t3))
+			return 2;*///no need to do above
+		Vector3r np = t1 + norm;
+		int o1 = orient3d(pt, np, t1, t2);
+		int o2 = orient3d(pt, np, t2, t3);// this edge 
+		int o3 = orient3d(pt, np, t3, t1);
+		if (halfopen) {
+			if (o2 == 0 && o1 == o3)
+				return 3;// on open edge t2-t3
+		}
+		
+		if (o1 == o2 && o1 == o3)
+			return 1;
+		if (o1 == 0 && o2 * o3 >= 0)
+			return 2;
+		if (o2 == 0 && o1 * o3 >= 0)
+			return 2;
+		if (o3 == 0 && o2* o1 >= 0)
+			return 2;
+		
+		return 0;
+	}
+}
+// we check if triangle intersect segment,
+// this function is used in cube edge--prism tri and cube edge--bilinear tri
+// if halfopen= true, can tell us if intersect the edge t2-t3
+int segment_triangle_intersection(
+	const Vector3r& e0,
+	const Vector3r& e1,
+	const Vector3r& t1,
+	const Vector3r& t2,
+	const Vector3r& t3,
+	const bool halfopen) {
+	
+	Vector3r norm = cross(t2 - t1, t3 - t2);
+	if (same_point(norm, ORIGIN))// triangle degeneration
+	{
+		return false;//we already checked triangle (at least two edges)edge against cube
+		//TODO need to make it a general one?
+	}
 
+	int o1 = orient3d(e0, t1, t2, t3);
+	int o2 = orient3d(e1, t1, t2, t3);
+	if (o1 > 0 && o2 > 0)
+		return 0;
+	if (o1 < 0 && o2 < 0)
+		return 0;
+
+	if (o1 == 0 && o2 != 0)// e0 on the plane
+		return point_inter_triangle(e0, t1, t2, t3, false, norm, halfopen);
+	if (o2 == 0 && o1 != 0)
+		return point_inter_triangle(e1, t1, t2, t3, false, norm, halfopen);
+	return //seg_triangle_inter
+}
 int segment_triangle_inter(
     const Vector3d& ef0,
     const Vector3d& ef1,
