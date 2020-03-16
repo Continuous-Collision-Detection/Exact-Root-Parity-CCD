@@ -65,7 +65,18 @@ int origin_ray_triangle_inter(
     const Vector3r& t1,
     const Vector3r& t2,
     const Vector3r& t3);
-
+bool segment_segment_intersection(
+	const Vector3r& s0,
+	const Vector3r& e0,
+	const Vector3r& s1,
+	const Vector3r& e1);
+// 0 not intersected, 1 intersected, 2 s0 on segment
+// can deal with degenerated cases
+int ray_segment_intersection(
+	const Vector3r& s0,
+	const Vector3r& dir0,
+	const Vector3r& s1,
+	const Vector3r& e1);
 bool segment_segment_inter(
     const Vector3r& s0,
     const Vector3r& e0,
@@ -75,18 +86,8 @@ bool segment_segment_inter(
     int axis);
 // this function can also tell us if they are parallel and overlapped
 // and also tell us if the parallel case has seg-seg overlapping:
-int segment_segment_inter_2(
-    const Vector3r& s0,
-    const Vector3r& e0,
-    const Vector3r& s1,
-    const Vector3r& e1,
-    Vector3r& res,
-    int axis);
-int ray_segment_inter(
-    const Vector3r& p0,
-    const Vector3r& dir,
-    const Vector3r& t1,
-    const Vector3r& t2);
+
+
 int segment_triangle_inter(
     const Vector3d& e0,
     const Vector3d& e1,

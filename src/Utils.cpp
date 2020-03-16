@@ -240,154 +240,50 @@ int ray_segment_intersection(
 	
 	if (same_point(e1, s1))//degenerated case
 		return point_on_ray(s0, dir0, s1);
-	Vector3r dir1 = e1 - s1;
-	Vector3r norm = cross(dir1, dir0);
+	/////////////////////////////////////
+	Vector3r norm = cross(s0-s1, e1-s0);
 	if (same_point(norm, ORIGIN))
 	{
-		int inter1 = point_on_ray(s0, dir0, s1);
-		int inter2 = point_on_ray(s0, dir0, e1);
-		if (inter1 == 0 && inter2 == 0) return 0;
-		if (inter1 == 2 && inter2 == 2) return 2;
-		if (inter1 > 0 && inter2 == 0) return 2;
-		if (inter2 > 0 && inter1 == 0) return 2;
-		return 1;
+		if (colinear_point_on_segment(s0, s1, e1))
+			return 2;
+		else return 0;
 	}
 	else {
+
 		Vector3r norm1 = cross(s0 - s1, dir0);
-		if(same_point(norm1,ORIGIN))
-			xx
+		if (same_point(norm1, ORIGIN))
+			return point_on_ray(s0, dir0, s1);
+
 		Vector3r norm2 = cross(e1 - s0, dir0);
-		if (norm.dot(norm1) > 0 && norm.dot(norm2) > 0) {
-
+		if (same_point(norm2, ORIGIN)) {
+			return point_on_ray(s0, dir0, e1);
 		}
+
+		if (norm.dot(norm1) > 0 && norm.dot(norm2) > 0) {
+			return 1;
+		}
+		return 0;
 	}
+
+
+	/////////////////////////////////////
+	//Vector3r dir1 = e1 - s1;
+	//Vector3r norm = cross(dir1, dir0);
+	//if (same_point(norm, ORIGIN))//parallel
+	//{
+	//	int inter1 = point_on_ray(s0, dir0, s1);
+	//	int inter2 = point_on_ray(s0, dir0, e1);
+	//	if (inter1 == 0 && inter2 == 0) return 0;
+	//	if (inter1 == 2 && inter2 == 2) return 2;
+	//	if (inter1 > 0 && inter2 == 0) return 2;
+	//	if (inter2 > 0 && inter1 == 0) return 2;
+	//	return 1;
+	//}
+	
 }
 
-// no need this any more
-int segment_segment_inter_2(
-    const Vector3r& s0,
-    const Vector3r& e0,
-    const Vector3r& s1,
-    const Vector3r& e1,
-    Vector3r& res,
-    int axis)
-{
-    const int i1 = (axis + 1) % 3;
-    const int i2 = (axis + 2) % 3;
 
-    const Rational dd = e0[i1] * e1[i2] - e0[i1] * s1[i2] - e0[i2] * e1[i1]
-        + e0[i2] * s1[i1] + e1[i1] * s0[i2] - e1[i2] * s0[i1] + s0[i1] * s1[i2]
-        - s0[i2] * s1[i1];
 
-    if (dd.get_sign() == 0) // parallel
-    {
-        Vector3r dir1, dir2;
-
-        dir1 = s1 - s0;
-        dir2 = e0 - s1;
-        if (dir1.dot(dir2)
-            >= 0) // TODO this is wrong, parallel but no touch cases are missing
-            return 2; // s1 on s0-e0
-
-        dir1 = e1 - s0;
-        dir2 = e0 - e1;
-        if (dir1.dot(dir2) >= 0)
-            return 2; // e1 on s0-e0
-
-        dir1 = s0 - s1;
-        dir2 = e1 - s0;
-        if (dir1.dot(dir2) >= 0)
-            return 2; // s0 on s1-e1
-
-        dir1 = e0 - s1;
-        dir2 = e1 - e0;
-        if (dir1.dot(dir2) >= 0)
-            return 2; // e0 on s1-e1
-
-        return 0;
-    }
-
-    const Rational t0 = (e1[i1] * s0[i2] - e1[i1] * s1[i2] - e1[i2] * s0[i1]
-                         + e1[i2] * s1[i1] + s0[i1] * s1[i2] - s0[i2] * s1[i1])
-        / dd;
-    const Rational t1 = (e0[i1] * s0[i2] - e0[i1] * s1[i2] - e0[i2] * s0[i1]
-                         + e0[i2] * s1[i1] + s0[i1] * s1[i2] - s0[i2] * s1[i1])
-        / dd;
-
-    if (t0 < 0 || t0 > 1 || t1 < 0 || t1 > 1) {
-        return 0; // not intersected
-    }
-
-    res = (1 - t0) * s0 + t0 * e0;
-#ifndef NDEBUG
-    const Vector3r p1 = (1 - t1) * s1 + t1 * e1;
-
-    assert(res[0] == p1[0] && res[1] == p1[1] && res[2] == p1[2]);
-#endif
-    return 1; // intersected at one cross point, or end point
-}
-int ray_segment_inter( // TODO finish this part, ask teseo
-    const Vector3r& s0,
-    const Vector3r& dir, // e0 is the direction
-    const Vector3r& s1,
-    const Vector3r& e1)
-
-{
-    Vector3r e0 = s0 + dir;
-    Vector3r tmp = cross(dir, s1 - e1);
-    if (same_point(tmp, ORIGIN)) {
-    }
-    const int i1 = (axis + 1) % 3;
-    const int i2 = (axis + 2) % 3;
-
-    const Rational dd = e0[i1] * e1[i2] - e0[i1] * s1[i2] - e0[i2] * e1[i1]
-        + e0[i2] * s1[i1] + e1[i1] * s0[i2] - e1[i2] * s0[i1] + s0[i1] * s1[i2]
-        - s0[i2] * s1[i1];
-
-    if (dd.get_sign() == 0) // parallel or overlap
-    {
-        Vector3r s1s0 = s0 - s1;
-        Vector3r e1s0 = s0 - e1;
-        Vector3r tmp1 = cross(s1s0, e1s0);
-        if (!same_point(tmp1, ORIGIN))
-            return 0; // parallel but not overlap
-        Vector3r dir2 = e1 - s1;
-        if (dir.dot(dir2) >= 0) {
-            if ((e1 - s0).dot(dir) >= 0
-                && same_point(cross(e1 - s0, dir), ORIGIN))
-                return -1; // overlap, s0 on the seg checked before, so overlap,
-                           // need another ray
-            else
-                return 0;
-        } else {
-            if ((e1 - s0).dot(dir) > 0)
-                return 2;
-            else
-                return 0;
-        }
-
-        return 0;
-    }
-
-    const Rational t0 = (e1[i1] * s0[i2] - e1[i1] * s1[i2] - e1[i2] * s0[i1]
-                         + e1[i2] * s1[i1] + s0[i1] * s1[i2] - s0[i2] * s1[i1])
-        / dd;
-    const Rational t1 = (e0[i1] * s0[i2] - e0[i1] * s1[i2] - e0[i2] * s0[i1]
-                         + e0[i2] * s1[i1] + s0[i1] * s1[i2] - s0[i2] * s1[i1])
-        / dd;
-
-    if (t0 < 0 || t0 > 1 || t1 < 0 || t1 > 1) {
-        return 0; // not intersected
-    }
-
-    res = (1 - t0) * s0 + t0 * e0;
-#ifndef NDEBUG
-    const Vector3r p1 = (1 - t1) * s1 + t1 * e1;
-
-    assert(res[0] == p1[0] && res[1] == p1[1] && res[2] == p1[2]);
-#endif
-    return 1; // intersected at one cross point, or end point
-}
 void write(const Vector3d& v, std::ostream& out)
 {
     out.write(reinterpret_cast<const char*>(&v[0]), sizeof(v[0]));
