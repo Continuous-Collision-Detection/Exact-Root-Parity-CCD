@@ -300,7 +300,40 @@ int ray_segment_intersection(
 	//}
 	
 }
+int line_segment_intersection(
+	const Vector3r& s0,
+	const Vector3r& dir0,
+	const Vector3r& s1,
+	const Vector3r& e1) {
 
+	if (same_point(e1, s1))//degenerated case
+		return point_on_ray(s0, dir0, s1);
+	/////////////////////////////////////
+	Vector3r norm = cross(s0 - s1, e1 - s0);
+	if (same_point(norm, ORIGIN))
+	{
+		if (colinear_point_on_segment(s0, s1, e1))
+			return 2;
+		else return 0;
+	}
+	else {
+
+		Vector3r norm1 = cross(s0 - s1, dir0);
+		if (same_point(norm1, ORIGIN))
+			return point_on_ray(s0, dir0, s1);
+
+		Vector3r norm2 = cross(e1 - s0, dir0);
+		if (same_point(norm2, ORIGIN)) {
+			return point_on_ray(s0, dir0, e1);
+		}
+
+		if (norm.dot(norm1) > 0 && norm.dot(norm2) > 0) {
+			return 1;
+		}
+		return 0;
+	}
+
+}
 
 
 void write(const Vector3d& v, std::ostream& out)
@@ -373,6 +406,9 @@ int point_inter_triangle(
 // we check if triangle intersect segment,
 // this function is used in cube edge--prism tri and cube edge--bilinear tri
 // if halfopen= true, can tell us if intersect the edge t2-t3
+// return 0, 1, 2, 3
+// this function is only used to check if seg intersect no degenerated bilinear
+//and if seg intersect opposite facets of tet. 
 int segment_triangle_intersection(
 	const Vector3r& e0,
 	const Vector3r& e1,
@@ -399,6 +435,8 @@ int segment_triangle_intersection(
 		return point_inter_triangle(e0, t1, t2, t3, false, norm, halfopen);
 	if (o2 == 0 && o1 != 0)
 		return point_inter_triangle(e1, t1, t2, t3, false, norm, halfopen);
+	if (o1 == 0 && o2 == 0)// seg on the plane, for the purpuse of usage, this is correct
+		return 0;
 	return is_line_cut_triangle(e0, e1, t1, t2, t3, halfopen, norm);
 }
 // 0 no intersection, 1 intersect, 2 point on triangle, 3 point on t2-t3 edge, -1 shoot on border
@@ -441,6 +479,7 @@ int ray_triangle_intersection(
 				if (inter2 == 2) return 2;
 
 				int inter3 = ray_segment_intersection(pt, dir, t2, t3);
+				// ray overlaps t2-t3, shoot another ray, ray intersect it, shoot another one 
 				if (inter3 == 1) return -1;
 				if (inter3 == 2) return 2;
 
@@ -458,592 +497,33 @@ int ray_triangle_intersection(
 	return inter;
 	
 }
-int segment_triangle_inter(
-    const Vector3d& ef0,
-    const Vector3d& ef1,
-    const Vector3d& tf1,
-    const Vector3d& tf2,
-    const Vector3d& tf3)
-{
-    Vector3r e0, e1, t1, t2, t3;
 
-    for (int d = 0; d < 3; ++d) {
-        e0[d] = ef0[d];
-        e1[d] = ef1[d];
+// if a line (going across pt, pt+dir) intersects triangle
+// triangle is not degenerated
+// use ray_triangle_intersection twice, TODO modify this
+// 0 not intersected, 1 intersected, 3 intersected t2-t3 edge 
+int line_triangle_intersection(
+	const Vector3r& pt,
+	const Vector3r& dir,
+	const Vector3r& t1,
+	const Vector3r& t2,
+	const Vector3r& t3,
+	const bool halfopen) {
 
-        t1[d] = tf1[d];
-        t2[d] = tf2[d];
-        t3[d] = tf3[d];
-    }
+	int inter1 = ray_triangle_intersection(pt, dir, t1, t2, t3, halfopen);
+	if (inter1 == 1) return 1;
+	if (inter1 == 2) return 1;
+	if (inter1 == 3) return 3;
 
-    const Rational d = e0[0] * t1[1] * t2[2] - e0[0] * t1[1] * t3[2]
-        - e0[0] * t1[2] * t2[1] + e0[0] * t1[2] * t3[1] + e0[0] * t2[1] * t3[2]
-        - e0[0] * t2[2] * t3[1] - e0[1] * t1[0] * t2[2] + e0[1] * t1[0] * t3[2]
-        + e0[1] * t1[2] * t2[0] - e0[1] * t1[2] * t3[0] - e0[1] * t2[0] * t3[2]
-        + e0[1] * t2[2] * t3[0] + e0[2] * t1[0] * t2[1] - e0[2] * t1[0] * t3[1]
-        - e0[2] * t1[1] * t2[0] + e0[2] * t1[1] * t3[0] + e0[2] * t2[0] * t3[1]
-        - e0[2] * t2[1] * t3[0] - e1[0] * t1[1] * t2[2] + e1[0] * t1[1] * t3[2]
-        + e1[0] * t1[2] * t2[1] - e1[0] * t1[2] * t3[1] - e1[0] * t2[1] * t3[2]
-        + e1[0] * t2[2] * t3[1] + e1[1] * t1[0] * t2[2] - e1[1] * t1[0] * t3[2]
-        - e1[1] * t1[2] * t2[0] + e1[1] * t1[2] * t3[0] + e1[1] * t2[0] * t3[2]
-        - e1[1] * t2[2] * t3[0] - e1[2] * t1[0] * t2[1] + e1[2] * t1[0] * t3[1]
-        + e1[2] * t1[1] * t2[0] - e1[2] * t1[1] * t3[0] - e1[2] * t2[0] * t3[1]
-        + e1[2] * t2[1] * t3[0];
-    if (d.get_sign() == 0)
-        return -1;
-
-    const Rational t = (e0[0] * t1[1] * t2[2] - e0[0] * t1[1] * t3[2]
-                        - e0[0] * t1[2] * t2[1] + e0[0] * t1[2] * t3[1]
-                        + e0[0] * t2[1] * t3[2] - e0[0] * t2[2] * t3[1]
-                        - e0[1] * t1[0] * t2[2] + e0[1] * t1[0] * t3[2]
-                        + e0[1] * t1[2] * t2[0] - e0[1] * t1[2] * t3[0]
-                        - e0[1] * t2[0] * t3[2] + e0[1] * t2[2] * t3[0]
-                        + e0[2] * t1[0] * t2[1] - e0[2] * t1[0] * t3[1]
-                        - e0[2] * t1[1] * t2[0] + e0[2] * t1[1] * t3[0]
-                        + e0[2] * t2[0] * t3[1] - e0[2] * t2[1] * t3[0]
-                        - t1[0] * t2[1] * t3[2] + t1[0] * t2[2] * t3[1]
-                        + t1[1] * t2[0] * t3[2] - t1[1] * t2[2] * t3[0]
-                        - t1[2] * t2[0] * t3[1] + t1[2] * t2[1] * t3[0])
-        / d;
-    const Rational u = (-e0[0] * e1[1] * t1[2] + e0[0] * e1[1] * t3[2]
-                        + e0[0] * e1[2] * t1[1] - e0[0] * e1[2] * t3[1]
-                        - e0[0] * t1[1] * t3[2] + e0[0] * t1[2] * t3[1]
-                        + e0[1] * e1[0] * t1[2] - e0[1] * e1[0] * t3[2]
-                        - e0[1] * e1[2] * t1[0] + e0[1] * e1[2] * t3[0]
-                        + e0[1] * t1[0] * t3[2] - e0[1] * t1[2] * t3[0]
-                        - e0[2] * e1[0] * t1[1] + e0[2] * e1[0] * t3[1]
-                        + e0[2] * e1[1] * t1[0] - e0[2] * e1[1] * t3[0]
-                        - e0[2] * t1[0] * t3[1] + e0[2] * t1[1] * t3[0]
-                        + e1[0] * t1[1] * t3[2] - e1[0] * t1[2] * t3[1]
-                        - e1[1] * t1[0] * t3[2] + e1[1] * t1[2] * t3[0]
-                        + e1[2] * t1[0] * t3[1] - e1[2] * t1[1] * t3[0])
-        / d;
-    const Rational v = (e0[0] * e1[1] * t1[2] - e0[0] * e1[1] * t2[2]
-                        - e0[0] * e1[2] * t1[1] + e0[0] * e1[2] * t2[1]
-                        + e0[0] * t1[1] * t2[2] - e0[0] * t1[2] * t2[1]
-                        - e0[1] * e1[0] * t1[2] + e0[1] * e1[0] * t2[2]
-                        + e0[1] * e1[2] * t1[0] - e0[1] * e1[2] * t2[0]
-                        - e0[1] * t1[0] * t2[2] + e0[1] * t1[2] * t2[0]
-                        + e0[2] * e1[0] * t1[1] - e0[2] * e1[0] * t2[1]
-                        - e0[2] * e1[1] * t1[0] + e0[2] * e1[1] * t2[0]
-                        + e0[2] * t1[0] * t2[1] - e0[2] * t1[1] * t2[0]
-                        - e1[0] * t1[1] * t2[2] + e1[0] * t1[2] * t2[1]
-                        + e1[1] * t1[0] * t2[2] - e1[1] * t1[2] * t2[0]
-                        - e1[2] * t1[0] * t2[1] + e1[2] * t1[1] * t2[0])
-        / d;
-
-    // std::cout << t << std::endl;
-    // std::cout << u << std::endl;
-    // std::cout << v << std::endl;
-
-    if (t < 0 || t > 1)
-        return 0;
-
-    if (u >= 0 && u <= 1 && v >= 0 && v <= 1 && u + v <= 1)
-        return 1;
-
-    return 0;
-}
-int segment_triangle_inter(
-    const Vector3r& e0,
-    const Vector3r& e1,
-    const Vector3r& t1,
-    const Vector3r& t2,
-    const Vector3r& t3)
-{
-
-    const Rational d = e0[0] * t1[1] * t2[2] - e0[0] * t1[1] * t3[2]
-        - e0[0] * t1[2] * t2[1] + e0[0] * t1[2] * t3[1] + e0[0] * t2[1] * t3[2]
-        - e0[0] * t2[2] * t3[1] - e0[1] * t1[0] * t2[2] + e0[1] * t1[0] * t3[2]
-        + e0[1] * t1[2] * t2[0] - e0[1] * t1[2] * t3[0] - e0[1] * t2[0] * t3[2]
-        + e0[1] * t2[2] * t3[0] + e0[2] * t1[0] * t2[1] - e0[2] * t1[0] * t3[1]
-        - e0[2] * t1[1] * t2[0] + e0[2] * t1[1] * t3[0] + e0[2] * t2[0] * t3[1]
-        - e0[2] * t2[1] * t3[0] - e1[0] * t1[1] * t2[2] + e1[0] * t1[1] * t3[2]
-        + e1[0] * t1[2] * t2[1] - e1[0] * t1[2] * t3[1] - e1[0] * t2[1] * t3[2]
-        + e1[0] * t2[2] * t3[1] + e1[1] * t1[0] * t2[2] - e1[1] * t1[0] * t3[2]
-        - e1[1] * t1[2] * t2[0] + e1[1] * t1[2] * t3[0] + e1[1] * t2[0] * t3[2]
-        - e1[1] * t2[2] * t3[0] - e1[2] * t1[0] * t2[1] + e1[2] * t1[0] * t3[1]
-        + e1[2] * t1[1] * t2[0] - e1[2] * t1[1] * t3[0] - e1[2] * t2[0] * t3[1]
-        + e1[2] * t2[1] * t3[0];
-    if (d.get_sign() == 0) // coplanar
-        return -1;
-
-    const Rational t = (e0[0] * t1[1] * t2[2] - e0[0] * t1[1] * t3[2]
-                        - e0[0] * t1[2] * t2[1] + e0[0] * t1[2] * t3[1]
-                        + e0[0] * t2[1] * t3[2] - e0[0] * t2[2] * t3[1]
-                        - e0[1] * t1[0] * t2[2] + e0[1] * t1[0] * t3[2]
-                        + e0[1] * t1[2] * t2[0] - e0[1] * t1[2] * t3[0]
-                        - e0[1] * t2[0] * t3[2] + e0[1] * t2[2] * t3[0]
-                        + e0[2] * t1[0] * t2[1] - e0[2] * t1[0] * t3[1]
-                        - e0[2] * t1[1] * t2[0] + e0[2] * t1[1] * t3[0]
-                        + e0[2] * t2[0] * t3[1] - e0[2] * t2[1] * t3[0]
-                        - t1[0] * t2[1] * t3[2] + t1[0] * t2[2] * t3[1]
-                        + t1[1] * t2[0] * t3[2] - t1[1] * t2[2] * t3[0]
-                        - t1[2] * t2[0] * t3[1] + t1[2] * t2[1] * t3[0])
-        / d;
-    const Rational u = (-e0[0] * e1[1] * t1[2] + e0[0] * e1[1] * t3[2]
-                        + e0[0] * e1[2] * t1[1] - e0[0] * e1[2] * t3[1]
-                        - e0[0] * t1[1] * t3[2] + e0[0] * t1[2] * t3[1]
-                        + e0[1] * e1[0] * t1[2] - e0[1] * e1[0] * t3[2]
-                        - e0[1] * e1[2] * t1[0] + e0[1] * e1[2] * t3[0]
-                        + e0[1] * t1[0] * t3[2] - e0[1] * t1[2] * t3[0]
-                        - e0[2] * e1[0] * t1[1] + e0[2] * e1[0] * t3[1]
-                        + e0[2] * e1[1] * t1[0] - e0[2] * e1[1] * t3[0]
-                        - e0[2] * t1[0] * t3[1] + e0[2] * t1[1] * t3[0]
-                        + e1[0] * t1[1] * t3[2] - e1[0] * t1[2] * t3[1]
-                        - e1[1] * t1[0] * t3[2] + e1[1] * t1[2] * t3[0]
-                        + e1[2] * t1[0] * t3[1] - e1[2] * t1[1] * t3[0])
-        / d;
-    const Rational v = (e0[0] * e1[1] * t1[2] - e0[0] * e1[1] * t2[2]
-                        - e0[0] * e1[2] * t1[1] + e0[0] * e1[2] * t2[1]
-                        + e0[0] * t1[1] * t2[2] - e0[0] * t1[2] * t2[1]
-                        - e0[1] * e1[0] * t1[2] + e0[1] * e1[0] * t2[2]
-                        + e0[1] * e1[2] * t1[0] - e0[1] * e1[2] * t2[0]
-                        - e0[1] * t1[0] * t2[2] + e0[1] * t1[2] * t2[0]
-                        + e0[2] * e1[0] * t1[1] - e0[2] * e1[0] * t2[1]
-                        - e0[2] * e1[1] * t1[0] + e0[2] * e1[1] * t2[0]
-                        + e0[2] * t1[0] * t2[1] - e0[2] * t1[1] * t2[0]
-                        - e1[0] * t1[1] * t2[2] + e1[0] * t1[2] * t2[1]
-                        + e1[1] * t1[0] * t2[2] - e1[1] * t1[2] * t2[0]
-                        - e1[2] * t1[0] * t2[1] + e1[2] * t1[1] * t2[0])
-        / d;
-
-    // std::cout << t << std::endl;
-    // std::cout << u << std::endl;
-    // std::cout << v << std::endl;
-
-    if (t < 0 || t > 1)
-        return 0;
-
-    if (u >= 0 && u <= 1 && v >= 0 && v <= 1 && u + v <= 1) {
-        if (u == 0 || u == 1 || v == 0 || v == 1 || u + v == 1)
-            return 2; // on the border
-        return 1;
-    }
-
-    return 0;
+	int inter2 = ray_triangle_intersection(pt, -dir, t1, t2, t3, halfopen);
+	if (inter2 == 1) return 1;
+	if (inter2 == 2) return 1;
+	if (inter2 == 3) return 3;
+	
+	return 0;
 }
 
-// e0, e1 are two seperate points defining the line
-int line_triangle_inter(
-    const Vector3r& e0,
-    const Vector3r& e1,
-    const Vector3r& t1,
-    const Vector3r& t2,
-    const Vector3r& t3)
-{
 
-    const Rational d = e0[0] * t1[1] * t2[2] - e0[0] * t1[1] * t3[2]
-        - e0[0] * t1[2] * t2[1] + e0[0] * t1[2] * t3[1] + e0[0] * t2[1] * t3[2]
-        - e0[0] * t2[2] * t3[1] - e0[1] * t1[0] * t2[2] + e0[1] * t1[0] * t3[2]
-        + e0[1] * t1[2] * t2[0] - e0[1] * t1[2] * t3[0] - e0[1] * t2[0] * t3[2]
-        + e0[1] * t2[2] * t3[0] + e0[2] * t1[0] * t2[1] - e0[2] * t1[0] * t3[1]
-        - e0[2] * t1[1] * t2[0] + e0[2] * t1[1] * t3[0] + e0[2] * t2[0] * t3[1]
-        - e0[2] * t2[1] * t3[0] - e1[0] * t1[1] * t2[2] + e1[0] * t1[1] * t3[2]
-        + e1[0] * t1[2] * t2[1] - e1[0] * t1[2] * t3[1] - e1[0] * t2[1] * t3[2]
-        + e1[0] * t2[2] * t3[1] + e1[1] * t1[0] * t2[2] - e1[1] * t1[0] * t3[2]
-        - e1[1] * t1[2] * t2[0] + e1[1] * t1[2] * t3[0] + e1[1] * t2[0] * t3[2]
-        - e1[1] * t2[2] * t3[0] - e1[2] * t1[0] * t2[1] + e1[2] * t1[0] * t3[1]
-        + e1[2] * t1[1] * t2[0] - e1[2] * t1[1] * t3[0] - e1[2] * t2[0] * t3[1]
-        + e1[2] * t2[1] * t3[0];
-    if (d.get_sign() == 0) // coplanar
-        return -1;
 
-    const Rational t = (e0[0] * t1[1] * t2[2] - e0[0] * t1[1] * t3[2]
-                        - e0[0] * t1[2] * t2[1] + e0[0] * t1[2] * t3[1]
-                        + e0[0] * t2[1] * t3[2] - e0[0] * t2[2] * t3[1]
-                        - e0[1] * t1[0] * t2[2] + e0[1] * t1[0] * t3[2]
-                        + e0[1] * t1[2] * t2[0] - e0[1] * t1[2] * t3[0]
-                        - e0[1] * t2[0] * t3[2] + e0[1] * t2[2] * t3[0]
-                        + e0[2] * t1[0] * t2[1] - e0[2] * t1[0] * t3[1]
-                        - e0[2] * t1[1] * t2[0] + e0[2] * t1[1] * t3[0]
-                        + e0[2] * t2[0] * t3[1] - e0[2] * t2[1] * t3[0]
-                        - t1[0] * t2[1] * t3[2] + t1[0] * t2[2] * t3[1]
-                        + t1[1] * t2[0] * t3[2] - t1[1] * t2[2] * t3[0]
-                        - t1[2] * t2[0] * t3[1] + t1[2] * t2[1] * t3[0])
-        / d;
-    const Rational u = (-e0[0] * e1[1] * t1[2] + e0[0] * e1[1] * t3[2]
-                        + e0[0] * e1[2] * t1[1] - e0[0] * e1[2] * t3[1]
-                        - e0[0] * t1[1] * t3[2] + e0[0] * t1[2] * t3[1]
-                        + e0[1] * e1[0] * t1[2] - e0[1] * e1[0] * t3[2]
-                        - e0[1] * e1[2] * t1[0] + e0[1] * e1[2] * t3[0]
-                        + e0[1] * t1[0] * t3[2] - e0[1] * t1[2] * t3[0]
-                        - e0[2] * e1[0] * t1[1] + e0[2] * e1[0] * t3[1]
-                        + e0[2] * e1[1] * t1[0] - e0[2] * e1[1] * t3[0]
-                        - e0[2] * t1[0] * t3[1] + e0[2] * t1[1] * t3[0]
-                        + e1[0] * t1[1] * t3[2] - e1[0] * t1[2] * t3[1]
-                        - e1[1] * t1[0] * t3[2] + e1[1] * t1[2] * t3[0]
-                        + e1[2] * t1[0] * t3[1] - e1[2] * t1[1] * t3[0])
-        / d;
-    const Rational v = (e0[0] * e1[1] * t1[2] - e0[0] * e1[1] * t2[2]
-                        - e0[0] * e1[2] * t1[1] + e0[0] * e1[2] * t2[1]
-                        + e0[0] * t1[1] * t2[2] - e0[0] * t1[2] * t2[1]
-                        - e0[1] * e1[0] * t1[2] + e0[1] * e1[0] * t2[2]
-                        + e0[1] * e1[2] * t1[0] - e0[1] * e1[2] * t2[0]
-                        - e0[1] * t1[0] * t2[2] + e0[1] * t1[2] * t2[0]
-                        + e0[2] * e1[0] * t1[1] - e0[2] * e1[0] * t2[1]
-                        - e0[2] * e1[1] * t1[0] + e0[2] * e1[1] * t2[0]
-                        + e0[2] * t1[0] * t2[1] - e0[2] * t1[1] * t2[0]
-                        - e1[0] * t1[1] * t2[2] + e1[0] * t1[2] * t2[1]
-                        + e1[1] * t1[0] * t2[2] - e1[1] * t1[2] * t2[0]
-                        - e1[2] * t1[0] * t2[1] + e1[2] * t1[1] * t2[0])
-        / d;
-
-    // std::cout << t << std::endl;
-    // std::cout << u << std::endl;
-    // std::cout << v << std::endl;
-
-    if (u >= 0 && u <= 1 && v >= 0 && v <= 1 && u + v <= 1) {
-        if (u == 0 || u == 1 || v == 0 || v == 1 || u + v == 1)
-            return 2; // on the border
-        return 1;
-    }
-
-    return 0;
-}
-int line_triangle_inter_return_t(
-    const Vector3r& e0,
-    const Vector3r& e1,
-    const Vector3r& t1,
-    const Vector3r& t2,
-    const Vector3r& t3,
-    Rational& t)
-{
-
-    const Rational d = e0[0] * t1[1] * t2[2] - e0[0] * t1[1] * t3[2]
-        - e0[0] * t1[2] * t2[1] + e0[0] * t1[2] * t3[1] + e0[0] * t2[1] * t3[2]
-        - e0[0] * t2[2] * t3[1] - e0[1] * t1[0] * t2[2] + e0[1] * t1[0] * t3[2]
-        + e0[1] * t1[2] * t2[0] - e0[1] * t1[2] * t3[0] - e0[1] * t2[0] * t3[2]
-        + e0[1] * t2[2] * t3[0] + e0[2] * t1[0] * t2[1] - e0[2] * t1[0] * t3[1]
-        - e0[2] * t1[1] * t2[0] + e0[2] * t1[1] * t3[0] + e0[2] * t2[0] * t3[1]
-        - e0[2] * t2[1] * t3[0] - e1[0] * t1[1] * t2[2] + e1[0] * t1[1] * t3[2]
-        + e1[0] * t1[2] * t2[1] - e1[0] * t1[2] * t3[1] - e1[0] * t2[1] * t3[2]
-        + e1[0] * t2[2] * t3[1] + e1[1] * t1[0] * t2[2] - e1[1] * t1[0] * t3[2]
-        - e1[1] * t1[2] * t2[0] + e1[1] * t1[2] * t3[0] + e1[1] * t2[0] * t3[2]
-        - e1[1] * t2[2] * t3[0] - e1[2] * t1[0] * t2[1] + e1[2] * t1[0] * t3[1]
-        + e1[2] * t1[1] * t2[0] - e1[2] * t1[1] * t3[0] - e1[2] * t2[0] * t3[1]
-        + e1[2] * t2[1] * t3[0];
-    if (d.get_sign() == 0) // coplanar
-        return -1;
-
-    t = (e0[0] * t1[1] * t2[2] - e0[0] * t1[1] * t3[2] - e0[0] * t1[2] * t2[1]
-         + e0[0] * t1[2] * t3[1] + e0[0] * t2[1] * t3[2] - e0[0] * t2[2] * t3[1]
-         - e0[1] * t1[0] * t2[2] + e0[1] * t1[0] * t3[2] + e0[1] * t1[2] * t2[0]
-         - e0[1] * t1[2] * t3[0] - e0[1] * t2[0] * t3[2] + e0[1] * t2[2] * t3[0]
-         + e0[2] * t1[0] * t2[1] - e0[2] * t1[0] * t3[1] - e0[2] * t1[1] * t2[0]
-         + e0[2] * t1[1] * t3[0] + e0[2] * t2[0] * t3[1] - e0[2] * t2[1] * t3[0]
-         - t1[0] * t2[1] * t3[2] + t1[0] * t2[2] * t3[1] + t1[1] * t2[0] * t3[2]
-         - t1[1] * t2[2] * t3[0] - t1[2] * t2[0] * t3[1]
-         + t1[2] * t2[1] * t3[0])
-        / d;
-    const Rational u = (-e0[0] * e1[1] * t1[2] + e0[0] * e1[1] * t3[2]
-                        + e0[0] * e1[2] * t1[1] - e0[0] * e1[2] * t3[1]
-                        - e0[0] * t1[1] * t3[2] + e0[0] * t1[2] * t3[1]
-                        + e0[1] * e1[0] * t1[2] - e0[1] * e1[0] * t3[2]
-                        - e0[1] * e1[2] * t1[0] + e0[1] * e1[2] * t3[0]
-                        + e0[1] * t1[0] * t3[2] - e0[1] * t1[2] * t3[0]
-                        - e0[2] * e1[0] * t1[1] + e0[2] * e1[0] * t3[1]
-                        + e0[2] * e1[1] * t1[0] - e0[2] * e1[1] * t3[0]
-                        - e0[2] * t1[0] * t3[1] + e0[2] * t1[1] * t3[0]
-                        + e1[0] * t1[1] * t3[2] - e1[0] * t1[2] * t3[1]
-                        - e1[1] * t1[0] * t3[2] + e1[1] * t1[2] * t3[0]
-                        + e1[2] * t1[0] * t3[1] - e1[2] * t1[1] * t3[0])
-        / d;
-    const Rational v = (e0[0] * e1[1] * t1[2] - e0[0] * e1[1] * t2[2]
-                        - e0[0] * e1[2] * t1[1] + e0[0] * e1[2] * t2[1]
-                        + e0[0] * t1[1] * t2[2] - e0[0] * t1[2] * t2[1]
-                        - e0[1] * e1[0] * t1[2] + e0[1] * e1[0] * t2[2]
-                        + e0[1] * e1[2] * t1[0] - e0[1] * e1[2] * t2[0]
-                        - e0[1] * t1[0] * t2[2] + e0[1] * t1[2] * t2[0]
-                        + e0[2] * e1[0] * t1[1] - e0[2] * e1[0] * t2[1]
-                        - e0[2] * e1[1] * t1[0] + e0[2] * e1[1] * t2[0]
-                        + e0[2] * t1[0] * t2[1] - e0[2] * t1[1] * t2[0]
-                        - e1[0] * t1[1] * t2[2] + e1[0] * t1[2] * t2[1]
-                        + e1[1] * t1[0] * t2[2] - e1[1] * t1[2] * t2[0]
-                        - e1[2] * t1[0] * t2[1] + e1[2] * t1[1] * t2[0])
-        / d;
-
-    // std::cout << t << std::endl;
-    // std::cout << u << std::endl;
-    // std::cout << v << std::endl;
-
-    if (u >= 0 && u <= 1 && v >= 0 && v <= 1 && u + v <= 1) {
-        if (u == 0 || u == 1 || v == 0 || v == 1 || u + v == 1)
-            return 2; // on the border
-        return 1;
-    }
-
-    return 0;
-}
-// -1,0,1,2
-// 2: point is on the halfopen triangle
-int ray_halfopen_triangle_inter( // TODO need to be tested
-    const Vector3r& e0,          // e0 is the endpoint of ray
-    const Vector3r& dir,         //   direction
-    const Vector3r& t1,
-    const Vector3r& t2,
-    const Vector3r& t3)
-{
-    Vector3r e1 = e0 + dir;
-    const Rational d = e0[0] * t1[1] * t2[2] - e0[0] * t1[1] * t3[2]
-        - e0[0] * t1[2] * t2[1] + e0[0] * t1[2] * t3[1] + e0[0] * t2[1] * t3[2]
-        - e0[0] * t2[2] * t3[1] - e0[1] * t1[0] * t2[2] + e0[1] * t1[0] * t3[2]
-        + e0[1] * t1[2] * t2[0] - e0[1] * t1[2] * t3[0] - e0[1] * t2[0] * t3[2]
-        + e0[1] * t2[2] * t3[0] + e0[2] * t1[0] * t2[1] - e0[2] * t1[0] * t3[1]
-        - e0[2] * t1[1] * t2[0] + e0[2] * t1[1] * t3[0] + e0[2] * t2[0] * t3[1]
-        - e0[2] * t2[1] * t3[0] - e1[0] * t1[1] * t2[2] + e1[0] * t1[1] * t3[2]
-        + e1[0] * t1[2] * t2[1] - e1[0] * t1[2] * t3[1] - e1[0] * t2[1] * t3[2]
-        + e1[0] * t2[2] * t3[1] + e1[1] * t1[0] * t2[2] - e1[1] * t1[0] * t3[2]
-        - e1[1] * t1[2] * t2[0] + e1[1] * t1[2] * t3[0] + e1[1] * t2[0] * t3[2]
-        - e1[1] * t2[2] * t3[0] - e1[2] * t1[0] * t2[1] + e1[2] * t1[0] * t3[1]
-        + e1[2] * t1[1] * t2[0] - e1[2] * t1[1] * t3[0] - e1[2] * t2[0] * t3[1]
-        + e1[2] * t2[1] * t3[0];
-    if (d.get_sign() == 0) // coplanar direction
-        return -1;         // shoot another ray
-
-    const Rational t = (e0[0] * t1[1] * t2[2] - e0[0] * t1[1] * t3[2]
-                        - e0[0] * t1[2] * t2[1] + e0[0] * t1[2] * t3[1]
-                        + e0[0] * t2[1] * t3[2] - e0[0] * t2[2] * t3[1]
-                        - e0[1] * t1[0] * t2[2] + e0[1] * t1[0] * t3[2]
-                        + e0[1] * t1[2] * t2[0] - e0[1] * t1[2] * t3[0]
-                        - e0[1] * t2[0] * t3[2] + e0[1] * t2[2] * t3[0]
-                        + e0[2] * t1[0] * t2[1] - e0[2] * t1[0] * t3[1]
-                        - e0[2] * t1[1] * t2[0] + e0[2] * t1[1] * t3[0]
-                        + e0[2] * t2[0] * t3[1] - e0[2] * t2[1] * t3[0]
-                        - t1[0] * t2[1] * t3[2] + t1[0] * t2[2] * t3[1]
-                        + t1[1] * t2[0] * t3[2] - t1[1] * t2[2] * t3[0]
-                        - t1[2] * t2[0] * t3[1] + t1[2] * t2[1] * t3[0])
-        / d;
-    const Rational u = (-e0[0] * e1[1] * t1[2] + e0[0] * e1[1] * t3[2]
-                        + e0[0] * e1[2] * t1[1] - e0[0] * e1[2] * t3[1]
-                        - e0[0] * t1[1] * t3[2] + e0[0] * t1[2] * t3[1]
-                        + e0[1] * e1[0] * t1[2] - e0[1] * e1[0] * t3[2]
-                        - e0[1] * e1[2] * t1[0] + e0[1] * e1[2] * t3[0]
-                        + e0[1] * t1[0] * t3[2] - e0[1] * t1[2] * t3[0]
-                        - e0[2] * e1[0] * t1[1] + e0[2] * e1[0] * t3[1]
-                        + e0[2] * e1[1] * t1[0] - e0[2] * e1[1] * t3[0]
-                        - e0[2] * t1[0] * t3[1] + e0[2] * t1[1] * t3[0]
-                        + e1[0] * t1[1] * t3[2] - e1[0] * t1[2] * t3[1]
-                        - e1[1] * t1[0] * t3[2] + e1[1] * t1[2] * t3[0]
-                        + e1[2] * t1[0] * t3[1] - e1[2] * t1[1] * t3[0])
-        / d;
-    const Rational v = (e0[0] * e1[1] * t1[2] - e0[0] * e1[1] * t2[2]
-                        - e0[0] * e1[2] * t1[1] + e0[0] * e1[2] * t2[1]
-                        + e0[0] * t1[1] * t2[2] - e0[0] * t1[2] * t2[1]
-                        - e0[1] * e1[0] * t1[2] + e0[1] * e1[0] * t2[2]
-                        + e0[1] * e1[2] * t1[0] - e0[1] * e1[2] * t2[0]
-                        - e0[1] * t1[0] * t2[2] + e0[1] * t1[2] * t2[0]
-                        + e0[2] * e1[0] * t1[1] - e0[2] * e1[0] * t2[1]
-                        - e0[2] * e1[1] * t1[0] + e0[2] * e1[1] * t2[0]
-                        + e0[2] * t1[0] * t2[1] - e0[2] * t1[1] * t2[0]
-                        - e1[0] * t1[1] * t2[2] + e1[0] * t1[2] * t2[1]
-                        + e1[1] * t1[0] * t2[2] - e1[1] * t1[2] * t2[0]
-                        - e1[2] * t1[0] * t2[1] + e1[2] * t1[1] * t2[0])
-        / d;
-
-    // std::cout << t << std::endl;
-    // std::cout << u << std::endl;
-    // std::cout << v << std::endl;
-
-    /* if (t < 0 || t > 1)
-         return 0;*/
-
-    if (u >= 0 && u <= 1 && v >= 0 && v <= 1 && u + v <= 1
-        && t >= 0) { // caution
-        if (t.get_sign() == 0) {
-            if (u == 1 || v == 1)
-                return 2; // point is on the halfopen triangle
-            if (u + v == 1)
-                return 0; // point is on the halfopen triangle
-            return 2;
-        }
-
-        // on a corner
-        if (u.get_sign() == 0 || v.get_sign() == 0) // TODO need to be tested
-            return -1;
-
-        return 1;
-    }
-
-    return 0;
-}
-int ray_halfopen_triangle_inter_detailed( // TODO need to be tested
-    const Vector3r& e0,                   // e0 is the endpoint of ray
-    const Vector3r& e1, // e1 is direction, on_edge is used only when returns 2
-    const Vector3r& t1,
-    const Vector3r& t2,
-    const Vector3r& t3,
-    bool& on_edge)
-{
-
-    const Rational d = e0[0] * t1[1] * t2[2] - e0[0] * t1[1] * t3[2]
-        - e0[0] * t1[2] * t2[1] + e0[0] * t1[2] * t3[1] + e0[0] * t2[1] * t3[2]
-        - e0[0] * t2[2] * t3[1] - e0[1] * t1[0] * t2[2] + e0[1] * t1[0] * t3[2]
-        + e0[1] * t1[2] * t2[0] - e0[1] * t1[2] * t3[0] - e0[1] * t2[0] * t3[2]
-        + e0[1] * t2[2] * t3[0] + e0[2] * t1[0] * t2[1] - e0[2] * t1[0] * t3[1]
-        - e0[2] * t1[1] * t2[0] + e0[2] * t1[1] * t3[0] + e0[2] * t2[0] * t3[1]
-        - e0[2] * t2[1] * t3[0] - e1[0] * t1[1] * t2[2] + e1[0] * t1[1] * t3[2]
-        + e1[0] * t1[2] * t2[1] - e1[0] * t1[2] * t3[1] - e1[0] * t2[1] * t3[2]
-        + e1[0] * t2[2] * t3[1] + e1[1] * t1[0] * t2[2] - e1[1] * t1[0] * t3[2]
-        - e1[1] * t1[2] * t2[0] + e1[1] * t1[2] * t3[0] + e1[1] * t2[0] * t3[2]
-        - e1[1] * t2[2] * t3[0] - e1[2] * t1[0] * t2[1] + e1[2] * t1[0] * t3[1]
-        + e1[2] * t1[1] * t2[0] - e1[2] * t1[1] * t3[0] - e1[2] * t2[0] * t3[1]
-        + e1[2] * t2[1] * t3[0];
-    if (d.get_sign() == 0) // coplanar direction
-        return -1;         // shoot another ray
-
-    const Rational t = (e0[0] * t1[1] * t2[2] - e0[0] * t1[1] * t3[2]
-                        - e0[0] * t1[2] * t2[1] + e0[0] * t1[2] * t3[1]
-                        + e0[0] * t2[1] * t3[2] - e0[0] * t2[2] * t3[1]
-                        - e0[1] * t1[0] * t2[2] + e0[1] * t1[0] * t3[2]
-                        + e0[1] * t1[2] * t2[0] - e0[1] * t1[2] * t3[0]
-                        - e0[1] * t2[0] * t3[2] + e0[1] * t2[2] * t3[0]
-                        + e0[2] * t1[0] * t2[1] - e0[2] * t1[0] * t3[1]
-                        - e0[2] * t1[1] * t2[0] + e0[2] * t1[1] * t3[0]
-                        + e0[2] * t2[0] * t3[1] - e0[2] * t2[1] * t3[0]
-                        - t1[0] * t2[1] * t3[2] + t1[0] * t2[2] * t3[1]
-                        + t1[1] * t2[0] * t3[2] - t1[1] * t2[2] * t3[0]
-                        - t1[2] * t2[0] * t3[1] + t1[2] * t2[1] * t3[0])
-        / d;
-    const Rational u = (-e0[0] * e1[1] * t1[2] + e0[0] * e1[1] * t3[2]
-                        + e0[0] * e1[2] * t1[1] - e0[0] * e1[2] * t3[1]
-                        - e0[0] * t1[1] * t3[2] + e0[0] * t1[2] * t3[1]
-                        + e0[1] * e1[0] * t1[2] - e0[1] * e1[0] * t3[2]
-                        - e0[1] * e1[2] * t1[0] + e0[1] * e1[2] * t3[0]
-                        + e0[1] * t1[0] * t3[2] - e0[1] * t1[2] * t3[0]
-                        - e0[2] * e1[0] * t1[1] + e0[2] * e1[0] * t3[1]
-                        + e0[2] * e1[1] * t1[0] - e0[2] * e1[1] * t3[0]
-                        - e0[2] * t1[0] * t3[1] + e0[2] * t1[1] * t3[0]
-                        + e1[0] * t1[1] * t3[2] - e1[0] * t1[2] * t3[1]
-                        - e1[1] * t1[0] * t3[2] + e1[1] * t1[2] * t3[0]
-                        + e1[2] * t1[0] * t3[1] - e1[2] * t1[1] * t3[0])
-        / d;
-    const Rational v = (e0[0] * e1[1] * t1[2] - e0[0] * e1[1] * t2[2]
-                        - e0[0] * e1[2] * t1[1] + e0[0] * e1[2] * t2[1]
-                        + e0[0] * t1[1] * t2[2] - e0[0] * t1[2] * t2[1]
-                        - e0[1] * e1[0] * t1[2] + e0[1] * e1[0] * t2[2]
-                        + e0[1] * e1[2] * t1[0] - e0[1] * e1[2] * t2[0]
-                        - e0[1] * t1[0] * t2[2] + e0[1] * t1[2] * t2[0]
-                        + e0[2] * e1[0] * t1[1] - e0[2] * e1[0] * t2[1]
-                        - e0[2] * e1[1] * t1[0] + e0[2] * e1[1] * t2[0]
-                        + e0[2] * t1[0] * t2[1] - e0[2] * t1[1] * t2[0]
-                        - e1[0] * t1[1] * t2[2] + e1[0] * t1[2] * t2[1]
-                        + e1[1] * t1[0] * t2[2] - e1[1] * t1[2] * t2[0]
-                        - e1[2] * t1[0] * t2[1] + e1[2] * t1[1] * t2[0])
-        / d;
-
-    // std::cout << t << std::endl;
-    // std::cout << u << std::endl;
-    // std::cout << v << std::endl;
-
-    /* if (t < 0 || t > 1)
-         return 0;*/
-
-    if (u >= 0 && u <= 1 && v >= 0 && v <= 1 && u + v < 1 && t >= 0) {
-        if (t.get_sign() == 0) {
-            if (u.get_sign() == 0 || v.get_sign() == 0)
-                on_edge = true;
-            else
-                on_edge = false;
-            return 2; // point is on the halfopen triangle
-        }
-
-        // on a corner
-        if (u.get_sign() == 0 || v.get_sign() == 0) // TODO need to be tested
-            return -1;
-
-        return 1;
-    }
-
-    return 0;
-}
-// if return 1, intersected with open triangle;
-// if -1, parallel or hit on edge, need another ray;//TODO need to fix this,
-// only touch and parallel need another ray if 0, not intersected if 2, point on
-// open triangle
-int ray_open_triangle_inter(
-    const Vector3r& e0, // e0 is the endpoint of ray
-    const Vector3r& e1, // e1 is direction
-    const Vector3r& t1,
-    const Vector3r& t2,
-    const Vector3r& t3)
-{
-
-    const Rational d = e0[0] * t1[1] * t2[2] - e0[0] * t1[1] * t3[2]
-        - e0[0] * t1[2] * t2[1] + e0[0] * t1[2] * t3[1] + e0[0] * t2[1] * t3[2]
-        - e0[0] * t2[2] * t3[1] - e0[1] * t1[0] * t2[2] + e0[1] * t1[0] * t3[2]
-        + e0[1] * t1[2] * t2[0] - e0[1] * t1[2] * t3[0] - e0[1] * t2[0] * t3[2]
-        + e0[1] * t2[2] * t3[0] + e0[2] * t1[0] * t2[1] - e0[2] * t1[0] * t3[1]
-        - e0[2] * t1[1] * t2[0] + e0[2] * t1[1] * t3[0] + e0[2] * t2[0] * t3[1]
-        - e0[2] * t2[1] * t3[0] - e1[0] * t1[1] * t2[2] + e1[0] * t1[1] * t3[2]
-        + e1[0] * t1[2] * t2[1] - e1[0] * t1[2] * t3[1] - e1[0] * t2[1] * t3[2]
-        + e1[0] * t2[2] * t3[1] + e1[1] * t1[0] * t2[2] - e1[1] * t1[0] * t3[2]
-        - e1[1] * t1[2] * t2[0] + e1[1] * t1[2] * t3[0] + e1[1] * t2[0] * t3[2]
-        - e1[1] * t2[2] * t3[0] - e1[2] * t1[0] * t2[1] + e1[2] * t1[0] * t3[1]
-        + e1[2] * t1[1] * t2[0] - e1[2] * t1[1] * t3[0] - e1[2] * t2[0] * t3[1]
-        + e1[2] * t2[1] * t3[0];
-    if (d.get_sign() == 0) // coplanar direction
-        return -1;         // shoot another ray
-
-    const Rational t = (e0[0] * t1[1] * t2[2] - e0[0] * t1[1] * t3[2]
-                        - e0[0] * t1[2] * t2[1] + e0[0] * t1[2] * t3[1]
-                        + e0[0] * t2[1] * t3[2] - e0[0] * t2[2] * t3[1]
-                        - e0[1] * t1[0] * t2[2] + e0[1] * t1[0] * t3[2]
-                        + e0[1] * t1[2] * t2[0] - e0[1] * t1[2] * t3[0]
-                        - e0[1] * t2[0] * t3[2] + e0[1] * t2[2] * t3[0]
-                        + e0[2] * t1[0] * t2[1] - e0[2] * t1[0] * t3[1]
-                        - e0[2] * t1[1] * t2[0] + e0[2] * t1[1] * t3[0]
-                        + e0[2] * t2[0] * t3[1] - e0[2] * t2[1] * t3[0]
-                        - t1[0] * t2[1] * t3[2] + t1[0] * t2[2] * t3[1]
-                        + t1[1] * t2[0] * t3[2] - t1[1] * t2[2] * t3[0]
-                        - t1[2] * t2[0] * t3[1] + t1[2] * t2[1] * t3[0])
-        / d;
-    const Rational u = (-e0[0] * e1[1] * t1[2] + e0[0] * e1[1] * t3[2]
-                        + e0[0] * e1[2] * t1[1] - e0[0] * e1[2] * t3[1]
-                        - e0[0] * t1[1] * t3[2] + e0[0] * t1[2] * t3[1]
-                        + e0[1] * e1[0] * t1[2] - e0[1] * e1[0] * t3[2]
-                        - e0[1] * e1[2] * t1[0] + e0[1] * e1[2] * t3[0]
-                        + e0[1] * t1[0] * t3[2] - e0[1] * t1[2] * t3[0]
-                        - e0[2] * e1[0] * t1[1] + e0[2] * e1[0] * t3[1]
-                        + e0[2] * e1[1] * t1[0] - e0[2] * e1[1] * t3[0]
-                        - e0[2] * t1[0] * t3[1] + e0[2] * t1[1] * t3[0]
-                        + e1[0] * t1[1] * t3[2] - e1[0] * t1[2] * t3[1]
-                        - e1[1] * t1[0] * t3[2] + e1[1] * t1[2] * t3[0]
-                        + e1[2] * t1[0] * t3[1] - e1[2] * t1[1] * t3[0])
-        / d;
-    const Rational v = (e0[0] * e1[1] * t1[2] - e0[0] * e1[1] * t2[2]
-                        - e0[0] * e1[2] * t1[1] + e0[0] * e1[2] * t2[1]
-                        + e0[0] * t1[1] * t2[2] - e0[0] * t1[2] * t2[1]
-                        - e0[1] * e1[0] * t1[2] + e0[1] * e1[0] * t2[2]
-                        + e0[1] * e1[2] * t1[0] - e0[1] * e1[2] * t2[0]
-                        - e0[1] * t1[0] * t2[2] + e0[1] * t1[2] * t2[0]
-                        + e0[2] * e1[0] * t1[1] - e0[2] * e1[0] * t2[1]
-                        - e0[2] * e1[1] * t1[0] + e0[2] * e1[1] * t2[0]
-                        + e0[2] * t1[0] * t2[1] - e0[2] * t1[1] * t2[0]
-                        - e1[0] * t1[1] * t2[2] + e1[0] * t1[2] * t2[1]
-                        + e1[1] * t1[0] * t2[2] - e1[1] * t1[2] * t2[0]
-                        - e1[2] * t1[0] * t2[1] + e1[2] * t1[1] * t2[0])
-        / d;
-
-    // std::cout << t << std::endl;
-    // std::cout << u << std::endl;
-    // std::cout << v << std::endl;
-
-    /* if (t < 0 || t > 1)
-         return 0;*/
-
-    if (u >= 0 && u <= 1 && v >= 0 && v <= 1 && u + v <= 1 && t >= 0) {
-
-        // on a corner
-        if (u.get_sign() == 0 || v.get_sign() == 0 || u == 1 || v == 1
-            || u + v == 1)
-            return -1; // ray hit an edge
-        if (t.get_sign() == 0)
-            return 2; // point is on the open triangle
-        return 1;
-    }
-
-    return 0;
-}
 
 } // namespace ccd

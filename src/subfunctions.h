@@ -64,21 +64,9 @@ int seg_cut_plane(
 // Causion: open triangle!
 bool is_cube_edges_intersect_triangle(
    const ccd::cube& cb, const Vector3r& t0, const Vector3r& t1, const Vector3r& t2);
-bool is_seg_intersect_triangle(
-    const Vector3r& s0,
-    const Vector3r& s1,
-    const Vector3r& t0,
-    const Vector3r& t1,
-    const Vector3r& t2,
-    const int& axis);
+
 // segment and triangle are coplanar, check intersection
-bool is_coplanar_seg_intersect_triangle(
-    const Vector3r& s0,
-    const Vector3r& s1,
-    const Vector3r& t0,
-    const Vector3r& t1,
-    const Vector3r& t2,
-    const int axis);
+
 void get__corners(const std::vector<Vector3d>& p, Vector3d& min, Vector3d& max);
 template <typename T>
 void get__corners(const std::array<T, 6>& p, T& min, T& max)

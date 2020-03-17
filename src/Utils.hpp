@@ -35,7 +35,7 @@ bool XOR(const bool a, const bool b)
         return false;
     return true;
 }
-int int_XOR(const int a, const int b)
+int int_XOR(const int a, const int b)// TODO
 {
     if (a == -1 || b == -1)
         return -1;
@@ -60,11 +60,7 @@ int orient3d(
     const Vector3r& a, const Vector3r& b, const Vector3r& c, const Vector3r& d);
 int orient2d(
     const Vector3r& a, const Vector3r& b, const Vector3r& c, const int axis);
-int origin_ray_triangle_inter(
-    const Vector3d& dir,
-    const Vector3r& t1,
-    const Vector3r& t2,
-    const Vector3r& t3);
+
 bool segment_segment_intersection(
 	const Vector3r& s0,
 	const Vector3r& e0,
@@ -88,43 +84,8 @@ bool segment_segment_inter(
 // and also tell us if the parallel case has seg-seg overlapping:
 
 
-int segment_triangle_inter(
-    const Vector3d& e0,
-    const Vector3d& e1,
-    const Vector3d& t1,
-    const Vector3d& t2,
-    const Vector3d& t3);
-int segment_triangle_inter(
-    const Vector3r& e0,
-    const Vector3r& e1,
-    const Vector3r& t1,
-    const Vector3r& t2,
-    const Vector3r& t3);
-int line_triangle_inter(
-    const Vector3r& e0,
-    const Vector3r& e1,
-    const Vector3r& t1,
-    const Vector3r& t2,
-    const Vector3r& t3);
-int ray_halfopen_triangle_inter(
-    const Vector3r& p0,
-    const Vector3r& dir,
-    const Vector3r& t1,
-    const Vector3r& t2,
-    const Vector3r& t3);
-int ray_open_triangle_inter(
-    const Vector3r& p0,
-    const Vector3r& dir,
-    const Vector3r& t1,
-    const Vector3r& t2,
-    const Vector3r& t3);
-int line_triangle_inter_return_t(
-    const Vector3r& e0,
-    const Vector3r& e1,
-    const Vector3r& t1,
-    const Vector3r& t2,
-    const Vector3r& t3,
-    Rational& t);
+
+
 bool same_point(const Vector3r& p1, const Vector3r& p2);
 Vector3r tri_norm(const Vector3r& t0, const Vector3r& t1, const Vector3r& t2)
 {
@@ -412,4 +373,112 @@ int is_line_cut_triangle(
 
 	return 0;
 }
+int line_triangle_inter_return_t(
+	const Vector3r& e0,
+	const Vector3r& e1,
+	const Vector3r& t1,
+	const Vector3r& t2,
+	const Vector3r& t3,
+	Rational& t)// TODO can not deal with degenerated triangle
+
+{
+	const Rational d = e0[0] * t1[1] * t2[2] - e0[0] * t1[1] * t3[2]
+		- e0[0] * t1[2] * t2[1] + e0[0] * t1[2] * t3[1] + e0[0] * t2[1] * t3[2]
+		- e0[0] * t2[2] * t3[1] - e0[1] * t1[0] * t2[2] + e0[1] * t1[0] * t3[2]
+		+ e0[1] * t1[2] * t2[0] - e0[1] * t1[2] * t3[0] - e0[1] * t2[0] * t3[2]
+		+ e0[1] * t2[2] * t3[0] + e0[2] * t1[0] * t2[1] - e0[2] * t1[0] * t3[1]
+		- e0[2] * t1[1] * t2[0] + e0[2] * t1[1] * t3[0] + e0[2] * t2[0] * t3[1]
+		- e0[2] * t2[1] * t3[0] - e1[0] * t1[1] * t2[2] + e1[0] * t1[1] * t3[2] 
+		+ e1[0] * t1[2] * t2[1] - e1[0] * t1[2] * t3[1] - e1[0] * t2[1] * t3[2]
+		+ e1[0] * t2[2] * t3[1] + e1[1] * t1[0] * t2[2] - e1[1] * t1[0] * t3[2]
+		- e1[1] * t1[2] * t2[0] + e1[1] * t1[2] * t3[0] + e1[1] * t2[0] * t3[2]
+		- e1[1] * t2[2] * t3[0] - e1[2] * t1[0] * t2[1] + e1[2] * t1[0] * t3[1]
+		+ e1[2] * t1[1] * t2[0] - e1[2] * t1[1] * t3[0] - e1[2] * t2[0] * t3[1]
+		+ e1[2] * t2[1] * t3[0];
+
+	if (d.get_sign() == 0) // coplanar
+		return -1;
+	t = (e0[0] * t1[1] * t2[2] - e0[0] * t1[1] * t3[2] - e0[0] * t1[2] * t2[1]
+		+ e0[0] * t1[2] * t3[1] + e0[0] * t2[1] * t3[2] - e0[0] * t2[2] * t3[1]
+		- e0[1] * t1[0] * t2[2] + e0[1] * t1[0] * t3[2] + e0[1] * t1[2] * t2[0]
+		- e0[1] * t1[2] * t3[0] - e0[1] * t2[0] * t3[2] + e0[1] * t2[2] * t3[0]
+		+ e0[2] * t1[0] * t2[1] - e0[2] * t1[0] * t3[1] - e0[2] * t1[1] * t2[0]
+		+ e0[2] * t1[1] * t3[0] + e0[2] * t2[0] * t3[1] - e0[2] * t2[1] * t3[0]
+		- t1[0] * t2[1] * t3[2] + t1[0] * t2[2] * t3[1] + t1[1] * t2[0] * t3[2]
+		- t1[1] * t2[2] * t3[0] - t1[2] * t2[0] * t3[1]
+		+ t1[2] * t2[1] * t3[0])
+		/ d;
+
+	const Rational u = (-e0[0] * e1[1] * t1[2] + e0[0] * e1[1] * t3[2]
+		+ e0[0] * e1[2] * t1[1] - e0[0] * e1[2] * t3[1]
+		- e0[0] * t1[1] * t3[2] + e0[0] * t1[2] * t3[1]
+		+ e0[1] * e1[0] * t1[2] - e0[1] * e1[0] * t3[2]
+		- e0[1] * e1[2] * t1[0] + e0[1] * e1[2] * t3[0]
+		+ e0[1] * t1[0] * t3[2] - e0[1] * t1[2] * t3[0]
+		- e0[2] * e1[0] * t1[1] + e0[2] * e1[0] * t3[1]
+		+ e0[2] * e1[1] * t1[0] - e0[2] * e1[1] * t3[0]
+		- e0[2] * t1[0] * t3[1] + e0[2] * t1[1] * t3[0]
+		+ e1[0] * t1[1] * t3[2] - e1[0] * t1[2] * t3[1]
+		- e1[1] * t1[0] * t3[2] + e1[1] * t1[2] * t3[0]
+		+ e1[2] * t1[0] * t3[1] - e1[2] * t1[1] * t3[0])
+		/ d;
+	const Rational v = (e0[0] * e1[1] * t1[2] - e0[0] * e1[1] * t2[2]
+		- e0[0] * e1[2] * t1[1] + e0[0] * e1[2] * t2[1]
+		+ e0[0] * t1[1] * t2[2] - e0[0] * t1[2] * t2[1]
+		- e0[1] * e1[0] * t1[2] + e0[1] * e1[0] * t2[2]
+		+ e0[1] * e1[2] * t1[0] - e0[1] * e1[2] * t2[0]
+		- e0[1] * t1[0] * t2[2] + e0[1] * t1[2] * t2[0]
+		+ e0[2] * e1[0] * t1[1] - e0[2] * e1[0] * t2[1]
+		- e0[2] * e1[1] * t1[0] + e0[2] * e1[1] * t2[0]
+		+ e0[2] * t1[0] * t2[1] - e0[2] * t1[1] * t2[0]
+		- e1[0] * t1[1] * t2[2] + e1[0] * t1[2] * t2[1]
+		+ e1[1] * t1[0] * t2[2] - e1[1] * t1[2] * t2[0]
+		- e1[2] * t1[0] * t2[1] + e1[2] * t1[1] * t2[0])
+		/ d;
+
+	// std::cout << t << std::endl;
+
+	// std::cout << u << std::endl;
+
+	// std::cout << v << std::endl;
+
+	if (u >= 0 && u <= 1 && v >= 0 && v <= 1 && u + v <= 1) {
+		if (u == 0 || u == 1 || v == 0 || v == 1 || u + v == 1)
+			return 2; // on the border
+		return 1;
+	}
+
+	return 0;
+
+}
+// if a line (going across pt, pt+dir) intersects triangle
+// triangle is not degenerated
+// use ray_triangle_intersection twice, TODO modify this
+// 0 not intersected, 1 intersected, 3 intersected t2-t3 edge 
+int line_triangle_intersection(
+	const Vector3r& pt,
+	const Vector3r& dir,
+	const Vector3r& t1,
+	const Vector3r& t2,
+	const Vector3r& t3,
+	const bool halfopen);
+// we check if triangle intersect segment,
+// this function is used in cube edge--prism tri and cube edge--bilinear tri
+// if halfopen= true, can tell us if intersect the edge t2-t3
+// 0 not intersected, 1 intersected, 2 one of pt is on plane, 3 intersect t2-t3 edge
+int segment_triangle_intersection(
+	const Vector3r& e0,
+	const Vector3r& e1,
+	const Vector3r& t1,
+	const Vector3r& t2,
+	const Vector3r& t3,
+	const bool halfopen);
+// 0 no intersection, 1 intersect, 2 point on triangle, 3 point or ray go to on t2-t3 edge, -1 shoot on border
+int ray_triangle_intersection(
+	const Vector3r& pt,
+	const Vector3r& dir,
+	const Vector3r& t1,
+	const Vector3r& t2,
+	const Vector3r& t3,
+	const bool halfopen);
 } // namespace ccd

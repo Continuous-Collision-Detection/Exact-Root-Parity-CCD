@@ -196,6 +196,7 @@ bool is_seg_intersect_cube(
         return true;
     return false;
 }
+// check if a 2d segment intersects 2d cube
 bool is_seg_intersect_cube_2d(
     const double eps, const Vector3r& e0, const Vector3r& e1, int axis)
 {
@@ -207,14 +208,14 @@ bool is_seg_intersect_cube_2d(
         return true;
     if (e1[i1] <= eps && e1[i1] >= -eps && e1[i2] <= eps && e1[i2] >= -eps)
         return true;
-    if (segment_segment_inter_2(e0, e1, p0, p1, res, axis) >= 0)
+    if (segment_segment_intersection(e0, e1, p0, p1))// TODO maybe implement a 2d version
         return true; // check if segments has intersection, or if cube points
                      // p0, p1 on e0-e1
-    if (segment_segment_inter_2(e0, e1, p1, p2, res, axis) >= 0)
+    if (segment_segment_intersection(e0, e1, p1, p2))
         return true;
-    if (segment_segment_inter_2(e0, e1, p2, p3, res, axis) >= 0)
+    if (segment_segment_intersection(e0, e1, p2, p3))
         return true;
-    if (segment_segment_inter_2(e0, e1, p3, p0, res, axis) >= 0)
+    if (segment_segment_intersection(e0, e1, p3, p0))
         return true;
 
     return false;
@@ -301,78 +302,6 @@ bool is_cube_edges_intersect_triangle(
         if (is_seg_intersect_triangle(s0, s1, t0, t1, t2, axis))
             return true;
     }
-    return false;
-}
-
-//  triangle not degenerated
-bool is_seg_intersect_triangle(
-    const Vector3r& s0,
-    const Vector3r& s1,
-    const Vector3r& t0,
-    const Vector3r& t1,
-    const Vector3r& t2,
-    const int& axis)
-{
-    int o1 = orient3d(s0, t0, t1, t2);
-    bool degeneration = false;// segment degeneration, actually can not happen
-	if (same_point(s0, s1)) {
-        degeneration = true;
-        if (o1 != 0)
-            return false; // degenerated as a point but not on the plane
-		
-    }
-    int o2 = orient3d(s1, t0, t1, t2);
-    if (o1 * o2 > 0)
-        return false; // segment on the same side of the triangle
-
-    if (o1 == 0 && o2 == 0) { // if coplanar
-
-        if (is_coplanar_seg_intersect_triangle(s0, s1, t0, t1, t2, axis)) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-    // not degenerated segment, not coplanar with triangle
-    if (segment_triangle_inter(s0, s1, t0, t1, t2) > 0)
-        return true;
-    else {
-        return false;
-    }
-}
-
-// seg does not intersect triangle edges
-bool is_coplanar_seg_intersect_triangle(
-    const Vector3r& s0,
-    const Vector3r& s1,
-    const Vector3r& t0,
-    const Vector3r& t1,
-    const Vector3r& t2,
-    const int axis)
-{
-    int o1, o2, o3;
-    o1 = orient2d(s0, t0, t1, axis);
-    o2 = orient2d(s0, t1, t2, axis);
-    o3 = orient2d(s0, t2, t0, axis);
-    if (o1 * o2 >= 0 && o1 * o3 >= 0 && o2 * o3 >= 0) {
-        return true; // if same orientation, then point is inside
-    }
-    o1 = orient2d(s1, t0, t1, axis);
-    o2 = orient2d(s1, t1, t2, axis);
-    o3 = orient2d(s1, t2, t0, axis);
-    if (o1 * o2 >= 0 && o1 * o3 >= 0 && o2 * o3 >= 0) {
-        return true; // if same orientation, then point is inside
-    }
-    // since we already check triangle edge-box intersection, so no need to
-    // check here
-    Vector3r res;
-    if (segment_segment_inter_2(t0, t1, s0, s1, res, axis))
-        return true;
-    if (segment_segment_inter_2(t1, t2, s0, s1, res, axis))
-        return true;
-    if (segment_segment_inter_2(t0, t2, s0, s1, res, axis))
-        return true;
-
     return false;
 }
 
@@ -623,16 +552,17 @@ bool line_shoot_same_pair_tet(
         else
             fid = 2;
     }
-    int inter0 = line_triangle_inter(
-        p0, p1, bl.v[bl.facets[fid][1]], bl.v[bl.facets[fid][2]],
-        bl.v[bl.facets[fid][3]]);
-    int inter1 = line_triangle_inter(
-        p0, p1, bl.v[bl.facets[fid + 1][1]], bl.v[bl.facets[fid + 1][2]],
-        bl.v[bl.facets[fid + 1][3]]);
-    if (inter0 == 1 || inter1 == 1)
+	int inter0 = line_triangle_intersection(// return 0 or 1
+		p0, p1 - p0, bl.v[bl.facets[fid][1]], bl.v[bl.facets[fid][2]],
+		bl.v[bl.facets[fid][3]], false);
+	int inter1 = line_triangle_intersection(
+		p0, p1 - p0, bl.v[bl.facets[fid + 1][1]], bl.v[bl.facets[fid + 1][2]],
+		bl.v[bl.facets[fid + 1][3]], false);
+	if (inter0 == 1 || inter1 == 1)
         return true;
     return false;
 }
+
 Rational quadratic_function_value(
     const Rational& a, const Rational& b, const Rational& c, const Rational& t)
 {
@@ -778,10 +708,12 @@ bool rootfinder(
             p0, p1, bl.v[bl.facets[fid][0]], bl.v[bl.facets[fid][1]],
             bl.v[bl.facets[fid][2]], t);
         if (!res1) {
-            line_triangle_inter_return_t(
+            res1=line_triangle_inter_return_t(
                 p0, p1, bl.v[bl.facets[fid+1][0]], bl.v[bl.facets[fid+1][1]],
                 bl.v[bl.facets[fid+1][2]], t);
         }
+		if (!res1)
+			return false; // means not really intersected
         // we got t
         return get_function_find_root(bl, p0, p1, 0, t);
     }
@@ -791,23 +723,27 @@ bool rootfinder(
             p1, p0, bl.v[bl.facets[fid][0]], bl.v[bl.facets[fid][1]],
             bl.v[bl.facets[fid][2]], t);
         if (!res1) {
-            line_triangle_inter_return_t(
+			res1 = line_triangle_inter_return_t(
                 p1, p0, bl.v[bl.facets[fid + 1][0]],
                 bl.v[bl.facets[fid + 1][1]], bl.v[bl.facets[fid + 1][2]], t);
         }
+		if (!res1)
+			return false; // means not really intersected
         // we got t
         return get_function_find_root(bl, p1, p0, 0, t);
     }
 
     Rational t1;
-    line_triangle_inter_return_t(
+	bool res1 = line_triangle_inter_return_t(
         p0, p1, bl.v[bl.facets[fid][0]], bl.v[bl.facets[fid][1]],
         bl.v[bl.facets[fid][2]], t);
-
-    line_triangle_inter_return_t(
+	if (!res1)
+		return false; // means not really intersected
+	bool res2 = line_triangle_inter_return_t(
         p0, p1, bl.v[bl.facets[fid + 1][0]], bl.v[bl.facets[fid + 1][1]],
         bl.v[bl.facets[fid + 1][2]], t1);
-
+	if (!res2)
+		return false; // means not really intersected
     // we got t, t1
     return get_function_find_root(bl, p0, p1, t, t1);
 }
@@ -844,9 +780,9 @@ bool is_seg_intersect_not_degenerated_bilinear(
             return true;
         int hitpair = -1;
         for (int i = 0; i < 4; i++) {
-            if (segment_triangle_inter(
+            if (segment_triangle_intersection(// 0,1,2,3. 1,2,3 are all intersected
                     p0, p1, bl.v[bl.facets[i][0]], bl.v[bl.facets[i][0]],
-                    bl.v[bl.facets[i][0]])
+				bl.v[bl.facets[i][0]], false)
                 > 0) {
                 if (i < 2)
                     hitpair = 0;
@@ -885,9 +821,9 @@ bool is_seg_intersect_not_degenerated_bilinear(
             return true;
         int hitpair = -1;
         for (int i = 0; i < 4; i++) {
-            if (segment_triangle_inter(
+            if (segment_triangle_intersection(// 0,1,2,3. 1,2,3 are all intersected
                     p0, p1, bl.v[bl.facets[i][0]], bl.v[bl.facets[i][0]],
-                    bl.v[bl.facets[i][0]])
+				bl.v[bl.facets[i][0]], false)
                 > 0) {
                 if (i < 2)
                     hitpair = 0;
@@ -988,10 +924,10 @@ bool is_cube_intersect_tet_opposite_faces(
             continue;
         }
         for (int j = 0; j < 4; j++) {
-            if (segment_triangle_inter(
+            if (segment_triangle_intersection(
                     cube.vr[cube.edgeid[i][0]], cube.vr[cube.edgeid[i][1]],
                     bl.v[bl.facets[j][0]], bl.v[bl.facets[j][1]],
-                    bl.v[bl.facets[j][2]])
+				bl.v[bl.facets[j][2]], false)
                 > 0) {
 				cube_inter_tet = true;
                 if (j == 0 || j == 1)
