@@ -352,7 +352,7 @@ static const   std::function<int(Rational)> check_rational = [](Rational v) {
 
 //already know lpi exist;
 // 0 not intersected, 1 intersect open triangle, 2 shoot on edge, 3 shoot on edge t2-t3
-int is_seg_cut_triangle(
+int is_line_cut_triangle(
 	const Vector3r& e0,
 	const Vector3r& e1,
 	const Vector3r& t1,

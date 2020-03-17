@@ -314,11 +314,12 @@ bool is_seg_intersect_triangle(
     const int& axis)
 {
     int o1 = orient3d(s0, t0, t1, t2);
-    bool degeneration = false;
-    if (s0[0] == s1[0] && s0[1] == s1[1] && s0[2] == s1[2]) {
+    bool degeneration = false;// segment degeneration, actually can not happen
+	if (same_point(s0, s1)) {
         degeneration = true;
         if (o1 != 0)
             return false; // degenerated as a point but not on the plane
+		
     }
     int o2 = orient3d(s1, t0, t1, t2);
     if (o1 * o2 > 0)

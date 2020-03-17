@@ -399,7 +399,7 @@ int segment_triangle_intersection(
 		return point_inter_triangle(e0, t1, t2, t3, false, norm, halfopen);
 	if (o2 == 0 && o1 != 0)
 		return point_inter_triangle(e1, t1, t2, t3, false, norm, halfopen);
-	return is_seg_cut_triangle(e0, e1, t1, t2, t3, halfopen, norm);
+	return is_line_cut_triangle(e0, e1, t1, t2, t3, halfopen, norm);
 }
 // 0 no intersection, 1 intersect, 2 point on triangle, 3 point on t2-t3 edge, -1 shoot on border
 int ray_triangle_intersection(
@@ -426,19 +426,37 @@ int ray_triangle_intersection(
 
 	int o1 = orient3d(pt, t1, t2, t3);
 	if (o1 == 0) {
-		int inter=
+		int inter = point_inter_triangle(pt, t1, t2, t3, false, norm, halfopen);
+		if (inter == 1 || inter == 2) return 2;
+		if (inter == 3) return 3;
+		//if (inter == 0) 
+		else {// pt on the plane but not intersect triangle.
+			if (norm.dot(dir) == 0) {// if ray is on the plane
+				int inter1 = ray_segment_intersection(pt, dir, t1, t2);
+				if (inter1 == 1) return -1;
+				if (inter1 == 2) return 2;// acutally, cannot be 2 because already checked by pt_inter_tri
+
+				int inter2 = ray_segment_intersection(pt, dir, t1, t3);
+				if (inter2 == 1) return -1;
+				if (inter2 == 2) return 2;
+
+				int inter3 = ray_segment_intersection(pt, dir, t2, t3);
+				if (inter3 == 1) return -1;
+				if (inter3 == 2) return 2;
+
+				return 0;
+			}
+		}
+		
 	}
-
-	if (o1 > 0 && o2 > 0)
-		return 0;
-	if (o1 < 0 && o2 < 0)
-		return 0;
-
-	if (o1 == 0 && o2 != 0)// e0 on the plane
-		return point_inter_triangle(e0, t1, t2, t3, false, norm, halfopen);
-	if (o2 == 0 && o1 != 0)
-		return point_inter_triangle(e1, t1, t2, t3, false, norm, halfopen);
-	return is_seg_cut_triangle(e0, e1, t1, t2, t3, halfopen, norm);
+	Rational dt = norm.dot(dir);// >0, dir is same direction with norm, pointing to +1 orientation
+	if (dt.get_sign() > 0 && o1 >= 0) return 0;
+	if (dt.get_sign() < 0 && o1 <= 0) return 0;
+	Vector3r np = pt + dir;
+	// if ray go across the plane, then get lpi and 3 orientations
+	int inter = is_line_cut_triangle(pt, np, t1, t2, t3, halfopen, norm);
+	return inter;
+	
 }
 int segment_triangle_inter(
     const Vector3d& ef0,
