@@ -27,17 +27,25 @@ template <typename V1, typename V2> Vector3r cross(const V1& v1, const V2& v2)
 
     return res;
 }
-bool XOR(const bool a, const bool b)
+//bool XOR(const bool a, const bool b)
+//{
+//    if (a && b)
+//        return false;
+//    if (!a && !b)
+//        return false;
+//    return true;
+//}
+
+// accept 0,1,2,3 as inputs
+bool int_seg_XOR(const int a, const int b)
 {
-    if (a && b)
-        return false;
-    if (!a && !b)
-        return false;
-    return true;
-}
-int int_XOR(const int a, const int b)// TODO
-{
-    if (a == -1 || b == -1)
+	if (a == 2 || b == 2) return true;
+	if (a == 0 && b == 1) return true;
+	if (a == 1 && b == 0) return true;
+	if (a == 3 || b == 3) return false;
+	if (a == b) return false;
+	return false;
+	/*if (a == -1 || b == -1)
         return -1;
     if (a == b)
         return 0;
@@ -45,9 +53,18 @@ int int_XOR(const int a, const int b)// TODO
         return b;
     if (b == 0)
         return a;
-    std::cout << "impossible XOR cases" << std::endl;
+    std::cout << "impossible XOR cases" << std::endl;*/
 }
-
+// accept -1,0,1,2,3 as inputs
+int int_ray_XOR(const int a, const int b) {
+	if (a == -1 || b == -1) return -1;
+	if (a == 0) return b;
+	if (b == 0) return a;
+	if (a == b) return 0;
+	if (a == 2 || b == 2) return 2;//this is case 2-3
+	std::cout << "impossible to go here " << std::endl;
+	return -1;
+}
 template <typename V> void print(const V& v)
 {
     std::cout << v[0] << " " << v[1] << " " << v[2] << std::endl;
@@ -459,7 +476,7 @@ int line_triangle_intersection(
 // we check if triangle intersect segment,
 // this function is used in cube edge--prism tri and cube edge--bilinear tri
 // if halfopen= true, can tell us if intersect the edge t2-t3
-// 0 not intersected, 1 intersected, 2 one of pt is on plane, 3 intersect t2-t3 edge
+// 0 not intersected, 1 intersected, 2 intersect edge, 3 intersect t2-t3 edge
 int segment_triangle_intersection(
 	const Vector3r& e0,
 	const Vector3r& e1,

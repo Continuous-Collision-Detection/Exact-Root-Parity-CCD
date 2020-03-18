@@ -424,7 +424,7 @@ int segment_triangle_intersection(
 	Vector3r norm = cross(t2 - t1, t3 - t2);
 	if (same_point(norm, ORIGIN))// triangle degeneration
 	{
-		return false;//we already checked triangle (at least two edges)edge against cube
+		return 0;//we already checked triangle (at least two edges)edge against cube
 		//TODO need to make it a general one?
 	}
 
@@ -449,12 +449,15 @@ int segment_triangle_intersection(
 			// two points all inside, inside; two outside, outside; others, intersect t2-t3
 			if (pinter0 == 1 && pinter1 == 1) return 1; // interior
 			if (pinter0 == 0 && pinter1 == 0) return 0;//  out
-			return 3;// intersect t2-t3
+			if (halfopen)
+				return 3;// intersect t2-t3
+			else
+				return 2;
 		}
 	}
 	return is_line_cut_triangle(e0, e1, t1, t2, t3, halfopen, norm);
 }
-// 0 no intersection, 1 intersect, 2 point on triangle, 3 point on t2-t3 edge, -1 shoot on border
+// 0 no intersection, 1 intersect, 2 point on triangle(including two edges), 3 point on t2-t3 edge, -1 shoot on border
 int ray_triangle_intersection(
 	const Vector3r& pt,
 	const Vector3r& dir,
@@ -492,7 +495,7 @@ int ray_triangle_intersection(
 				int inter2 = ray_segment_intersection(pt, dir, t1, t3);
 				if (inter2 == 1) return -1;
 				if (inter2 == 2) return 2;
-				//TODO actually since point do not intersect triangle, check two segs are enough
+				//actually since point do not intersect triangle, check two segs are enough
 				//int inter3 = ray_segment_intersection(pt, dir, t2, t3);
 				//// ray overlaps t2-t3, shoot another ray, ray intersect it, shoot another one 
 				//if (inter3 == 1) return -1;
@@ -511,8 +514,12 @@ int ray_triangle_intersection(
 	Vector3r np = pt + dir;
 	// if ray go across the plane, then get lpi and 3 orientations
 	int inter = is_line_cut_triangle(pt, np, t1, t2, t3, halfopen, norm);
-	return inter;
+	if (inter == 0)return 0;
+	if (inter == 1)return 1;
+	if (inter == 2)return -1;//shoot on edge
+	if (inter == 3) return 3;
 	
+	return 0;
 }
 
 // if a line (going across pt, pt+dir) intersects triangle

@@ -299,7 +299,7 @@ bool is_cube_edges_intersect_triangle(
     for (int i = 0; i < 12; i++) {
         s0 = cb.vr[cb.edgeid[i][0]];
         s1 = cb.vr[cb.edgeid[i][1]];
-        if (is_seg_intersect_triangle(s0, s1, t0, t1, t2, axis))
+        if (segment_triangle_intersection(s0, s1, t0, t1, t2, false)>0)// return 0,1,2
             return true;
     }
     return false;
@@ -502,13 +502,13 @@ bool is_cube_intersect_degenerated_bilinear(
             return false; // both 2 triangles are all degenerated as a segment
         if (dege == BI_DEGE_XOR_02) { // triangle 0-1-2 and 0-2-3
             for (int i = 0; i < 12; i++) {
-                res = XOR(
-                    is_seg_intersect_triangle(
+                res = int_seg_XOR(
+					segment_triangle_intersection(
                         cube.vr[cube.edgeid[i][0]], cube.vr[cube.edgeid[i][1]],
-                        bl.v[0], bl.v[1], bl.v[2], axis),
-                    is_seg_intersect_triangle(
+                        bl.v[0], bl.v[1], bl.v[2], true),
+					segment_triangle_intersection(
                         cube.vr[cube.edgeid[i][0]], cube.vr[cube.edgeid[i][1]],
-                        bl.v[0], bl.v[2], bl.v[3], axis));
+                        bl.v[0], bl.v[2], bl.v[3], true));
                 if (res == true)
                     return true;
             }
@@ -517,13 +517,13 @@ bool is_cube_intersect_degenerated_bilinear(
 
         if (dege == BI_DEGE_XOR_13) { // triangle 0-1-3 and 3-1-2
             for (int i = 0; i < 12; i++) {
-                res = XOR(
-                    is_seg_intersect_triangle(
+                res = int_seg_XOR(
+					segment_triangle_intersection(
                         cube.vr[cube.edgeid[i][0]], cube.vr[cube.edgeid[i][1]],
-                        bl.v[0], bl.v[1], bl.v[3], axis),
-                    is_seg_intersect_triangle(
+                        bl.v[0], bl.v[1], bl.v[3], true),
+					segment_triangle_intersection(
                         cube.vr[cube.edgeid[i][0]], cube.vr[cube.edgeid[i][1]],
-                        bl.v[3], bl.v[1], bl.v[2], axis));
+                        bl.v[3], bl.v[1], bl.v[2], true));
                 if (res == true)
                     return true;
             }

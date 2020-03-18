@@ -46,7 +46,7 @@ namespace ccd {
 		std::cout << "!!can not happen, get tet phi" << std::endl;
 	}
 	// before going here, we already know the point can not be on the shape
-	bool ray_degenerated_bilinear_parity(
+	int ray_degenerated_bilinear_parity(
 		const bilinear& bl,
 		const Vector3r& pt,
 		const Vector3r& dir,
@@ -58,7 +58,7 @@ namespace ccd {
 		if (dege == BI_DEGE_PLANE) {
 			r1 = ray_triangle_intersection(// -1, 0, 1, 2
 				pt, dir, bl.v[bl.facets[0][0]], bl.v[bl.facets[0][1]],
-				bl.v[bl.facets[0][2]], false);
+				bl.v[bl.facets[0][2]], false);// TODO this should have 3, if 3, see it as 1
 			if (r1 == 2)
 				return 2;
 			if (r1 == -1)
@@ -86,7 +86,7 @@ namespace ccd {
 				r2 = ray_triangle_intersection(
 					pt, dir, bl.v[bl.facets[1][0]], bl.v[bl.facets[1][1]],
 					bl.v[bl.facets[1][2]], true);
-				return int_XOR(r1, r2);//TODO
+				return int_ray_XOR(r1, r2);//TODO
 			}
 
 			if (dege == BI_DEGE_XOR_13) { // triangle 0-1-3 and 3-1-2
@@ -96,7 +96,7 @@ namespace ccd {
 				r2 = ray_triangle_intersection(
 					pt, dir, bl.v[bl.facets[3][0]], bl.v[bl.facets[3][1]],
 					bl.v[bl.facets[3][2]], true);
-				return int_XOR(r1, r2);
+				return int_ray_XOR(r1, r2);
 			}
 		}
 		std::cout << "!! THIS CANNOT HAPPEN" << std::endl;
