@@ -73,13 +73,7 @@ int ray_segment_intersection(
 	const Vector3r& dir0,
 	const Vector3r& s1,
 	const Vector3r& e1);
-bool segment_segment_inter(
-    const Vector3r& s0,
-    const Vector3r& e0,
-    const Vector3r& s1,
-    const Vector3r& e1,
-    Vector3r& res,
-    int axis);
+
 // this function can also tell us if they are parallel and overlapped
 // and also tell us if the parallel case has seg-seg overlapping:
 

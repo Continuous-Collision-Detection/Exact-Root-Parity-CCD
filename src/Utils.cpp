@@ -232,9 +232,13 @@ bool segment_segment_intersection(
 			return false;
 	}
 	if (dege0) {
-
+		return colinear_point_on_segment(s0, s1, e1);
 	}
-		
+	if (dege1) {
+		return colinear_point_on_segment(s1, s0, e0);
+	}
+	std::cout << " impossible to go here" << std::endl;
+	return false;
 }
 // 0 not intersected; 1 intersected; 2 pt on s0
 int point_on_ray(const Vector3r& s0,
@@ -435,8 +439,19 @@ int segment_triangle_intersection(
 		return point_inter_triangle(e0, t1, t2, t3, false, norm, halfopen);
 	if (o2 == 0 && o1 != 0)
 		return point_inter_triangle(e1, t1, t2, t3, false, norm, halfopen);
-	if (o1 == 0 && o2 == 0)// seg on the plane, for the purpuse of usage, this is correct
-		return 0;
+	if (o1 == 0 && o2 == 0)// two points are all on the plane. we already checked seg-two edges before
+	{
+		if (same_point(e0,e1))
+			return point_inter_triangle(e0, t1, t2, t3, false, norm, halfopen);
+		else {
+			int pinter0 = point_inter_triangle(e0, t1, t2, t3, false, norm, halfopen);//2 is impossible
+			int pinter1 = point_inter_triangle(e1, t1, t2, t3, false, norm, halfopen);
+			// two points all inside, inside; two outside, outside; others, intersect t2-t3
+			if (pinter0 == 1 && pinter1 == 1) return 1; // interior
+			if (pinter0 == 0 && pinter1 == 0) return 0;//  out
+			return 3;// intersect t2-t3
+		}
+	}
 	return is_line_cut_triangle(e0, e1, t1, t2, t3, halfopen, norm);
 }
 // 0 no intersection, 1 intersect, 2 point on triangle, 3 point on t2-t3 edge, -1 shoot on border
@@ -463,7 +478,7 @@ int ray_triangle_intersection(
 	}
 
 	int o1 = orient3d(pt, t1, t2, t3);
-	if (o1 == 0) {
+	if (o1 == 0) {//point is on the plane
 		int inter = point_inter_triangle(pt, t1, t2, t3, false, norm, halfopen);
 		if (inter == 1 || inter == 2) return 2;
 		if (inter == 3) return 3;
@@ -477,16 +492,18 @@ int ray_triangle_intersection(
 				int inter2 = ray_segment_intersection(pt, dir, t1, t3);
 				if (inter2 == 1) return -1;
 				if (inter2 == 2) return 2;
-
-				int inter3 = ray_segment_intersection(pt, dir, t2, t3);
-				// ray overlaps t2-t3, shoot another ray, ray intersect it, shoot another one 
-				if (inter3 == 1) return -1;
-				if (inter3 == 2) return 2;
+				//TODO actually since point do not intersect triangle, check two segs are enough
+				//int inter3 = ray_segment_intersection(pt, dir, t2, t3);
+				//// ray overlaps t2-t3, shoot another ray, ray intersect it, shoot another one 
+				//if (inter3 == 1) return -1;
+				//if (inter3 == 2) return 2;
 
 				return 0;
 			}
+			
+			
 		}
-		
+		return 0;
 	}
 	Rational dt = norm.dot(dir);// >0, dir is same direction with norm, pointing to +1 orientation
 	if (dt.get_sign() > 0 && o1 >= 0) return 0;
