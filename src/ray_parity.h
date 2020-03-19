@@ -153,6 +153,7 @@ namespace ccd {
 	{
 		bool inter1, inter2;
 		if (!is_degenerated) {
+			bool check = false;
 			if (!is_point_in_tet) { // p out of tet,or on the border
 				int r1, r2;
 				//we need to know: if shoot on any edge?(two edges return -1, one edge return 1)
@@ -163,8 +164,17 @@ namespace ccd {
 				r2 = ray_triangle_intersection(
 					pt, dir, bl.v[bl.facets[1][0]], bl.v[bl.facets[1][1]],
 					bl.v[bl.facets[1][2]], true);
+				// idea is: if -1
 				if (r1 == -1 || r2 == -1)
 					return -1;
+				if (r1 == 3 || r2 == 3) check = true;
+				if (r1 == 2 && r2 == 0) check = true;
+				if (r1 == 0 && r2 == 2) check = true;
+				if (r1 == 1 && r2 == 1) return 0;
+				if (r1 + r2 == 1) return 1;
+				if (r1 == 1 || r2 == 1) return 0;
+
+
 				if (r1 == 2 || r2 == 2) {
 					xx
 				}
@@ -174,7 +184,7 @@ namespace ccd {
 
 				// TODO check half closed triangle shapes
 			}
-			else { // p inside tet
+			else { // p inside tet TODO this is not else!!!
 
 				if (bl.phi_f[0] == 2) { // phi never calculated, need calculated
 					get_tet_phi(bl);

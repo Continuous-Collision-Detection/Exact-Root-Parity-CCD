@@ -65,6 +65,7 @@ bool vertexFaceCCD(
 
     // step 3 tet facets- cube edges
     std::array<std::array<bool, 8>, 3> v_tet;//cube vertices - tets positions
+	
     bilinear bl0(
         vfprism.p_vertices[0], vfprism.p_vertices[1], vfprism.p_vertices[4],
         vfprism.p_vertices[3]);
@@ -74,6 +75,7 @@ bool vertexFaceCCD(
     bilinear bl2(
         vfprism.p_vertices[0], vfprism.p_vertices[2], vfprism.p_vertices[5],
         vfprism.p_vertices[3]);
+	std::array<bilinear, 3> bls = { {bl0,bl1,bl2} };
     bool cube_inter_tet[3];
 	if (is_cube_intersect_tet_opposite_faces(bl0, cb, v_tet[0], cube_inter_tet[0]))
 		return true;
