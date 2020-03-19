@@ -526,6 +526,7 @@ int ray_triangle_intersection(
 // triangle is not degenerated
 // use ray_triangle_intersection twice, TODO modify this
 // 0 not intersected, 1 intersected, 3 intersected t2-t3 edge 
+//TODO make it to check open triangle, coplanar is not intersected
 int line_triangle_intersection(
 	const Vector3r& pt,
 	const Vector3r& dir,

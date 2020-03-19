@@ -38,7 +38,7 @@ namespace ccd {
 			bl.phi_f[1] = -1;
 			return;
 		}
-		if (phi02.get_sign() < 0) {
+		else {
 			bl.phi_f[0] = -1;
 			bl.phi_f[1] = 1;
 			return;
@@ -153,7 +153,7 @@ namespace ccd {
 	{
 		bool inter1, inter2;
 		if (!is_degenerated) {
-			if (!is_point_in_tet) { // p out of tet
+			if (!is_point_in_tet) { // p out of tet,or on the border
 				int r1, r2;
 				//we need to know: if shoot on any edge?(two edges return -1, one edge return 1)
 				
@@ -165,7 +165,10 @@ namespace ccd {
 					bl.v[bl.facets[1][2]], true);
 				if (r1 == -1 || r2 == -1)
 					return -1;
-				if (r1 > 0 || r2 > 0)// since no touch tet, if ri cannot be 2 
+				if (r1 == 2 || r2 == 2) {
+					xx
+				}
+				if (r1 > 0 || r2 > 0)// since no touch tet, if ri cannot be 2 TODO this is wrong
 					return 1;
 				return 0;
 
@@ -227,20 +230,15 @@ namespace ccd {
 
 
 	// check if point has intersection with prism by counting parity
-	int point_inside_prism(prism& psm, const Vector3r& pt, const Vector3r& dir, const std::vector<bool>& is_pt_in_tet)
+	int point_inside_prism(prism& psm, std::array<bilinear, 3> &bls, 
+		const Vector3r& pt, const Vector3r& dir, const std::vector<bool>& is_pt_in_tet)
 	{
 		int S = 0;
-		bool point_in_tet;
-		bool is_degenerate;
 
-
-		for (int patch = 0; patch < psm.bilinears.size(); ++patch) {
-			bilinear tempbl(
-				psm.bilinears[patch][0], psm.bilinears[patch][1],
-				psm.bilinears[patch][2], psm.bilinears[patch][3]);
+		for (int patch = 0; patch < 3; ++patch) {
 
 			int is_ray_patch = ray_bilinear_parity(
-				tempbl, pt, dir, tempbl.is_degenerated, is_pt_in_tet[patch]);
+				bls[patch], pt, dir, bls[patch].is_degenerated, is_pt_in_tet[patch]);
 			std::cout << "is_ray_patch " << is_ray_patch << std::endl;
 
 			if (is_ray_patch == 2)
@@ -282,7 +280,7 @@ namespace ccd {
 	}
 
 	bool retrial_ccd(
-		prism& psm,
+		prism& psm, std::array<bilinear, 3>& bls,
 		const Vector3r& pt,
 		const std::vector<bool>& is_pt_in_tet)
 	{
@@ -292,7 +290,7 @@ namespace ccd {
 		int res = -1;
 		int trials;
 		for (trials = 0; trials < max_trials; ++trials) {
-			res = point_inside_prism(psm, pt, dir, is_pt_in_tet);
+			res = point_inside_prism(psm, bls, pt, dir, is_pt_in_tet);
 
 			if (res >= 0)
 				break;
@@ -307,7 +305,7 @@ namespace ccd {
 			return false;
 		}
 
-		return res >= 1; // what is this mean?
+		return res >= 1; // >=1 means point inside of prism
 	}
 
 } // namespace ccd

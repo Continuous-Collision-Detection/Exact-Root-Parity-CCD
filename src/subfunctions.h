@@ -135,7 +135,7 @@ public:
     bool is_triangle_degenerated(const int up_or_bottom);
     std::array<std::array<int, 2>, 9> prism_edge_id;
     std::array<Vector3r, 6> p_vertices;
-    std::vector<std::array<Vector3r, 4>> bilinears;
+    
 
 private:
     Vector3r vsr;
@@ -153,7 +153,7 @@ bool is_cube_intersect_tet_opposite_faces(
     const bilinear& bl,
     const cube& cube,
     std::array<bool, 8>& vin,
-    bool& bilinear_degenerate, bool &cube_inter_tet);
+     bool &cube_inter_tet);
 int bilinear_degeneration(const bilinear& bl);
 int get_triangle_project_axis(
     const Vector3r& t0, const Vector3r& t1, const Vector3r& t2);

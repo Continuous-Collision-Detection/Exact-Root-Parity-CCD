@@ -187,7 +187,7 @@ bool is_seg_intersect_cube(
         return true;
     if (is_point_intersect_cube(eps, e1))
         return true;
-    if (e0[0] == e1[0] && e0[1] == e1[1] && e0[2] == e1[2])
+    if (same_point(e0,e1))
         return false; // degenerate case: the segment is degenerated as a point
     // if intersected, must be coplanar with the edge, or intersect edge or face
     if (is_seg_intersect_cube_2d(eps, e0, e1, 0)
@@ -288,7 +288,7 @@ bool is_cube_edges_intersect_triangle(
     const Vector3r& t2)
 {
     // the vertices of triangle are checked before going here, the edges are
-    // also checked so, only need to check if cube edge has intersection with
+    // also checked. so, only need to check if cube edge has intersection with
     // the open triangle.
 
     int axis = get_triangle_project_axis(t0, t1, t2);
@@ -299,7 +299,7 @@ bool is_cube_edges_intersect_triangle(
     for (int i = 0; i < 12; i++) {
         s0 = cb.vr[cb.edgeid[i][0]];
         s1 = cb.vr[cb.edgeid[i][1]];
-        if (segment_triangle_intersection(s0, s1, t0, t1, t2, false)>0)// return 0,1,2
+		if (segment_triangle_intersection(s0, s1, t0, t1, t2, false) > 0)// return 0,1,2
             return true;
     }
     return false;
@@ -363,13 +363,7 @@ prism::prism(
     eid[0] = 2;
     eid[1] = 5;
     prism_edge_id[8] = eid;
-    bilinears.resize(3);
-    bilinears[0]
-        = { { p_vertices[1], p_vertices[0], p_vertices[3], p_vertices[4] } };
-    bilinears[1]
-        = { { p_vertices[2], p_vertices[1], p_vertices[4], p_vertices[5] } };
-    bilinears[2]
-        = { { p_vertices[0], p_vertices[2], p_vertices[5], p_vertices[3] } };
+
 }
 bool prism::is_triangle_degenerated(const int up_or_bottom)
 {
@@ -482,24 +476,24 @@ bool is_cube_intersect_degenerated_bilinear(
     const bilinear& bl, const cube& cube)
 {
     int dege = bilinear_degeneration(bl);
-    int axis;
+    //int axis;
     bool res;
     if (dege == BI_DEGE_PLANE) {
 
-        axis = get_triangle_project_axis(
-            bl.v[0], bl.v[1],
-            bl.v[3]); // TODO consider move axis into is_seg_intersect_triangle
+        //axis = get_triangle_project_axis(
+        //    bl.v[0], bl.v[1],
+        //    bl.v[3]); // TODO consider move axis into is_seg_intersect_triangle
         if (is_cube_edges_intersect_triangle(cube, bl.v[0], bl.v[1], bl.v[3]))
             return true;
         if (is_cube_edges_intersect_triangle(cube, bl.v[3], bl.v[1], bl.v[2]))
             return true;
         return false;
     } else {
-        axis = get_triangle_project_axis(bl.v[0], bl.v[1], bl.v[3]);
-        if (axis == 3)
-            axis = get_triangle_project_axis(bl.v[3], bl.v[1], bl.v[2]);
-        if (axis == 3)
-            return false; // both 2 triangles are all degenerated as a segment
+		//int  axis = get_triangle_project_axis(bl.v[0], bl.v[1], bl.v[3]);
+  //      if (axis == 3)
+  //          axis = get_triangle_project_axis(bl.v[3], bl.v[1], bl.v[2]);
+  //      if (axis == 3)
+  //          return false; // both 2 triangles are all degenerated as a segment
         if (dege == BI_DEGE_XOR_02) { // triangle 0-1-2 and 0-2-3
             for (int i = 0; i < 12; i++) {
                 res = int_seg_XOR(
@@ -551,14 +545,14 @@ bool line_shoot_same_pair_tet(
             fid = 0;
         else
             fid = 2;
-    }
+    }// get which pair of facets to check
 	int inter0 = line_triangle_intersection(// return 0 or 1
 		p0, p1 - p0, bl.v[bl.facets[fid][1]], bl.v[bl.facets[fid][2]],
 		bl.v[bl.facets[fid][3]], false);
 	int inter1 = line_triangle_intersection(
 		p0, p1 - p0, bl.v[bl.facets[fid + 1][1]], bl.v[bl.facets[fid + 1][2]],
 		bl.v[bl.facets[fid + 1][3]], false);
-	if (inter0 == 1 || inter1 == 1)
+	if (inter0 == 1 && inter1 == 1)
         return true;
     return false;
 }
@@ -756,9 +750,11 @@ bool is_seg_intersect_not_degenerated_bilinear(
     const bool pin0,
     const bool pin1)
 {
+	//first compare phi, if phis are different, intersected;
+	//then check if the line intersect two opposite facets of bilinear, if so, use
+	//rootfinder, else, not intersected
     if (pin0 && pin1) { // two points are all inside
-        // TODO: all first compare phi, then the extension of bilinear, then
-        // rootfinder
+        
         Rational phi0 = phi(p0, bl.v);
         Rational phi1 = phi(p1, bl.v);
         if (phi0 == 0 || phi1 == 0 || phi0 != phi1)
@@ -779,6 +775,7 @@ bool is_seg_intersect_not_degenerated_bilinear(
         if (phi0 == 0)
             return true;
         int hitpair = -1;
+
         for (int i = 0; i < 4; i++) {
             if (segment_triangle_intersection(// 0,1,2,3. 1,2,3 are all intersected
                     p0, p1, bl.v[bl.facets[i][0]], bl.v[bl.facets[i][0]],
@@ -794,13 +791,13 @@ bool is_seg_intersect_not_degenerated_bilinear(
         if (bl.phi_f[0] == 2)
             get_tet_phi(bl);
         if (hitpair == -1)
-            return false; // parallel , should be impossible
+            return false; 
         if (phi0.get_sign()
             != bl.phi_f[hitpair]) { // if different, intersected, if same,
                                     // extend; if shoot same, rootfinder, if
                                     // shoot diff, false
             return true;
-        } // TODO write phi_f into a function to avoid the get phi function
+        } 
 
         else {
             if (line_shoot_same_pair_tet(p0, p1, phi0.get_sign(), bl)) {
@@ -838,7 +835,7 @@ bool is_seg_intersect_not_degenerated_bilinear(
             return false; // parallel , should be impossible
         if (phi1.get_sign() != bl.phi_f[hitpair]) {
             return true;
-        } // TODO write phi_f into a function to avoid the get phi function
+        } 
 
         else {
             if (line_shoot_same_pair_tet(p0, p1, phi1.get_sign(), bl)) {
@@ -855,6 +852,7 @@ bool is_seg_intersect_not_degenerated_bilinear(
     if (!pin0
         && !pin1) { // not intersect tet (false), or intersect same side(root
                     // finder) or intersect diff side(checked before)
+		
         if (line_shoot_same_pair_tet(p0, p1, 1, bl)) {
             if (1 == bl.phi_f[0])
                 return rootfinder(bl, p0, p1, pin0, pin1, 0);
@@ -880,6 +878,7 @@ bool is_seg_intersect_not_degenerated_bilinear(
 bool is_cube_edge_intersect_bilinear(
     bilinear& bl, const cube& cb, const std::array<bool, 8>&pin)
 {
+	if (bl.is_degenerated) return false;// we already checked degenerated cases
     for (int i = 0; i < 12; i++) {
         if (is_seg_intersect_not_degenerated_bilinear(
                 bl, cb.vr[cb.edgeid[i][0]], cb.vr[cb.edgeid[i][1]],
@@ -894,22 +893,19 @@ bool is_cube_intersect_tet_opposite_faces(
     const bilinear& bl,
     const cube& cube,
     std::array<bool, 8>& vin,
-    bool& bilinear_degenerate,bool &cube_inter_tet)
+    bool &cube_inter_tet)
 {
 	cube_inter_tet = false;
-    if (!bl.is_degenerated) {
-        bilinear_degenerate = false;
+    if (!bl.is_degenerated) {        
         for (int i = 0; i < 8; i++) {
-
+			vin[i] = false;
             if (is_point_inside_tet(bl, cube.vr[i])) {
 				cube_inter_tet = true;
                 vin[i] = true;
-            } else {
-                vin[i] = false;
             }
         }
     } else {
-        bilinear_degenerate = true;
+        
         return is_cube_intersect_degenerated_bilinear(bl, cube);
     }
 
@@ -918,9 +914,8 @@ bool is_cube_intersect_tet_opposite_faces(
 
     for (int i = 0; i < 12; i++) {
         if (vin[cube.edgeid[i][0]]
-            || vin[cube.edgeid[i][1]]) { // at least one of the two points of
-                                         // edge are
-                                         // inside of open tet
+            && vin[cube.edgeid[i][1]]) { // if two vertices are all inside, it can not cut any edge
+			cube_inter_tet = true;
             continue;
         }
         for (int j = 0; j < 4; j++) {
