@@ -38,7 +38,7 @@ bool vertexFaceCCD(
         face_vertex2_end);
 
     // step 1. bounding box checking
-    Vector3d bmin(-eps, -eps, -eps), bmax(eps, eps, eps);
+    Vector3r bmin(-eps, -eps, -eps), bmax(eps, eps, eps);
     bool intersection = vfprism.is_prism_bbox_cut_bbox(bmin, bmax);
     if (!intersection)
         return false; // if bounding box not intersected, then not intersected
@@ -65,7 +65,7 @@ bool vertexFaceCCD(
 
     // step 3 tet facets- cube edges
     std::array<std::array<bool, 8>, 3> v_tet;//cube vertices - tets positions
-	
+	//TODO one solution for v_tet is to  make a boolean which can show if pt is on the border
     bilinear bl0(
         vfprism.p_vertices[0], vfprism.p_vertices[1], vfprism.p_vertices[4],
         vfprism.p_vertices[3]);
@@ -117,7 +117,8 @@ bool vertexFaceCCD(
     p_tet[0] = v_tet[0][target];
     p_tet[1] = v_tet[1][target];
     p_tet[2] = v_tet[2][target];
-    return retrial_ccd(vfprism, cb.vr[target], p_tet);
+	return retrial_ccd(vfprism, bls, cb.vr[target], p_tet);
+	return 0;
 }
 
 // Detect collisions between two edges as they move.

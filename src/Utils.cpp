@@ -4,7 +4,37 @@
 #include <fstream>
 
 namespace ccd {
+	bilinear::bilinear(
+		const Vector3r& v0,
+		const Vector3r& v1,
+		const Vector3r& v2,
+		const Vector3r& v3)
+	{
+		v = { { v0, v1, v2, v3 } };
+		int ori = orient3d(v0, v1, v2, v3);
+		if (ori == 0) {
+			is_degenerated = true;
+		}
+		else {
+			is_degenerated = false;
+		}
+		if (ori == 1) {
+			facets.resize(4);// right hand outside order
+			facets[0] = { { 0, 1, 2 } }; // 0,1 are one pair
+			facets[1] = { { 2, 3, 0 } };
 
+			facets[2] = { { 1, 0, 3 } }; // 2,3 are one pair
+			facets[3] = { { 3, 2, 1 } };
+		}
+		if (ori == -1) {
+			facets.resize(4);
+			facets[0] = { { 2, 1, 0 } }; // 0,1 are one pair
+			facets[1] = { { 0, 3, 2 } };
+
+			facets[2] = { { 3, 0, 1 } }; // 2,3 are one pair
+			facets[3] = { { 1, 2, 3 } };
+		}
+	}
 int orient3d(
     const Vector3r& a, const Vector3r& b, const Vector3r& c, const Vector3r& d)
 {
@@ -34,69 +64,7 @@ int orient2d(
     return det.get_sign();
 }
 
-int origin_ray_triangle_inter(
-    const Vector3d& dirf,
-    const Vector3r& t1,
-    const Vector3r& t2,
-    const Vector3r& t3)
-{
-    const Vector3r dir(dirf[0], dirf[1], dirf[2]);
-    const Rational denom = dir[0] * t1[1] * t2[2] - dir[0] * t1[1] * t3[2]
-        - dir[0] * t1[2] * t2[1] + dir[0] * t1[2] * t3[1]
-        + dir[0] * t2[1] * t3[2] - dir[0] * t2[2] * t3[1]
-        - dir[1] * t1[0] * t2[2] + dir[1] * t1[0] * t3[2]
-        + dir[1] * t1[2] * t2[0] - dir[1] * t1[2] * t3[0]
-        - dir[1] * t2[0] * t3[2] + dir[1] * t2[2] * t3[0]
-        + dir[2] * t1[0] * t2[1] - dir[2] * t1[0] * t3[1]
-        - dir[2] * t1[1] * t2[0] + dir[2] * t1[1] * t3[0]
-        + dir[2] * t2[0] * t3[1] - dir[2] * t2[1] * t3[0];
 
-    // const auto n = cross(t1 - t2, t3 - t2);
-    // print(n);
-    // std::cout<<denom<<std::endl;
-
-    // infinite intersections
-    if (denom.get_sign() == 0)
-        return -1;
-
-    // assert(denom.get_sign() > 0);
-
-    // std::ofstream os("blaa.obj");
-    // os << "v " << t1[0] << " " << t1[1] << " " << t1[2] << "\n";
-    // os << "v " << t2[0] << " " << t2[1] << " " << t2[2] << "\n";
-    // os << "v " << t3[0] << " " << t3[1] << " " << t3[2] << "\n";
-    // os << "f 1 2 3\n";
-    // os.close();
-
-    const Rational u = (-1 * dir[0] * t1[1] * t3[2] + dir[0] * t1[2] * t3[1]
-                        + dir[1] * t1[0] * t3[2] - dir[1] * t1[2] * t3[0]
-                        - dir[2] * t1[0] * t3[1] + dir[2] * t1[1] * t3[0])
-        / denom;
-    const Rational v = (dir[0] * t1[1] * t2[2] - dir[0] * t1[2] * t2[1]
-                        - dir[1] * t1[0] * t2[2] + dir[1] * t1[2] * t2[0]
-                        + dir[2] * t1[0] * t2[1] - dir[2] * t1[1] * t2[0])
-        / denom;
-    const Rational t = (t1[0] * t2[1] * t3[2] - t1[0] * t2[2] * t3[1]
-                        - t1[1] * t2[0] * t3[2] + t1[1] * t2[2] * t3[0]
-                        + t1[2] * t2[0] * t3[1] - t1[2] * t2[1] * t3[0])
-        / denom;
-
-    // std::cout<<t<<std::endl;
-    // std::cout << u << std::endl;
-    // std::cout << v << std::endl;
-
-    if (u >= 0 && u <= 1 && v >= 0 && v <= 1 && u + v <= 1 && t >= 0) {
-        if (t.get_sign() == 0)
-            return 2;
-        // on a corner
-        if (u.get_sign() == 0 || v.get_sign() == 0)
-            return -1;
-
-        return 1;
-    }
-
-    return 0;
-}
 
 bool segment_segment_inter(
     const Vector3r& s0,
@@ -366,9 +334,9 @@ Vector3d read(std::istream& in)
 // norm follows right hand law
 int point_inter_triangle(
 	const Vector3r&pt, 
-	const Vector3d& t1,
-	const Vector3d& t2,
-	const Vector3d& t3,
+	const Vector3r& t1,
+	const Vector3r& t2,
+	const Vector3r& t3,
 	const bool& dege, const Vector3r& norm, const bool halfopen) {
 	if (dege) {// check 2 edges are enough
 		if (point_on_segment(pt, t1, t2))
@@ -386,7 +354,7 @@ int point_inter_triangle(
 			return 2;
 		if (point_on_segment(pt, t2, t3))
 			return 2;*///no need to do above
-		Vector3r np = t1 + norm;
+		Vector3r np = sum(t1, norm);
 		int o1 = orient3d(pt, np, t1, t2);
 		int o2 = orient3d(pt, np, t2, t3);// this edge 
 		int o3 = orient3d(pt, np, t3, t1);
@@ -511,7 +479,7 @@ int ray_triangle_intersection(
 	Rational dt = norm.dot(dir);// >0, dir is same direction with norm, pointing to +1 orientation
 	if (dt.get_sign() > 0 && o1 >= 0) return 0;
 	if (dt.get_sign() < 0 && o1 <= 0) return 0;
-	Vector3r np = pt + dir;
+	Vector3r np = sum(pt, dir);
 	// if ray go across the plane, then get lpi and 3 orientations
 	int inter = is_line_cut_triangle(pt, np, t1, t2, t3, halfopen, norm);
 	if (inter == 0)return 0;
@@ -524,9 +492,8 @@ int ray_triangle_intersection(
 
 // if a line (going across pt, pt+dir) intersects triangle
 // triangle is not degenerated
-// use ray_triangle_intersection twice, TODO modify this
-// 0 not intersected, 1 intersected, 3 intersected t2-t3 edge 
-//TODO make it to check open triangle, coplanar is not intersected
+// 0 not intersected, 1 intersected, 
+//check open triangle, coplanar is not intersected
 int line_triangle_intersection(
 	const Vector3r& pt,
 	const Vector3r& dir,
@@ -534,17 +501,9 @@ int line_triangle_intersection(
 	const Vector3r& t2,
 	const Vector3r& t3,
 	const bool halfopen) {
-
-	int inter1 = ray_triangle_intersection(pt, dir, t1, t2, t3, halfopen);
-	if (inter1 == 1) return 1;
-	if (inter1 == 2) return 1;
-	if (inter1 == 3) return 3;
-
-	int inter2 = ray_triangle_intersection(pt, -dir, t1, t2, t3, halfopen);
-	if (inter2 == 1) return 1;
-	if (inter2 == 2) return 1;
-	if (inter2 == 3) return 3;
-	
+	Vector3r norm = tri_norm(t1, t2, t3);
+	int inter = is_line_cut_triangle(pt, sum(pt, dir), t1, t2, t3, halfopen, norm);
+	if (inter == 1) return 1;// we only need to have a intersection point on open triangle
 	return 0;
 }
 

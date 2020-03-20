@@ -1,7 +1,8 @@
 #pragma once
 
 #include "Rational.hpp"
-
+#include <vector>
+#include <array>
 #include <Eigen/Core>
 
 namespace ccd {
@@ -18,6 +19,21 @@ static const int BI_DEGE_PLANE = 1;
 static const int BI_DEGE_XOR_02 = 2;
 static const int BI_DEGE_XOR_13 = 3;
 
+class bilinear {
+public:
+	// v0, v1 are vertices of one triangle, v2, v3 are the vertices of another
+	// one.
+	bilinear(
+		const Vector3r& v0,
+		const Vector3r& v1,
+		const Vector3r& v2,
+		const Vector3r& v3);
+	bool is_degenerated;
+	std::vector<std::array<int, 3>> facets;
+	std::array<int, 2> phi_f = { {2,2} };
+	std::array<Vector3r, 4> v;
+
+};
 template <typename V1, typename V2> Vector3r cross(const V1& v1, const V2& v2)
 {
     Vector3r res;
@@ -26,6 +42,56 @@ template <typename V1, typename V2> Vector3r cross(const V1& v1, const V2& v2)
     res[2] = v1[0] * v2[1] - v1[1] * v2[0];
 
     return res;
+}
+
+Vector3r sum(const Vector3r& a, const Vector3r& b) {
+	Vector3r c;
+	c[0] = a[0] + b[0];
+	c[1] = a[1] + b[1];
+	c[2] = a[2] + b[2];
+	return c;
+}
+Rational func_g(
+	const Vector3r& x,
+	const std::array<Vector3r, 4>& corners,
+	const std::array<int, 3>& indices)
+{
+	const int p = indices[0];
+	const int q = indices[1];
+	const int r = indices[2];
+	return (x - corners[p])
+		.dot(cross(corners[q] - corners[p], corners[r] - corners[p]));
+}
+Rational phi(const Vector3r x, const std::array<Vector3r, 4>& corners)
+{
+	static const std::array<int, 4> vv = { { 0, 1, 2, 3 } };
+	const Rational g012 = func_g(x, corners, { { vv[0], vv[1], vv[2] } });
+	const Rational g132 = func_g(x, corners, { { vv[1], vv[3], vv[2] } });
+	const Rational g013 = func_g(x, corners, { { vv[0], vv[1], vv[3] } });
+	const Rational g032 = func_g(x, corners, { { vv[0], vv[3], vv[2] } });
+
+	const Rational h12 = g012 * g032;
+	const Rational h03 = g132 * g013;
+
+	const Rational phi = h12 - h03;
+
+	return phi;
+}
+void get_tet_phi(bilinear& bl)
+{
+	Vector3r p02 = (bl.v[0] + bl.v[2]) / 2;
+	Rational phi02 = phi(p02, bl.v);
+	if (phi02.get_sign() > 0) {
+		bl.phi_f[0] = 1;
+		bl.phi_f[1] = -1;
+		return;
+	}
+	else {
+		bl.phi_f[0] = -1;
+		bl.phi_f[1] = 1;
+		return;
+	}
+	std::cout << "!!can not happen, get tet phi" << std::endl;
 }
 //bool XOR(const bool a, const bool b)
 //{
@@ -344,7 +410,7 @@ int is_line_cut_triangle(
 	bool premulti = orient3D_LPI_prefilter_multiprecision(
 		e0[0], e0[1], e0[2], e1[0], e1[1], e1[2], 
 		t1[0], t1[1], t1[2], t2[0], t2[1], t2[2], t3[0], t3[1], t3[2], a11, a12, a13, d, check_rational);
-	if (premulti == false) return false;// point not exist, cannot happen
+	if (premulti == false) return 0;
 
 	int o1 = orient3D_LPI_postfilter_multiprecision(
 		a11, a12, a13, d,

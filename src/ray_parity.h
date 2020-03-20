@@ -2,58 +2,16 @@
 #include <Utils.hpp>
 #include <subfunctions.h>
 namespace ccd {
-	Rational func_g(
-		const Vector3r& x,
-		const std::array<Vector3r, 4>& corners,
-		const std::array<int, 3>& indices)
-	{
-		const int p = indices[0];
-		const int q = indices[1];
-		const int r = indices[2];
-		return (x - corners[p])
-			.dot(cross(corners[q] - corners[p], corners[r] - corners[p]));
-	}
-	Rational phi(const Vector3r x, const std::array<Vector3r, 4>& corners)
-	{
-		static const std::array<int, 4> vv = { { 0, 1, 2, 3 } };
-		const Rational g012 = func_g(x, corners, { { vv[0], vv[1], vv[2] } });
-		const Rational g132 = func_g(x, corners, { { vv[1], vv[3], vv[2] } });
-		const Rational g013 = func_g(x, corners, { { vv[0], vv[1], vv[3] } });
-		const Rational g032 = func_g(x, corners, { { vv[0], vv[3], vv[2] } });
 
-		const Rational h12 = g012 * g032;
-		const Rational h03 = g132 * g013;
-
-		const Rational phi = h12 - h03;
-
-		return phi;
-	}
-
-	void get_tet_phi(bilinear& bl)
-	{
-		Vector3r p02 = (bl.v[0] + bl.v[2]) / 2;
-		Rational phi02 = phi(p02, bl.v);
-		if (phi02.get_sign() > 0) {
-			bl.phi_f[0] = 1;
-			bl.phi_f[1] = -1;
-			return;
-		}
-		else {
-			bl.phi_f[0] = -1;
-			bl.phi_f[1] = 1;
-			return;
-		}
-		std::cout << "!!can not happen, get tet phi" << std::endl;
-	}
 	// before going here, we already know the point can not be on the shape
 	int ray_degenerated_bilinear_parity(
 		const bilinear& bl,
 		const Vector3r& pt,
 		const Vector3r& dir,
 		const int dege
-	)//TODO consider if it is correct when one of triangle is degenerated as a segment
+	)
 	{
-		bool res;
+		
 		int r1, r2;
 		if (dege == BI_DEGE_PLANE) {
 			r1 = ray_triangle_intersection(// -1, 0, 1, 2
@@ -86,7 +44,7 @@ namespace ccd {
 				r2 = ray_triangle_intersection(
 					pt, dir, bl.v[bl.facets[1][0]], bl.v[bl.facets[1][1]],
 					bl.v[bl.facets[1][2]], true);
-				return int_ray_XOR(r1, r2);//TODO
+				return int_ray_XOR(r1, r2);
 			}
 
 			if (dege == BI_DEGE_XOR_13) { // triangle 0-1-3 and 3-1-2
@@ -104,6 +62,7 @@ namespace ccd {
 	}
 	// the point is inside of tet, tet is not degenerated
 	//return: -1,1,0
+	// phi_p is the phi of end point of ray
 	int ray_correct_bilinear_face_pair_inter(
 		const Vector3r& p,
 		const Rational& phi_p,
@@ -151,7 +110,7 @@ namespace ccd {
 		const bool is_degenerated,
 		const bool is_point_in_tet)// out of tet means no touch tet
 	{
-		bool inter1, inter2;
+		
 		if (!is_degenerated) {
 			bool check = false;
 			if (!is_point_in_tet) { // p out of tet,or on the border
@@ -171,20 +130,33 @@ namespace ccd {
 				if (r1 == 2 && r2 == 0) check = true;
 				if (r1 == 0 && r2 == 2) check = true;
 				if (r1 == 1 && r2 == 1) return 0;
-				if (r1 + r2 == 1) return 1;
-				if (r1 == 1 || r2 == 1) return 0;
-
-
-				if (r1 == 2 || r2 == 2) {
-					xx
+				if (r1 + r2 == 1) return 1;// 1-0 case
+				if (r1 == 1 || r2 == 1) return 0;// 1-2 case
+				if (r1 == 0 && r2 == 0) return 0;
+				
+				if (check == false) return 0;
+				else {
+					Vector3r norm0 = tri_norm(bl.v[bl.facets[0][0]], bl.v[bl.facets[0][1]],
+						bl.v[bl.facets[0][2]]);
+					Vector3r norm1 = tri_norm(bl.v[bl.facets[1][0]], bl.v[bl.facets[1][1]],
+						bl.v[bl.facets[1][2]]);
+					if (r1 == 3 || r2 == 3) {
+						if (norm0.dot(dir) < 0 && norm1.dot(dir) < 0) return 1;
+						else return 0;
+					}
+					if (r1 == 2) {
+						if (norm0.dot(dir) < 0) return 1;
+						else return 0;
+					}
+					if (r2 == 2) {
+						if (norm1.dot(dir) < 0) return 1;
+						else return 0;
+					}
+					std::cout << "impossible to go here " << std::endl;
+					return 0;
 				}
-				if (r1 > 0 || r2 > 0)// since no touch tet, if ri cannot be 2 TODO this is wrong
-					return 1;
-				return 0;
-
-				// TODO check half closed triangle shapes
 			}
-			else { // p inside tet TODO this is not else!!!
+			else { // p inside open tet 
 
 				if (bl.phi_f[0] == 2) { // phi never calculated, need calculated
 					get_tet_phi(bl);
@@ -192,13 +164,8 @@ namespace ccd {
 				Rational phip = phi(pt, bl.v);
 				if (phip == 0)
 					return 2;// point on bilinear
-				int res = ray_correct_bilinear_face_pair_inter(pt, phip, dir, bl);
-				if (res == 1)
-					return 1;
-				if (res == -1)
-					return -1;
-				if (res == 0)
-					return 0;
+				return ray_correct_bilinear_face_pair_inter(pt, phip, dir, bl);
+				
 			}
 		}
 		else {// degenerated bilinear
@@ -305,7 +272,10 @@ namespace ccd {
 			if (res >= 0)
 				break;
 
-			dir = Vector3d::Random();
+			Vector3d dir1 = Vector3d::Random();
+			dir[0] = dir1[0];
+			dir[1] = dir1[1];
+			dir[2] = dir1[2];
 		}
 
 		if (trials == max_trials) {

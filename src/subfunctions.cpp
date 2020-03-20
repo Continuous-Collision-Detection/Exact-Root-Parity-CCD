@@ -1,6 +1,7 @@
 #include "subfunctions.h"
 #include <exact_subtraction.hpp>
-#include <ray_parity.h>
+
+//#include <ray_parity.h>
 namespace ccd {
 
 // cube
@@ -399,36 +400,7 @@ Vector3r prism::get_prism_corner(int u, int v, int t)
         - ((1 - tr) * fs1r + t * fe1r) * ur - ((1 - tr) * fs2r + t * fe2r) * vr;
 }
 
-bilinear::bilinear(
-    const Vector3r& v0,
-    const Vector3r& v1,
-    const Vector3r& v2,
-    const Vector3r& v3)
-{
-    v = { { v0, v1, v2, v3 } };
-    int ori = orient3d(v0, v1, v2, v3);
-    if (ori == 0) {
-        is_degenerated = true;
-    } else {
-        is_degenerated = false;
-    }
-    if (ori == 1) {
-        facets.resize(4);
-        facets[0] = { { 0, 1, 2 } }; // 0,1 are one pair
-        facets[1] = { { 2, 3, 0 } };
 
-        facets[2] = { { 1, 0, 3 } }; // 2,3 are one pair
-        facets[3] = { { 3, 2, 1 } };
-    }
-    if (ori == -1) {
-        facets.resize(4);
-        facets[0] = { { 2, 1, 0 } }; // 0,1 are one pair
-        facets[1] = { { 0, 3, 2 } };
-
-        facets[2] = { { 3, 0, 1 } }; // 2,3 are one pair
-        facets[3] = { { 1, 2, 3 } };
-    }
-}
 // the facets of the tet are all oriented to outside. check if p is inside of
 // OPEN tet
 bool is_point_inside_tet(const bilinear& bl, const Vector3r& p)

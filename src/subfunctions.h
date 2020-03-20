@@ -14,21 +14,7 @@ public:
     Vector3r bmax;
     double epsilon;
 };
-class bilinear {
-public:
-    // v0, v1 are vertices of one triangle, v2, v3 are the vertices of another
-    // one.
-    bilinear(
-        const Vector3r& v0,
-        const Vector3r& v1,
-        const Vector3r& v2,
-        const Vector3r& v3);
-    bool is_degenerated;
-    std::vector<std::array<int, 3>> facets;
-    std::array<int, 2> phi_f = {{2,2}};
-    std::array<Vector3r, 4> v;
-    
-};
+
 
 template <typename T, typename Y>
 bool box_box_intersection(
