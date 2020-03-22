@@ -1,5 +1,5 @@
 #include <iostream>
-
+//
 #include <ccd.hpp>
 #include <vector>
 #include<Utils.hpp>
@@ -23,7 +23,7 @@ Vector3d construct1(double a, double b, double c)
 {
     return Vector3d(a, b, c);
 }
-
+//
 bool read_CSV(const string inputFileName, vector<sccd>& data)
 {
 
@@ -137,7 +137,7 @@ void test1() {
         if (i % 200 == 0)
             std::cout << "i " << i << std::endl;
 
-        get_prism_vertices_double(
+        /*get_prism_vertices_double(
             data[i].pts, data[i].v1s, data[i].v2s, data[i].v3s, data[i].pte,
             data[i].v1e, data[i].v2e, data[i].v3e, k, correct, maxerror);
         if (k != 0)
@@ -150,7 +150,7 @@ void test1() {
             cout << "wrong minus, " << i << std::endl;
         if (maxerror > merror) {
             merror = maxerror;
-        }
+        }*/
     }
     // cout << "percentage of using k " << double(count) / double(fn) <<
     // std::endl; cout << "max of k " << maxvalue << std::endl; cout << "max
