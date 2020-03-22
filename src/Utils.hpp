@@ -189,7 +189,7 @@ static bool orient3D_LPI_prefilter_multiprecision(
 	T a2233((a22 * a33) - (a23 * a32));
 	T a2133((a21 * a33) - (a23 * a31));
 	T a2132((a21 * a32) - (a22 * a31));
-	d = (((a11 * a2233) - (a12 * a2133)) + (a13 * a2132));//TODO maybe not safe
+	d = (((a11 * a2233) - (a12 * a2133)) + (a13 * a2132));
 	int flag1 = checker(d);
 	if (flag1 == -2 || flag1 == 0) {
 		return false;// not enough precision
@@ -456,7 +456,7 @@ int line_triangle_inter_return_t(
 	const Vector3r& t1,
 	const Vector3r& t2,
 	const Vector3r& t3,
-	Rational& t)// TODO can not deal with degenerated triangle
+	Rational& t)
 
 {
 	const Rational d = e0[0] * t1[1] * t2[2] - e0[0] * t1[1] * t3[2]
@@ -530,7 +530,6 @@ int line_triangle_inter_return_t(
 }
 // if a line (going across pt, pt+dir) intersects triangle
 // triangle is not degenerated
-// use ray_triangle_intersection twice, TODO modify this
 // 0 not intersected, 1 intersected, 3 intersected t2-t3 edge 
 int line_triangle_intersection(
 	const Vector3r& pt,

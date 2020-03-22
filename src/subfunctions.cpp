@@ -685,7 +685,7 @@ bool rootfinder(
     }
     if (p1in) { // change the order of input to get t just because we want
                 // domain to be [0, t]
-        bool res1 = line_triangle_inter_return_t(
+        bool res1 = line_triangle_inter_return_t(//TODO here get n1, d1, n2, d2
             p1, p0, bl.v[bl.facets[fid][0]], bl.v[bl.facets[fid][1]],
             bl.v[bl.facets[fid][2]], t);
         if (!res1) {

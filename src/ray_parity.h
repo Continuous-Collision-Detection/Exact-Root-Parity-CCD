@@ -16,13 +16,20 @@ namespace ccd {
 		if (dege == BI_DEGE_PLANE) {
 			r1 = ray_triangle_intersection(// -1, 0, 1, 2
 				pt, dir, bl.v[bl.facets[0][0]], bl.v[bl.facets[0][1]],
-				bl.v[bl.facets[0][2]], false);// TODO this should have 3, if 3, see it as 1
+				bl.v[bl.facets[0][2]], true);
 			if (r1 == 2)
 				return 2;
 			if (r1 == -1)
 				return -1;
 			if (r1 == 1)
 				return 1;
+			if (r1 == 3) {
+				r1 = ray_triangle_intersection(// -1, 0, 1, 2
+					pt, dir, bl.v[bl.facets[0][0]], bl.v[bl.facets[0][1]],
+					bl.v[bl.facets[0][2]], false);//  this should have 3, if 3, see it as 1
+				if (r1 == 2) return 2;// point on t2-t3 edge
+				return 1;// ray go through t2-t3 edge
+			}
 			r2 = ray_triangle_intersection(
 				pt, dir, bl.v[bl.facets[1][0]], bl.v[bl.facets[1][1]],
 				bl.v[bl.facets[1][2]], false);
@@ -170,10 +177,10 @@ namespace ccd {
 		}
 		else {// degenerated bilinear
 			int degetype = bilinear_degeneration(bl);
-			return ray_degenerated_bilinear_parity(bl, pt, dir, degetype);// TODO this can not fix the case one triangle totally segment
+			return ray_degenerated_bilinear_parity(bl, pt, dir, degetype);
 		}
 	}
-	// -1, 1, 2, 0
+	// -1 shoot another, 1 intersect, 2 point on triangle, 0 not intersect
 	int ray_triangle_parity(
 		const Vector3r& pt,
 		const Vector3r& dir,
@@ -185,7 +192,7 @@ namespace ccd {
 		if (!is_triangle_degenerated) {
 			return ray_triangle_intersection(pt, dir, t0, t1, t2, false);
 			// 0 not hit, 1 hit on open triangle, -1 parallel or hit on edge, need
-			// another shoot. TODO with -1 need to cleaned
+			// another shoot. 
 		}
 		else {
 			// if pt on it (2), return 2; if 1(including overlap) return -1
@@ -207,6 +214,7 @@ namespace ccd {
 
 
 	// check if point has intersection with prism by counting parity
+	// 1 -1 0
 	int point_inside_prism(prism& psm, std::array<bilinear, 3> &bls, 
 		const Vector3r& pt, const Vector3r& dir, const std::vector<bool>& is_pt_in_tet)
 	{
@@ -234,7 +242,7 @@ namespace ccd {
 			psm.is_triangle_degenerated(0));
 
 		if (res == 2)
-			return 1;// it should be impossible TODO check if it is checked before
+			return 1;// it should be impossible 
 		if (res == -1)
 			return -1;
 
@@ -245,7 +253,7 @@ namespace ccd {
 			psm.is_triangle_degenerated(1));
 
 		if (res == 2)
-			return 1; // it should be impossible TODO check if it is checked before
+			return 1; // it should be impossible 
 		if (res == -1)
 			return -1;
 
