@@ -164,6 +164,12 @@ void test_compare() {
 	read_CSV("D:\\vs\\collision\\CCD\\data\\cow-head-collisions.csv", data);
 	vector<bool> rst;
 	read_result("D:\\vs\\collision\\CCD\\data\\result_all.csv", rst);
+	int rst_true = 0;
+	for (int i = 0; i < rst.size(); i++) {
+		if (rst[i])
+			rst_true++;
+	}
+	std::cout << "original collision nbr, " << rst_true << std::endl;
 	std::vector<bool> results;
 	int fn = data.size(); // 50000;
 	results.resize(fn);

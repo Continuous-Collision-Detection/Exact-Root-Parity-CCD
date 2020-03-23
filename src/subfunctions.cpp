@@ -662,7 +662,7 @@ bool rootfinder(
     const bool p1in,
     const int pairid)
 {
-    
+	std::cout << "we use root finder here" << std::endl;
     if (p0in && p1in) {
 		// t0=0, t1=1
         return get_function_find_root(bl, p0, p1, Rational(0), Rational(1));

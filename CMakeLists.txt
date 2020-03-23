@@ -50,6 +50,9 @@ CCD_copy_headers(${SOURCES})
 CCD_set_source_group(${SOURCES})
 target_sources(${PROJECT_NAME} PRIVATE ${SOURCES})
 target_include_directories(${PROJECT_NAME} PUBLIC src/)
+
+
+target_link_libraries(${PROJECT_NAME} PUBLIC indirect_predicates)
 # target_link_libraries(${PROJECT_NAME} PRIVATE CCD)
 
 #target_include_directories(${PROJECT_NAME} PUBLIC src/)

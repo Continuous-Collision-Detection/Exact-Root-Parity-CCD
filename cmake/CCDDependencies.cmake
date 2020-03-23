@@ -22,6 +22,19 @@ if(NOT TARGET igl)
   set(ENV{EIGEN3_INCLUDE_DIR} "${CCD_EXTERNAL}/libigl/external/eigen/")
 endif()
 
+#Indirect_Predicates
+if(NOT TARGET indirect_predicates)
+	if(WIN32)
+	#target_compile_definitions(${PROJECT_NAME}_bin PUBLIC NOMINMAX)
+	else()
+	ccd_download_indirect_predicates()
+	endif()
+  
+  add_library(indirect_predicates ${CCD_EXTERNAL}/indirect_predicates/predicates/indirect_predicates.cpp )
+  target_include_directories(indirect_predicates PUBLIC ${CCD_EXTERNAL}/indirect_predicates)
+
+endif()
+
 # spdlog
 if(NOT TARGET spdlog::spdlog)
     ccd_download_spdlog()
