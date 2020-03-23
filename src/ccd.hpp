@@ -1,8 +1,7 @@
 /// @brief Our exact CCD method
 #pragma once
 
-#include <Eigen/Core>
-
+#include <ray_parity.h>
 namespace ccd {
 
 /**
@@ -30,23 +29,23 @@ namespace ccd {
  * @returns  True if the vertex and face collide.
  */
 bool vertexFaceCCD(
-    const Eigen::Vector3d& vertex_start,
-    const Eigen::Vector3d& face_vertex0_start,
-    const Eigen::Vector3d& face_vertex1_start,
-    const Eigen::Vector3d& face_vertex2_start,
-    const Eigen::Vector3d& vertex_end,
-    const Eigen::Vector3d& face_vertex0_end,
-    const Eigen::Vector3d& face_vertex1_end,
-    const Eigen::Vector3d& face_vertex2_end,const double eps);
+    const Vector3d& vertex_start,
+    const Vector3d& face_vertex0_start,
+    const Vector3d& face_vertex1_start,
+    const Vector3d& face_vertex2_start,
+    const Vector3d& vertex_end,
+    const Vector3d& face_vertex0_end,
+    const Vector3d& face_vertex1_end,
+    const Vector3d& face_vertex2_end,const double eps);
 bool vertexFaceCCD(
-    const Eigen::Vector3d& vertex_start,
-    const Eigen::Vector3d& face_vertex0_start,
-    const Eigen::Vector3d& face_vertex1_start,
-    const Eigen::Vector3d& face_vertex2_start,
-    const Eigen::Vector3d& vertex_end,
-    const Eigen::Vector3d& face_vertex0_end,
-    const Eigen::Vector3d& face_vertex1_end,
-    const Eigen::Vector3d& face_vertex2_end);
+    const Vector3d& vertex_start,
+    const Vector3d& face_vertex0_start,
+    const Vector3d& face_vertex1_start,
+    const Vector3d& face_vertex2_start,
+    const Vector3d& vertex_end,
+    const Vector3d& face_vertex0_end,
+    const Vector3d& face_vertex1_end,
+    const Vector3d& face_vertex2_end);
 
 
 /**
@@ -76,13 +75,13 @@ bool vertexFaceCCD(
  * @returns True if the edges collide.
  */
 bool edgeEdgeCCD(
-    const Eigen::Vector3d& edge0_vertex0_start,
-    const Eigen::Vector3d& edge0_vertex1_start,
-    const Eigen::Vector3d& edge1_vertex0_start,
-    const Eigen::Vector3d& edge1_vertex1_start,
-    const Eigen::Vector3d& edge0_vertex0_end,
-    const Eigen::Vector3d& edge0_vertex1_end,
-    const Eigen::Vector3d& edge1_vertex0_end,
-    const Eigen::Vector3d& edge1_vertex1_end);
+    const Vector3d& edge0_vertex0_start,
+    const Vector3d& edge0_vertex1_start,
+    const Vector3d& edge1_vertex0_start,
+    const Vector3d& edge1_vertex1_start,
+    const Vector3d& edge0_vertex0_end,
+    const Vector3d& edge0_vertex1_end,
+    const Vector3d& edge1_vertex0_end,
+    const Vector3d& edge1_vertex1_end);
 void test();
 } // namespace ccd

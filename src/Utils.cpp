@@ -1,6 +1,5 @@
-#include "Utils.hpp"
+#include <Utils.hpp>
 
-#include <array>
 #include <fstream>
 
 namespace ccd {
@@ -18,21 +17,21 @@ namespace ccd {
 		else {
 			is_degenerated = false;
 		}
-		if (ori == 1) {
+		if (ori >= 0) {
 			facets.resize(4);// right hand outside order
-			facets[0] = { { 0, 1, 2 } }; // 0,1 are one pair
-			facets[1] = { { 2, 3, 0 } };
+			facets[0] = { { 1,2,0 } }; // 0,1 are one pair
+			facets[1] = { { 3,0,2 } };
 
-			facets[2] = { { 1, 0, 3 } }; // 2,3 are one pair
-			facets[3] = { { 3, 2, 1 } };
+			facets[2] = { { 0,3,1 } }; // 2,3 are one pair
+			facets[3] = { { 2,1,3 } };
 		}
 		if (ori == -1) {
 			facets.resize(4);
-			facets[0] = { { 2, 1, 0 } }; // 0,1 are one pair
-			facets[1] = { { 0, 3, 2 } };
+			facets[0] = { { 1,0,2 } }; // 0,1 are one pair
+			facets[1] = { { 3,2,0 } };
 
-			facets[2] = { { 3, 0, 1 } }; // 2,3 are one pair
-			facets[3] = { { 1, 2, 3 } };
+			facets[2] = { { 0,1,3 } }; // 2,3 are one pair
+			facets[3] = { { 2,3,1 } };
 		}
 	}
 int orient3d(
@@ -63,9 +62,227 @@ int orient2d(
     const Rational det = v1[i1] * v2[i2] - v1[i2] * v2[i1];
     return det.get_sign();
 }
+Rational phi(const Vector3r x, const std::array<Vector3r, 4>& corners)
+{
+	static const std::array<int, 4> vv = { { 0, 1, 2, 3 } };
+	const Rational g012 = func_g(x, corners, { { vv[0], vv[1], vv[2] } });
+	const Rational g132 = func_g(x, corners, { { vv[1], vv[3], vv[2] } });
+	const Rational g013 = func_g(x, corners, { { vv[0], vv[1], vv[3] } });
+	const Rational g032 = func_g(x, corners, { { vv[0], vv[3], vv[2] } });
+
+	const Rational h12 = g012 * g032;
+	const Rational h03 = g132 * g013;
+
+	const Rational phi = h12 - h03;
+
+	return phi;
+}
+Vector3r sum(const Vector3r& a, const Vector3r& b) {
+	Vector3r c;
+	c[0] = a[0] + b[0];
+	c[1] = a[1] + b[1];
+	c[2] = a[2] + b[2];
+	return c;
+}
+Vector3r tri_norm(const Vector3r& t0, const Vector3r& t1, const Vector3r& t2)
+{
+	Vector3r s1, s2;
+	s1 = t1 - t0;
+	s2 = t2 - t1;
+	return cross(s1, s2);
+}
+Rational func_g(
+	const Vector3r& x,
+	const std::array<Vector3r, 4>& corners,
+	const std::array<int, 3>& indices)
+{
+	const int p = indices[0];
+	const int q = indices[1];
+	const int r = indices[2];
+	return (x - corners[p])
+		.dot(cross(corners[q] - corners[p], corners[r] - corners[p]));
+}
+bool int_seg_XOR(const int a, const int b)
+{
+	if (a == 2 || b == 2) return true;
+	if (a == 0 && b == 1) return true;
+	if (a == 1 && b == 0) return true;
+	if (a == 3 || b == 3) return false;
+	if (a == b) return false;
+	return false;
+	/*if (a == -1 || b == -1)
+		return -1;
+	if (a == b)
+		return 0;
+	if (a == 0)
+		return b;
+	if (b == 0)
+		return a;
+	std::cout << "impossible XOR cases" << std::endl;*/
+}
+int int_ray_XOR(const int a, const int b) {
+	if (a == -1 || b == -1) return -1;
+	if (a == 0) return b;
+	if (b == 0) return a;
+	if (a == b) return 0;
+	if (a == 2 || b == 2) return 2;//this is case 2-3
+	std::cout << "impossible to go here " << std::endl;
+	return -1;
+}
+int is_line_cut_triangle(
+	const Vector3r& e0,
+	const Vector3r& e1,
+	const Vector3r& t1,
+	const Vector3r& t2,
+	const Vector3r& t3,
+	const bool halfopen, const Vector3r &norm) {
+
+	////if (orient3d(n, t1, t2, t3) == 0) {
+	//	//std::cout << "Degeneration happens" << std::endl;
+	//	n = Vector3r(rand(), rand(), rand());
+	//}
+
+	Vector3r n = norm + t1;
+	Rational a11, a12, a13, d;
 
 
+	bool premulti = orient3D_LPI_prefilter_multiprecision(
+		e0[0], e0[1], e0[2], e1[0], e1[1], e1[2],
+		t1[0], t1[1], t1[2], t2[0], t2[1], t2[2], t3[0], t3[1], t3[2], a11, a12, a13, d, check_rational);
+	if (premulti == false) return 0;
 
+	int o1 = orient3D_LPI_postfilter_multiprecision(
+		a11, a12, a13, d,
+		e0[0], e0[1], e0[2],
+		n[0], n[1], n[2],
+		t1[0], t1[1], t1[2],
+		t2[0], t2[1], t2[2],
+		check_rational);
+	int o2 = orient3D_LPI_postfilter_multiprecision(
+		a11, a12, a13, d,
+		e0[0], e0[1], e0[2],
+		n[0], n[1], n[2],
+		t2[0], t2[1], t2[2],
+		t3[0], t3[1], t3[2],
+		check_rational);// this edge
+	int o3 = orient3D_LPI_postfilter_multiprecision(
+		a11, a12, a13, d,
+		e0[0], e0[1], e0[2],
+		n[0], n[1], n[2],
+		t3[0], t3[1], t3[2],
+		t1[0], t1[1], t1[2],
+		check_rational);// this edge
+
+	if (halfopen) {
+		if (o2 == 0 && o1 == o3)
+			return 3;// on open edge t2-t3
+	}
+
+	if (o1 == o2 && o1 == o3)
+		return 1;
+	if (o1 == 0 && o2 * o3 >= 0)
+		return 2;
+	if (o2 == 0 && o1 * o3 >= 0)
+		return 2;
+	if (o3 == 0 && o2* o1 >= 0)
+		return 2;
+
+	return 0;
+}
+int line_triangle_inter_return_t(
+	const Vector3r& e0,
+	const Vector3r& e1,
+	const Vector3r& t1,
+	const Vector3r& t2,
+	const Vector3r& t3,
+	Rational& t)
+
+{
+	const Rational d = e0[0] * t1[1] * t2[2] - e0[0] * t1[1] * t3[2]
+		- e0[0] * t1[2] * t2[1] + e0[0] * t1[2] * t3[1] + e0[0] * t2[1] * t3[2]
+		- e0[0] * t2[2] * t3[1] - e0[1] * t1[0] * t2[2] + e0[1] * t1[0] * t3[2]
+		+ e0[1] * t1[2] * t2[0] - e0[1] * t1[2] * t3[0] - e0[1] * t2[0] * t3[2]
+		+ e0[1] * t2[2] * t3[0] + e0[2] * t1[0] * t2[1] - e0[2] * t1[0] * t3[1]
+		- e0[2] * t1[1] * t2[0] + e0[2] * t1[1] * t3[0] + e0[2] * t2[0] * t3[1]
+		- e0[2] * t2[1] * t3[0] - e1[0] * t1[1] * t2[2] + e1[0] * t1[1] * t3[2]
+		+ e1[0] * t1[2] * t2[1] - e1[0] * t1[2] * t3[1] - e1[0] * t2[1] * t3[2]
+		+ e1[0] * t2[2] * t3[1] + e1[1] * t1[0] * t2[2] - e1[1] * t1[0] * t3[2]
+		- e1[1] * t1[2] * t2[0] + e1[1] * t1[2] * t3[0] + e1[1] * t2[0] * t3[2]
+		- e1[1] * t2[2] * t3[0] - e1[2] * t1[0] * t2[1] + e1[2] * t1[0] * t3[1]
+		+ e1[2] * t1[1] * t2[0] - e1[2] * t1[1] * t3[0] - e1[2] * t2[0] * t3[1]
+		+ e1[2] * t2[1] * t3[0];
+
+	if (d.get_sign() == 0) // coplanar
+		return -1;
+	t = (e0[0] * t1[1] * t2[2] - e0[0] * t1[1] * t3[2] - e0[0] * t1[2] * t2[1]
+		+ e0[0] * t1[2] * t3[1] + e0[0] * t2[1] * t3[2] - e0[0] * t2[2] * t3[1]
+		- e0[1] * t1[0] * t2[2] + e0[1] * t1[0] * t3[2] + e0[1] * t1[2] * t2[0]
+		- e0[1] * t1[2] * t3[0] - e0[1] * t2[0] * t3[2] + e0[1] * t2[2] * t3[0]
+		+ e0[2] * t1[0] * t2[1] - e0[2] * t1[0] * t3[1] - e0[2] * t1[1] * t2[0]
+		+ e0[2] * t1[1] * t3[0] + e0[2] * t2[0] * t3[1] - e0[2] * t2[1] * t3[0]
+		- t1[0] * t2[1] * t3[2] + t1[0] * t2[2] * t3[1] + t1[1] * t2[0] * t3[2]
+		- t1[1] * t2[2] * t3[0] - t1[2] * t2[0] * t3[1]
+		+ t1[2] * t2[1] * t3[0])
+		/ d;
+
+	const Rational u = (-e0[0] * e1[1] * t1[2] + e0[0] * e1[1] * t3[2]
+		+ e0[0] * e1[2] * t1[1] - e0[0] * e1[2] * t3[1]
+		- e0[0] * t1[1] * t3[2] + e0[0] * t1[2] * t3[1]
+		+ e0[1] * e1[0] * t1[2] - e0[1] * e1[0] * t3[2]
+		- e0[1] * e1[2] * t1[0] + e0[1] * e1[2] * t3[0]
+		+ e0[1] * t1[0] * t3[2] - e0[1] * t1[2] * t3[0]
+		- e0[2] * e1[0] * t1[1] + e0[2] * e1[0] * t3[1]
+		+ e0[2] * e1[1] * t1[0] - e0[2] * e1[1] * t3[0]
+		- e0[2] * t1[0] * t3[1] + e0[2] * t1[1] * t3[0]
+		+ e1[0] * t1[1] * t3[2] - e1[0] * t1[2] * t3[1]
+		- e1[1] * t1[0] * t3[2] + e1[1] * t1[2] * t3[0]
+		+ e1[2] * t1[0] * t3[1] - e1[2] * t1[1] * t3[0])
+		/ d;
+	const Rational v = (e0[0] * e1[1] * t1[2] - e0[0] * e1[1] * t2[2]
+		- e0[0] * e1[2] * t1[1] + e0[0] * e1[2] * t2[1]
+		+ e0[0] * t1[1] * t2[2] - e0[0] * t1[2] * t2[1]
+		- e0[1] * e1[0] * t1[2] + e0[1] * e1[0] * t2[2]
+		+ e0[1] * e1[2] * t1[0] - e0[1] * e1[2] * t2[0]
+		- e0[1] * t1[0] * t2[2] + e0[1] * t1[2] * t2[0]
+		+ e0[2] * e1[0] * t1[1] - e0[2] * e1[0] * t2[1]
+		- e0[2] * e1[1] * t1[0] + e0[2] * e1[1] * t2[0]
+		+ e0[2] * t1[0] * t2[1] - e0[2] * t1[1] * t2[0]
+		- e1[0] * t1[1] * t2[2] + e1[0] * t1[2] * t2[1]
+		+ e1[1] * t1[0] * t2[2] - e1[1] * t1[2] * t2[0]
+		- e1[2] * t1[0] * t2[1] + e1[2] * t1[1] * t2[0])
+		/ d;
+
+	// std::cout << t << std::endl;
+
+	// std::cout << u << std::endl;
+
+	// std::cout << v << std::endl;
+
+	if (u >= 0 && u <= 1 && v >= 0 && v <= 1 && u + v <= 1) {
+		if (u == 0 || u == 1 || v == 0 || v == 1 || u + v == 1)
+			return 2; // on the border
+		return 1;
+	}
+
+	return 0;
+
+}
+void get_tet_phi(bilinear& bl)
+{
+	Vector3r p02 = (bl.v[0] + bl.v[2]) / 2;
+	Rational phi02 = phi(p02, bl.v);
+	if (phi02.get_sign() > 0) {
+		bl.phi_f[0] = 1;
+		bl.phi_f[1] = -1;
+		return;
+	}
+	else {
+		bl.phi_f[0] = -1;
+		bl.phi_f[1] = 1;
+		return;
+	}
+	std::cout << "!!can not happen, get tet phi" << std::endl;
+}
 bool segment_segment_inter(
     const Vector3r& s0,
     const Vector3r& e0,

@@ -1,5 +1,5 @@
-#include "subfunctions.h"
-#include <exact_subtraction.hpp>
+#include <subfunctions.h>
+//#include <exact_subtraction.hpp>
 
 //#include <ray_parity.h>
 namespace ccd {
@@ -55,7 +55,7 @@ void get__corners(const std::vector<Vector3d>& p, Vector3d& min, Vector3d& max)
             max[2] = p[i][2];
     }
 }
-
+/*
 std::array<Vector3d, 6> get_prism_vertices_double(
     const Vector3d& x0,
     const Vector3d& x1,
@@ -130,7 +130,7 @@ std::array<Vector3d, 6> get_prism_vertices_double(
     }
     return result;
 }
-
+*/
 Vector3d get_prism_corner_double(
     const Vector3d& vertex_start,       // x0
     const Vector3d& face_vertex0_start, // x1
@@ -471,10 +471,10 @@ bool is_cube_intersect_degenerated_bilinear(
                 res = int_seg_XOR(
 					segment_triangle_intersection(
                         cube.vr[cube.edgeid[i][0]], cube.vr[cube.edgeid[i][1]],
-                        bl.v[0], bl.v[1], bl.v[2], true),
+                        bl.v[1], bl.v[2], bl.v[0], true),// CAUTION: need to be careful for the order here
 					segment_triangle_intersection(
                         cube.vr[cube.edgeid[i][0]], cube.vr[cube.edgeid[i][1]],
-                        bl.v[0], bl.v[2], bl.v[3], true));
+                        bl.v[3], bl.v[2], bl.v[0], true));
                 if (res == true)
                     return true;
             }
@@ -489,7 +489,7 @@ bool is_cube_intersect_degenerated_bilinear(
                         bl.v[0], bl.v[1], bl.v[3], true),
 					segment_triangle_intersection(
                         cube.vr[cube.edgeid[i][0]], cube.vr[cube.edgeid[i][1]],
-                        bl.v[3], bl.v[1], bl.v[2], true));
+                        bl.v[2], bl.v[1], bl.v[3], true));
                 if (res == true)
                     return true;
             }
@@ -519,11 +519,11 @@ bool line_shoot_same_pair_tet(
             fid = 2;
     }// get which pair of facets to check
 	int inter0 = line_triangle_intersection(// return 0 or 1
-		p0, p1 - p0, bl.v[bl.facets[fid][1]], bl.v[bl.facets[fid][2]],
-		bl.v[bl.facets[fid][3]], false);
+		p0, p1 - p0, bl.v[bl.facets[fid][0]], bl.v[bl.facets[fid][1]],
+		bl.v[bl.facets[fid][2]], false);
 	int inter1 = line_triangle_intersection(
-		p0, p1 - p0, bl.v[bl.facets[fid + 1][1]], bl.v[bl.facets[fid + 1][2]],
-		bl.v[bl.facets[fid + 1][3]], false);
+		p0, p1 - p0, bl.v[bl.facets[fid + 1][0]], bl.v[bl.facets[fid + 1][1]],
+		bl.v[bl.facets[fid + 1][2]], false);
 	if (inter0 == 1 && inter1 == 1)
         return true;
     return false;
@@ -750,8 +750,8 @@ bool is_seg_intersect_not_degenerated_bilinear(
 
         for (int i = 0; i < 4; i++) {
             if (segment_triangle_intersection(// 0,1,2,3. 1,2,3 are all intersected
-                    p0, p1, bl.v[bl.facets[i][0]], bl.v[bl.facets[i][0]],
-				bl.v[bl.facets[i][0]], false)
+                    p0, p1, bl.v[bl.facets[i][0]], bl.v[bl.facets[i][1]],
+				bl.v[bl.facets[i][2]], false)
                 > 0) {
                 if (i < 2)
                     hitpair = 0;
@@ -791,8 +791,8 @@ bool is_seg_intersect_not_degenerated_bilinear(
         int hitpair = -1;
         for (int i = 0; i < 4; i++) {
             if (segment_triangle_intersection(// 0,1,2,3. 1,2,3 are all intersected
-                    p0, p1, bl.v[bl.facets[i][0]], bl.v[bl.facets[i][0]],
-				bl.v[bl.facets[i][0]], false)
+                    p0, p1, bl.v[bl.facets[i][0]], bl.v[bl.facets[i][1]],
+				bl.v[bl.facets[i][2]], false)
                 > 0) {
                 if (i < 2)
                     hitpair = 0;

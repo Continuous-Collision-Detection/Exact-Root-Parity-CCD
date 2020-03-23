@@ -2,11 +2,12 @@
 //
 #include <ccd.hpp>
 #include <vector>
-#include<Utils.hpp>
+//#include<Utils.hpp>
+#include<subfunctions.h>
 #include <fstream>
 #include <array>
-#include <exact_subtraction.hpp>
-#include<subfunctions.h>
+//#include <exact_subtraction.hpp>
+//#include<subfunctions.h>
 using namespace ccd;
 using namespace std;
 struct sccd {
@@ -158,11 +159,36 @@ void test1() {
 
     // std::cout << "Exact CCD" << std::endl;
 }
+void test_compare() {
+	std::vector<sccd> data;
+	read_CSV("D:\\vs\\collision\\CCD\\data\\cow-head-collisions.csv", data);
+	vector<bool> rst;
+	read_result("D:\\vs\\collision\\CCD\\data\\result_all.csv", rst);
+	std::vector<bool> results;
+	int fn = data.size(); // 50000;
+	results.resize(fn);
+	int inside = 0;
+	for (int i = 0; i < fn; i++) {
+		if (i % 200 == 0)std::cout << "i " << i << std::endl;
+		//std::cout << "i " << std::endl;
+		results[i] = vertexFaceCCD(
+			data[i].pts, data[i].v1s, data[i].v2s, data[i].v3s,
+			data[i].pte, data[i].v1e, data[i].v2e, data[i].v3e, 1e-8);
+		if (rst[i] == 1 && results[i] == 0) {//when old method says yes but we missed it
+			std::cout << "wrong! i= " << i << std::endl;
+		}
+		//std::cout << "result " << results[i] << std::endl;
+		if (results[i] == true) inside++;
+	}
+	std::cout << int_seg_XOR(1, 0) << std::endl;
+	cube cb(0.1);
+	std::cout << "inside number " << inside << std::endl;
 
+}
 int main(int argc, char* argv[])
 {
     // TODO: Put something more relevant here
     //ccd::test();
-    
+	test_compare();
     return 1;
 }

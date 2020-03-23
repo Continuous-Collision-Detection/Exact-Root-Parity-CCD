@@ -1,5 +1,5 @@
 #pragma once
-#include "Utils.hpp"
+#include <Utils.hpp>
 #include <array>
 #include <vector>
 namespace ccd {
