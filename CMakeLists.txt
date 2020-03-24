@@ -52,10 +52,23 @@ target_sources(${PROJECT_NAME} PRIVATE ${SOURCES})
 target_include_directories(${PROJECT_NAME} PUBLIC src/)
 
 
-target_link_libraries(${PROJECT_NAME} PUBLIC indirect_predicates)
-# target_link_libraries(${PROJECT_NAME} PRIVATE CCD)
 
-#target_include_directories(${PROJECT_NAME} PUBLIC src/)
+
+# doubleCCD
+set(CCD_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/doubleccd")
+set(DOUBLECCD_SOURCES
+	${CCD_FOLDER}/doubleccd.hpp
+	${CCD_FOLDER}/doubleccd.cpp
+	${CCD_FOLDER}/double_ray_parity.h
+	${CCD_FOLDER}/double_ray_parity.cpp
+	${CCD_FOLDER}/double_subfunctions.h
+	${CCD_FOLDER}/double_subfunctions.cpp
+	${CCD_FOLDER}/double_Utils.cpp
+	${CCD_FOLDER}/double_Utils.hpp
+	${CCD_FOLDER}/Rational.hpp
+)
+ add_library(doubleCCD  ${DOUBLECCD_SOURCES})
+ 
 
 ################################################################################
 # Executable
@@ -68,6 +81,32 @@ add_executable(${PROJECT_NAME}_bin
 
 target_link_libraries(${PROJECT_NAME}_bin PUBLIC ${PROJECT_NAME})
 
+# indirect_predicates
+target_link_libraries(doubleCCD PUBLIC indirect_predicates)
+
+
+###################################3
+# double ccd
+target_link_libraries(doubleCCD PUBLIC igl::core)
+
+# libigl
+target_link_libraries(doubleCCD PUBLIC igl::core)
+
+# Logger
+target_link_libraries(doubleCCD PUBLIC spdlog::spdlog)
+
+# Extra warnings
+target_link_libraries(doubleCCD PRIVATE warnings::all)
+#GMP
+find_package(GMPECCD)
+
+IF(NOT ${GMP_FOUND})
+        MESSAGE(FATAL_ERROR "Cannot find GMP")
+ENDIF()
+target_include_directories(doubleCCD PUBLIC ${GMP_INCLUDE_DIRS} src)
+target_link_libraries(doubleCCD PUBLIC ${GMP_LIBRARIES})
+
+target_link_libraries(${PROJECT_NAME}_bin PUBLIC doubleCCD)
 ################################################################################
 # Required Libraries
 ################################################################################
@@ -81,11 +120,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC spdlog::spdlog)
 # Extra warnings
 target_link_libraries(${PROJECT_NAME} PRIVATE warnings::all)
 #GMP
-find_package(GMPECCD)
 
-IF(NOT ${GMP_FOUND})
-        MESSAGE(FATAL_ERROR "Cannot find GMP")
-ENDIF()
 target_include_directories(${PROJECT_NAME} PUBLIC ${GMP_INCLUDE_DIRS} src)
 target_link_libraries(${PROJECT_NAME} PUBLIC ${GMP_LIBRARIES})
 

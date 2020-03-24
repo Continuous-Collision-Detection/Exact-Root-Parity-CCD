@@ -29,8 +29,12 @@ if(NOT TARGET indirect_predicates)
 	else()
 	ccd_download_indirect_predicates()
 	endif()
-  
-  add_library(indirect_predicates ${CCD_EXTERNAL}/indirect_predicates/predicates/indirect_predicates.cpp )
+  set(INDIRECTPREDICATES_SOURCES
+	${CCD_EXTERNAL}/indirect_predicates/predicates/indirect_predicates.cpp
+	${CCD_EXTERNAL}/indirect_predicates/predicates/indirect_predicates.h
+)
+  add_library(indirect_predicates  ${INDIRECTPREDICATES_SOURCES})
+  #indirect_predicates_copy_headers(${INDIRECTPREDICATES_SOURCES})
   target_include_directories(indirect_predicates PUBLIC ${CCD_EXTERNAL}/indirect_predicates)
 
 endif()
