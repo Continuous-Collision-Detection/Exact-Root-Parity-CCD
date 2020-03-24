@@ -252,11 +252,11 @@ namespace ccd {
 	}
 	bool retrial_ccd(
 		prism& psm, std::array<bilinear, 3>& bls,
-		const Vector3r& pt,
+		const Vector3d& pt,
 		const std::vector<bool>& is_pt_in_tet)
 	{
 		static const int max_trials = 8;// TODO maybe dont need to set this
-		Vector3r dir(1, 0, 0);
+		Vector3d pt2(1, 0, 0);
 
 		int res = -1;
 		int trials;

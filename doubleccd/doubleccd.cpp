@@ -34,7 +34,7 @@ bool vertexFaceCCD(
         face_vertex2_end);
 
     // step 1. bounding box checking
-    Vector3r bmin(-eps, -eps, -eps), bmax(eps, eps, eps);
+    Vector3d bmin(-eps, -eps, -eps), bmax(eps, eps, eps);
     bool intersection = vfprism.is_prism_bbox_cut_bbox(bmin, bmax);
     if (!intersection)
         return false; // if bounding box not intersected, then not intersected
@@ -50,14 +50,19 @@ bool vertexFaceCCD(
 
     // prism top/bottom triangle test
     cube cb(eps);
-    if (is_cube_edges_intersect_triangle(
-            cb, vfprism.p_vertices[0], vfprism.p_vertices[1],
-            vfprism.p_vertices[2]))
-        return true;
-    if (is_cube_edges_intersect_triangle(
-            cb, vfprism.p_vertices[3], vfprism.p_vertices[4],
-            vfprism.p_vertices[5]))
-        return true;
+	if (!vfprism.is_triangle_degenerated(0)) {
+		if (is_cube_edges_intersect_triangle(
+			cb, vfprism.p_vertices[0], vfprism.p_vertices[1],
+			vfprism.p_vertices[2]))// if this triangle is not degenerated
+			return true;
+	}
+	if (!vfprism.is_triangle_degenerated(1)) {
+		if (is_cube_edges_intersect_triangle(
+			cb, vfprism.p_vertices[3], vfprism.p_vertices[4],
+			vfprism.p_vertices[5]))
+			return true;
+	}
+    
 
     // step 3 tet facets- cube edges
     std::array<std::array<bool, 8>, 3> v_tet;//cube vertices - tets positions

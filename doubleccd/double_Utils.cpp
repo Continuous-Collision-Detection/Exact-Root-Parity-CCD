@@ -1,16 +1,20 @@
 #include "double_Utils.hpp"
-
+#include <predicates/indirect_predicates.h>
 #include <fstream>
 
 namespace ccd {
 	bilinear::bilinear(
-		const Vector3r& v0,
-		const Vector3r& v1,
-		const Vector3r& v2,
-		const Vector3r& v3)
+		const Vector3d& v0,
+		const Vector3d& v1,
+		const Vector3d& v2,
+		const Vector3d& v3)
 	{
 		v = { { v0, v1, v2, v3 } };
-		int ori = orient3d(v0, v1, v2, v3);
+		int ori = orient3d(
+			v0[0], v0[1], v0[2], 
+			v1[0], v1[1], v1[2], 
+			v2[0], v2[1], v2[2], 
+			v3[0], v3[1], v3[2]);
 		if (ori == 0) {
 			is_degenerated = true;
 		}
@@ -34,34 +38,52 @@ namespace ccd {
 			facets[3] = { { 2,3,1 } };
 		}
 	}
-int orient3d(
-    const Vector3r& a, const Vector3r& b, const Vector3r& c, const Vector3r& d)
+
+bool same_point(const Vector3d& p1, const Vector3d& p2)
 {
-    const Rational det = (a - d).dot(cross(b - d, c - d));
-    return det.get_sign();
+	if (p1[0] == p2[0] && p1[1] == p2[1] && p1[2] == p2[2]) {
+		return true;
+	}
+	return false;
 }
-int orient2d(
-    const Vector3r& a, const Vector3r& b, const Vector3r& c, const int axis)
-{
-    Vector3r v1, v2;
-    v1 = a - b;
-    v2 = c - b;
-    int i1, i2;
-    if (axis == 0) {
-        i1 = 1;
-        i2 = 2;
-    }
-    if (axis == 1) {
-        i1 = 0;
-        i2 = 2;
-    }
-    if (axis == 2) {
-        i1 = 0;
-        i2 = 1;
-    }
-    const Rational det = v1[i1] * v2[i2] - v1[i2] * v2[i1];
-    return det.get_sign();
+int dot_product_sign(const Vector3d& a, const Vector3d& b) {
+	xx//double n = a.dot(b);
+	//if (n > 1e-8) return 1;
+	//if (n < -1e-8) return -1;
+	//expansionObject o;
+	//double ab0[2], ab1[2], ab2[2];
+	//double zero2[2]; zero2[0] = 0; zero2[1] = 0;
+	//o.Two_Prod(a[0], b[0], ab0);
+	//o.Two_Prod(a[1], b[1], ab1);
+	//o.Two_Prod(a[2], b[2], ab2);
+	//double sum1[4];
+	//int nbr1 = o.Gen_Sum(2, ab0, 2, ab1, sum1);
+	//double *sum2;
+	//int nbr2= o.Gen_Sum(2, ab2, nbr1, sum1, sum2);// i really should not implement this
+	//if
 }
+//int orient2d(
+//    const Vector3r& a, const Vector3r& b, const Vector3r& c, const int axis)
+//{
+//    Vector3r v1, v2;
+//    v1 = a - b;
+//    v2 = c - b;
+//    int i1, i2;
+//    if (axis == 0) {
+//        i1 = 1;
+//        i2 = 2;
+//    }
+//    if (axis == 1) {
+//        i1 = 0;
+//        i2 = 2;
+//    }
+//    if (axis == 2) {
+//        i1 = 0;
+//        i2 = 1;
+//    }
+//    const Rational det = v1[i1] * v2[i2] - v1[i2] * v2[i1];
+//    return det.get_sign();
+//}
 Rational phi(const Vector3r x, const std::array<Vector3r, 4>& corners)
 {
 	static const std::array<int, 4> vv = { { 0, 1, 2, 3 } };
@@ -425,6 +447,15 @@ bool segment_segment_intersection(
 	std::cout << " impossible to go here" << std::endl;
 	return false;
 }
+
+bool segment_segment_intersection_2d(
+	const Vector2d& s0,
+	const Vector2d& e0,
+	const Vector2d& s1,
+	const Vector2d& e1) {
+	xx
+}
+
 // 0 not intersected; 1 intersected; 2 pt on s0
 int point_on_ray(const Vector3r& s0,
 	const Vector3r& dir0, const Vector3r& pt) {

@@ -1,4 +1,5 @@
 #include "double_subfunctions.h"
+#include "predicates/indirect_predicates.h"
 //#include <exact_subtraction.hpp>
 
 //#include <ray_parity.h>
@@ -7,10 +8,10 @@ namespace ccd {
 // cube
 cube::cube(double eps)
 {
-    vr[0] = Vector3r(-eps, -eps, eps), vr[1] = Vector3r(eps, -eps, eps),
-    vr[2] = Vector3r(eps, eps, eps), vr[3] = Vector3r(-eps, eps, eps),
-    vr[4] = Vector3r(-eps, -eps, -eps), vr[5] = Vector3r(eps, -eps, -eps),
-    vr[6] = Vector3r(eps, eps, -eps), vr[7] = Vector3r(-eps, eps, -eps);
+    vr[0] = Vector3d(-eps, -eps, eps), vr[1] = Vector3d(eps, -eps, eps),
+    vr[2] = Vector3d(eps, eps, eps), vr[3] = Vector3d(-eps, eps, eps),
+    vr[4] = Vector3d(-eps, -eps, -eps), vr[5] = Vector3d(eps, -eps, -eps),
+    vr[6] = Vector3d(eps, eps, -eps), vr[7] = Vector3d(-eps, eps, -eps);
     edgeid[0] = { { 0, 1 } };
     edgeid[1] = { { 1, 2 } };
     edgeid[2] = { { 2, 3 } };
@@ -182,7 +183,7 @@ int seg_cut_plane(
 }
 
 bool is_seg_intersect_cube(
-    const double& eps, const Vector3r& e0, const Vector3r& e1)
+    const double& eps, const Vector3d& e0, const Vector3d& e1)
 {
     if (is_point_intersect_cube(eps, e0))
         return true;
@@ -199,42 +200,42 @@ bool is_seg_intersect_cube(
 }
 // check if a 2d segment intersects 2d cube
 bool is_seg_intersect_cube_2d(
-    const double eps, const Vector3r& e0, const Vector3r& e1, int axis)
+    const double eps, const Vector3d& e0, const Vector3d& e1, int axis)
 {
-    Vector3r p0, p1, p2, p3, res;
-    projected_cube_edges(eps, axis, p0, p1, p2, p3);
+	Vector2d p0, p1, p2, p3, 
+		e0p, e1p;// e0 and e1 projected to 2d
+    projected_cube_edges(eps, p0, p1, p2, p3);// TODO move this out
+
     const int i1 = (axis + 1) % 3;
     const int i2 = (axis + 2) % 3;
+
     if (e0[i1] <= eps && e0[i1] >= -eps && e0[i2] <= eps && e0[i2] >= -eps)
         return true;
     if (e1[i1] <= eps && e1[i1] >= -eps && e1[i2] <= eps && e1[i2] >= -eps)
         return true;
-    if (segment_segment_intersection(e0, e1, p0, p1))// TODO maybe implement a 2d version
+	e0p = Vector2d(e0[i1], e0[i2]);
+	e1p = Vector2d(e1[i1], e1[i2]);
+    if (segment_segment_intersection_2d(e0p, e1p, p0, p1))
         return true; // check if segments has intersection, or if cube points
                      // p0, p1 on e0-e1
-    if (segment_segment_intersection(e0, e1, p1, p2))
+    if (segment_segment_intersection_2d(e0p, e1p, p1, p2))
         return true;
-    if (segment_segment_intersection(e0, e1, p2, p3))
+    if (segment_segment_intersection_2d(e0p, e1p, p2, p3))
         return true;
-    if (segment_segment_intersection(e0, e1, p3, p0))
+    if (segment_segment_intersection_2d(e0p, e1p, p3, p0))
         return true;
 
     return false;
 }
 void projected_cube_edges(
     const double eps,
-    const int axis,
-    Vector3r& e0,
-    Vector3r& e1,
-    Vector3r& e2,
-    Vector3r& e3)
+    Vector2d& e0,
+    Vector2d& e1,
+    Vector2d& e2,
+    Vector2d& e3)
 {
-    const int i1 = (axis + 1) % 3;
-    const int i2 = (axis + 2) % 3;
-    e0[axis] = 0;
-    e1[axis] = 0;
-    e2[axis] = 0;
-    e3[axis] = 0;
+	const int i1 = 0;
+	const int i2 = 1;
 
     e0[i1] = -eps;
     e0[i2] = eps;
@@ -248,7 +249,7 @@ void projected_cube_edges(
     e3[i1] = -eps;
     e3[i2] = -eps;
 }
-bool is_point_intersect_cube(const double eps, const Vector3r& p)
+bool is_point_intersect_cube(const double eps, const Vector3d& p)
 {
     if (p[0] <= eps && p[0] >= -eps) {
         if (p[1] <= eps && p[1] >= -eps) {
@@ -260,43 +261,43 @@ bool is_point_intersect_cube(const double eps, const Vector3r& p)
     return false;
 }
 
-int get_triangle_project_axis(
-    const Vector3r& t0, const Vector3r& t1, const Vector3r& t2)
-{
-    Vector3r normal = cross(t0 - t1, t0 - t2);
-    if (normal[0] == 0 && normal[1] == 0 && normal[2] == 0) {
-        return 3; // if triangle degenerated as a segment or point, then no
-                  // intersection, because before here we already check that
-    }
-
-    if (normal[0] * normal[0].get_sign() >= normal[1] * normal[1].get_sign())
-        if (normal[0] * normal[0].get_sign()
-            >= normal[2] * normal[2].get_sign())
-            return 0;
-    if (normal[1] * normal[1].get_sign() >= normal[0] * normal[0].get_sign())
-        if (normal[1] * normal[1].get_sign()
-            >= normal[2] * normal[2].get_sign())
-            return 1;
-    if (normal[2] * normal[2].get_sign() >= normal[1] * normal[1].get_sign())
-        if (normal[2] * normal[2].get_sign()
-            >= normal[0] * normal[0].get_sign())
-            return 2;
-}
+//int get_triangle_project_axis(
+//    const Vector3r& t0, const Vector3r& t1, const Vector3r& t2)
+//{
+//    Vector3r normal = cross(t0 - t1, t0 - t2);
+//    if (normal[0] == 0 && normal[1] == 0 && normal[2] == 0) {
+//        return 3; // if triangle degenerated as a segment or point, then no
+//                  // intersection, because before here we already check that
+//    }
+//
+//    if (normal[0] * normal[0].get_sign() >= normal[1] * normal[1].get_sign())
+//        if (normal[0] * normal[0].get_sign()
+//            >= normal[2] * normal[2].get_sign())
+//            return 0;
+//    if (normal[1] * normal[1].get_sign() >= normal[0] * normal[0].get_sign())
+//        if (normal[1] * normal[1].get_sign()
+//            >= normal[2] * normal[2].get_sign())
+//            return 1;
+//    if (normal[2] * normal[2].get_sign() >= normal[1] * normal[1].get_sign())
+//        if (normal[2] * normal[2].get_sign()
+//            >= normal[0] * normal[0].get_sign())
+//            return 2;
+//}
 bool is_cube_edges_intersect_triangle(
     const ccd::cube& cb,
-    const Vector3r& t0,
-    const Vector3r& t1,
-    const Vector3r& t2)
+    const Vector3d& t0,
+    const Vector3d& t1,
+    const Vector3d& t2)
 {
     // the vertices of triangle are checked before going here, the edges are
     // also checked. so, only need to check if cube edge has intersection with
     // the open triangle.
 
-    int axis = get_triangle_project_axis(t0, t1, t2);
-    if (axis == 3)
-        return false; // if triangle degenerated as a segment or point, then no
-                      // intersection, because before here we already check that
-    Vector3r s0, s1;
+    //int axis = get_triangle_project_axis(t0, t1, t2);
+    //if (axis == 3)
+    //    return false; // if triangle degenerated as a segment or point, then no
+    //                  // intersection, because before here we already check that
+    Vector3d s0, s1;
     for (int i = 0; i < 12; i++) {
         s0 = cb.vr[cb.edgeid[i][0]];
         s1 = cb.vr[cb.edgeid[i][1]];
@@ -368,48 +369,52 @@ prism::prism(
 }
 bool prism::is_triangle_degenerated(const int up_or_bottom)
 {
-    // up
-    if (up_or_bottom == 0) {
-        Vector3r pt = cross(
-            p_vertices[0] - p_vertices[1], p_vertices[0] - p_vertices[2]);
-        if (same_point(pt, ORIGIN))
-            return true;
-        else
-            return false;
-    }
-    // bottom
-    if (up_or_bottom == 1) {
-        Vector3r pt = cross(
-            p_vertices[3] - p_vertices[4], p_vertices[3] - p_vertices[5]);
-        if (same_point(pt, ORIGIN))
-            return true;
-        else
-            return false;
-    }
-    std::cout << "!! wrong input in prism triangle degeneration test"
-              << std::endl;
-    return false;
+	int pid = up_or_bottom == 0 ? 0 : 3;
+	const auto to_2d = [](const Vector3d &p, int t)
+	{
+		return Vector2d(p[(t + 1) % 3], p[(t + 2) % 3]);
+	};
+	double r = ((p_vertices[pid] - p_vertices[pid + 1]).cross(p_vertices[pid] - p_vertices[pid + 2])).norm();
+	if (fabs(r) > 1e-8) return false;
+	int ori;
+	std::array<Vector2d, 3> p;
+	for (int j = 0; j < 3; j++)
+	{
+
+		p[0] = to_2d(p_vertices[pid], j);
+		p[1] = to_2d(p_vertices[pid+1], j);
+		p[2] = to_2d(p_vertices[pid+2], j);
+
+		ori = orient2d(p[0][0], p[0][1], p[1][0], p[1][1], p[2][0], p[2][1]);
+		if (ori != 0)
+		{
+			return false;
+		}
+	}
+	return true;
 }
-Vector3r prism::get_prism_corner(int u, int v, int t)
+Vector3d prism::get_prism_corner(int u, int v, int t)
 {
-    const Rational ur(u);
-    const Rational vr(v);
-    const Rational tr(t);
-    return (1 - tr) * vsr + tr * ver
-        - ((1 - tr) * fs0r + t * fe0r) * (1 - ur - vr)
-        - ((1 - tr) * fs1r + t * fe1r) * ur - ((1 - tr) * fs2r + t * fe2r) * vr;
+
+    return (1 - t) * vsr + t * ver
+        - ((1 - t) * fs0r + t * fe0r) * (1 - u - v)
+        - ((1 - t) * fs1r + t * fe1r) * u - ((1 - t) * fs2r + t * fe2r) * v;
 }
 
 
 // the facets of the tet are all oriented to outside. check if p is inside of
 // OPEN tet
-bool is_point_inside_tet(const bilinear& bl, const Vector3r& p)
+bool is_point_inside_tet(const bilinear& bl, const Vector3d& p)
 {
 
     for (int i = 0; i < 4; i++) { // facets.size()==4
-        if (orient3d(
-                p, bl.v[bl.facets[i][0]], bl.v[bl.facets[i][1]],
-                bl.v[bl.facets[i][2]])
+		Vector3d pt1= bl.v[bl.facets[i][0]], pt2= bl.v[bl.facets[i][1]], pt3= bl.v[bl.facets[i][2]];
+		if (orient3d(
+			p[0], p[1], p[2],
+			pt1[0], pt1[1], pt1[2],
+			pt2[0], pt2[1], pt2[2],
+			pt3[0], pt3[1], pt3[2]
+		)
             >= 0) {
             return false;
         }
@@ -417,13 +422,7 @@ bool is_point_inside_tet(const bilinear& bl, const Vector3r& p)
     return true; // all the orientations are -1, then point inside
 }
 
-bool same_point(const Vector3r& p1, const Vector3r& p2)
-{
-    if (p1[0] == p2[0] && p1[1] == p2[1] && p1[2] == p2[2]) {
-        return true;
-    }
-    return false;
-}
+
 // we already know the bilinear is degenerated, next check which kind
 int bilinear_degeneration(const bilinear& bl)
 {
@@ -432,7 +431,7 @@ int bilinear_degeneration(const bilinear& bl)
     // split 0-2 edge
     norm0 = tri_norm(bl.v[0], bl.v[1], bl.v[2]);
     norm1 = tri_norm(bl.v[0], bl.v[2], bl.v[3]);
-    if (norm0.dot(norm1) <= 0) {
+    if (norm0.dot(norm1) <= 0) {//TODO need exact dot product
         return BI_DEGE_XOR_02;
     }
     // split 1-3 edge

@@ -7,13 +7,14 @@
 
 namespace ccd {
 
-typedef Eigen::Matrix<Rational, 3, 1> Vector3r;
+//typedef Eigen::Matrix<Rational, 3, 1> Vector3r;
 typedef Eigen::Matrix<double, 3, 1> Vector3d;
+typedef Eigen::Matrix<double, 2, 1> Vector2d;
 static const int COPLANAR = -1;
 static const int INTERSECTED = 1;
 static const int NOT_INTERSECTED1 = 2;
 static const int NOT_INTERSECTED2 = 3;
-static const Vector3r ORIGIN = Vector3r(0, 0, 0);
+static const Vector3d ORIGIN = Vector3d(0, 0, 0);
 
 static const int BI_DEGE_PLANE = 1;
 static const int BI_DEGE_XOR_02 = 2;
@@ -24,14 +25,14 @@ public:
 	// v0, v1 are vertices of one triangle, v2, v3 are the vertices of another
 	// one.
 	bilinear(
-		const Vector3r& v0,
-		const Vector3r& v1,
-		const Vector3r& v2,
-		const Vector3r& v3);
+		const Vector3d& v0,
+		const Vector3d& v1,
+		const Vector3d& v2,
+		const Vector3d& v3);
 	bool is_degenerated;
 	std::vector<std::array<int, 3>> facets;
 	std::array<int, 2> phi_f = { {2,2} };
-	std::array<Vector3r, 4> v;
+	std::array<Vector3d, 4> v;
 
 };
 template <typename V1, typename V2> Vector3r cross(const V1& v1, const V2& v2)
@@ -74,17 +75,23 @@ template <typename V> void print(const V& v)
 
 void write(const Vector3d& v, std::ostream& out);
 Vector3d read(std::istream& in);
-
+int dot_product_sign(const Vector3d& a, const Vector3d& b);
 int orient3d(
     const Vector3r& a, const Vector3r& b, const Vector3r& c, const Vector3r& d);
-int orient2d(
-    const Vector3r& a, const Vector3r& b, const Vector3r& c, const int axis);
+//int orient2d(
+//    const Vector3r& a, const Vector3r& b, const Vector3r& c, const int axis);
 
 bool segment_segment_intersection(
 	const Vector3r& s0,
 	const Vector3r& e0,
 	const Vector3r& s1,
 	const Vector3r& e1);
+bool segment_segment_intersection_2d(
+	const Vector2d& s0,
+	const Vector2d& e0,
+	const Vector2d& s1,
+	const Vector2d& e1);
+
 // 0 not intersected, 1 intersected, 2 s0 on segment
 // can deal with degenerated cases
 int ray_segment_intersection(
@@ -100,6 +107,7 @@ int ray_segment_intersection(
 
 
 bool same_point(const Vector3r& p1, const Vector3r& p2);
+bool same_point(const Vector3d& p1, const Vector3d& p2);
 Vector3r tri_norm(const Vector3r& t0, const Vector3r& t1, const Vector3r& t2);
 
 template<typename T>

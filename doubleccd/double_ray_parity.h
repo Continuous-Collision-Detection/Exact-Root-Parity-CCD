@@ -45,7 +45,7 @@ namespace ccd {
 
 	bool retrial_ccd(
 		prism& psm, std::array<bilinear, 3>& bls,
-		const Vector3r& pt,
+		const Vector3d& pt,
 		const std::vector<bool>& is_pt_in_tet);
 
 } // namespace ccd
