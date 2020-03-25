@@ -41,7 +41,7 @@ namespace ccd {
 	// check if point has intersection with prism by counting parity
 	// 1 -1 0
 	int point_inside_prism(prism& psm, std::array<bilinear, 3> &bls,
-		const Vector3r& pt, const Vector3r& dir, const std::vector<bool>& is_pt_in_tet);
+		const Vector3d& pt, const Vector3d& pt1, const Vector3d& dir, const std::vector<bool>& is_pt_in_tet);
 
 	bool retrial_ccd(
 		prism& psm, std::array<bilinear, 3>& bls,

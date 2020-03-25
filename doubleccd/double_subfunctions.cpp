@@ -493,7 +493,7 @@ bool is_cube_intersect_degenerated_bilinear(
 }
 // phisign gives the pair we want to check
 bool line_shoot_same_pair_tet(
-    const Vector3r& p0, const Vector3r& p1, const int phisign, bilinear& bl)
+    const Vector3d& p0, const Vector3d& p1, const int phisign, bilinear& bl)
 {
     int fid;
     if (bl.phi_f[0] == 2)
@@ -510,12 +510,13 @@ bool line_shoot_same_pair_tet(
         else
             fid = 2;
     }// get which pair of facets to check
-	int inter0 = line_triangle_intersection(// return 0 or 1
-		p0, p1 - p0, bl.v[bl.facets[fid][0]], bl.v[bl.facets[fid][1]],
+	//TODO check if line is parallel to the triangle, if so, return false
+	int inter0 = is_line_cut_triangle(p0, p1, bl.v[bl.facets[fid][0]], bl.v[bl.facets[fid][1]],
 		bl.v[bl.facets[fid][2]], false);
-	int inter1 = line_triangle_intersection(
-		p0, p1 - p0, bl.v[bl.facets[fid + 1][0]], bl.v[bl.facets[fid + 1][1]],
+		
+	int inter1 = is_line_cut_triangle(p0, p1, bl.v[bl.facets[fid + 1][0]], bl.v[bl.facets[fid + 1][1]],
 		bl.v[bl.facets[fid + 1][2]], false);
+
 	if (inter0 == 1 && inter1 == 1)
         return true;
     return false;

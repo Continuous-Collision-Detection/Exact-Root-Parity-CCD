@@ -138,63 +138,42 @@ namespace ccd {
 		std::cout << "impossible to go here " << std::endl;
 		return -1;
 	}
+	
 	int is_line_cut_triangle(
-		const Vector3r& e0,
-		const Vector3r& e1,
-		const Vector3r& t1,
-		const Vector3r& t2,
-		const Vector3r& t3,
-		const bool halfopen, const Vector3r &norm) {
+		const Vector3d& e0,
+		const Vector3d& e1,
+		const Vector3d& t1,
+		const Vector3d& t2,
+		const Vector3d& t3,
+		const bool halfopen) {
 
 		////if (orient3d(n, t1, t2, t3) == 0) {
 		//	//std::cout << "Degeneration happens" << std::endl;
 		//	n = Vector3r(rand(), rand(), rand());
 		//}
 
-		Vector3r n = norm + t1;
-		Rational a11, a12, a13, d;
-
-
-		bool premulti = orient3D_LPI_prefilter_multiprecision(
-			e0[0], e0[1], e0[2], e1[0], e1[1], e1[2],
-			t1[0], t1[1], t1[2], t2[0], t2[1], t2[2], t3[0], t3[1], t3[2], a11, a12, a13, d, check_rational);
-		if (premulti == false) return 0;
-
-		int o1 = orient3D_LPI_postfilter_multiprecision(
-			a11, a12, a13, d,
-			e0[0], e0[1], e0[2],
-			n[0], n[1], n[2],
-			t1[0], t1[1], t1[2],
-			t2[0], t2[1], t2[2],
-			check_rational);
-		int o2 = orient3D_LPI_postfilter_multiprecision(
-			a11, a12, a13, d,
-			e0[0], e0[1], e0[2],
-			n[0], n[1], n[2],
-			t2[0], t2[1], t2[2],
-			t3[0], t3[1], t3[2],
-			check_rational);// this edge
-		int o3 = orient3D_LPI_postfilter_multiprecision(
-			a11, a12, a13, d,
-			e0[0], e0[1], e0[2],
-			n[0], n[1], n[2],
-			t3[0], t3[1], t3[2],
-			t1[0], t1[1], t1[2],
-			check_rational);// this edge
-
-		if (halfopen) {
-			if (o2 == 0 && o1 == o3)
-				return 3;// on open edge t2-t3
+		Vector3d np = Vector3d::Random();
+		while (orient_3d(np, t1, t2, t3) == 0) {// if coplanar, random
+			np = Vector3d::Random();
 		}
 
-		if (o1 == o2 && o1 == o3)
+		explicitPoint3D p(e0[0], e0[1], e0[2]);
+		explicitPoint3D q(e1[0], e1[1], e1[2]);
+		explicitPoint3D a(t1[0], t1[1], t1[2]);
+		explicitPoint3D b(t2[0], t2[1], t2[2]);
+		explicitPoint3D c(t3[0], t3[1], t3[2]);
+		implicitPoint3D_LPI l(p, q, a, b, c);
+		if (genericPoint::pointInInnerTriangle(l, a, b, c))
 			return 1;
-		if (o1 == 0 && o2 * o3 >= 0)
+		if (genericPoint::pointInSegment(l, a, b))
 			return 2;
-		if (o2 == 0 && o1 * o3 >= 0)
+		if (genericPoint::pointInSegment(l, a, c))
 			return 2;
-		if (o3 == 0 && o2* o1 >= 0)
-			return 2;
+		if (genericPoint::pointInSegment(l, b, c))
+			if (halfopen)
+				return 3;// on open edge t2-t3
+			else
+				return 2;
 
 		return 0;
 	}
@@ -611,7 +590,7 @@ namespace ccd {
 				return 2;
 			if (point_on_segment(pt, t2, t3))
 				return 2;*///no need to do above
-			Vector3d np = t1 + (t1 - t2).cross(t1 - t3);
+			Vector3d np = Vector3d::Random();
 			while (orient_3d(np, t1, t2, t3) == 0) {// if coplanar, random
 				np = Vector3d::Random();
 			}
@@ -707,7 +686,7 @@ namespace ccd {
 					return 2;
 			}
 		}
-		return is_line_cut_triangle(e0, e1, t1, t2, t3, halfopen, norm);
+		return is_line_cut_triangle(e0, e1, t1, t2, t3, halfopen);
 	}
 	// 0 no intersection, 1 intersect, 2 point on triangle(including two edges), 3 point on t2-t3 edge, -1 shoot on border
 	int ray_triangle_intersection(
@@ -765,7 +744,7 @@ namespace ccd {
 		if (dt.get_sign() < 0 && o1 <= 0) return 0;
 		Vector3r np = sum(pt, dir);
 		// if ray go across the plane, then get lpi and 3 orientations
-		int inter = is_line_cut_triangle(pt, np, t1, t2, t3, halfopen, norm);
+		int inter = is_line_cut_triangle(pt, np, t1, t2, t3, halfopen);
 		if (inter == 0)return 0;
 		if (inter == 1)return 1;
 		if (inter == 2)return -1;//shoot on edge
@@ -774,24 +753,7 @@ namespace ccd {
 		return 0;
 	}
 
-	// if a line (going across pt, pt+dir) intersects triangle
-	// triangle is not degenerated
-	// 0 not intersected, 1 intersected, 
-	//check open triangle, coplanar is not intersected
-	int line_triangle_intersection(
-		const Vector3r& pt,
-		const Vector3r& dir,
-		const Vector3r& t1,
-		const Vector3r& t2,
-		const Vector3r& t3,
-		const bool halfopen) {
-		Vector3r norm = tri_norm(t1, t2, t3);
-		int inter = is_line_cut_triangle(pt, sum(pt, dir), t1, t2, t3, halfopen, norm);
-		if (inter == 1) return 1;// we only need to have a intersection point on open triangle
-		return 0;
-	}
-
-
+	
 
 
 } // namespace ccd

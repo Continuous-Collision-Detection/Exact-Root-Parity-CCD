@@ -203,7 +203,7 @@ namespace ccd {
 		}
 	}
 	int point_inside_prism(prism& psm, std::array<bilinear, 3> &bls,
-		const Vector3r& pt, const Vector3r& dir, const std::vector<bool>& is_pt_in_tet)
+		const Vector3d& pt, const Vector3d& pt1, const Vector3d& dir, const std::vector<bool>& is_pt_in_tet)
 	{
 		int S = 0;
 

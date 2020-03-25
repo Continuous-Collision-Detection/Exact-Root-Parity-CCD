@@ -331,12 +331,12 @@ static const   std::function<int(Rational)> check_rational = [](Rational v) {
 //already know lpi exist;
 // 0 not intersected, 1 intersect open triangle, 2 shoot on edge, 3 shoot on edge t2-t3
 int is_line_cut_triangle(
-	const Vector3r& e0,
-	const Vector3r& e1,
-	const Vector3r& t1,
-	const Vector3r& t2,
-	const Vector3r& t3,
-	const bool halfopen, const Vector3r &norm);
+	const Vector3d& e0,
+	const Vector3d& e1,
+	const Vector3d& t1,
+	const Vector3d& t2,
+	const Vector3d& t3,
+	const bool halfopen);
 int line_triangle_inter_return_t(
 	const Vector3r& e0,
 	const Vector3r& e1,
@@ -347,13 +347,7 @@ int line_triangle_inter_return_t(
 // if a line (going across pt, pt+dir) intersects triangle
 // triangle is not degenerated
 // 0 not intersected, 1 intersected, 3 intersected t2-t3 edge 
-int line_triangle_intersection(
-	const Vector3r& pt,
-	const Vector3r& dir,
-	const Vector3r& t1,
-	const Vector3r& t2,
-	const Vector3r& t3,
-	const bool halfopen);
+
 // we check if triangle intersect segment,
 // this function is used in cube edge--prism tri and cube edge--bilinear tri
 // if halfopen= true, can tell us if intersect the edge t2-t3
