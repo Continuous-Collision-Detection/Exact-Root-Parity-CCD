@@ -44,8 +44,8 @@ template <typename V1, typename V2> Vector3r cross(const V1& v1, const V2& v2)
 
     return res;
 }
+int orient_2d(const Vector2d&p, const Vector2d&q, const Vector2d&r);
 
-Vector3r sum(const Vector3r& a, const Vector3r& b);
 Rational func_g(
 	const Vector3r& x,
 	const std::array<Vector3r, 4>& corners,
@@ -358,11 +358,11 @@ int line_triangle_intersection(
 // if halfopen= true, can tell us if intersect the edge t2-t3
 // 0 not intersected, 1 intersected, 2 intersect edge, 3 intersect t2-t3 edge
 int segment_triangle_intersection(
-	const Vector3r& e0,
-	const Vector3r& e1,
-	const Vector3r& t1,
-	const Vector3r& t2,
-	const Vector3r& t3,
+	const Vector3d& e0,
+	const Vector3d& e1,
+	const Vector3d& t1,
+	const Vector3d& t2,
+	const Vector3d& t3,
 	const bool halfopen);
 // 0 no intersection, 1 intersect, 2 point on triangle, 3 point or ray go to on t2-t3 edge, -1 shoot on border
 int ray_triangle_intersection(
