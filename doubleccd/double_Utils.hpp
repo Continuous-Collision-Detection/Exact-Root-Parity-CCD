@@ -44,6 +44,7 @@ template <typename V1, typename V2> Vector3r cross(const V1& v1, const V2& v2)
 
     return res;
 }
+int orient_3d(const Vector3d&p, const Vector3d&q, const Vector3d&r, const Vector3d& s);
 int orient_2d(const Vector2d&p, const Vector2d&q, const Vector2d&r);
 
 Rational func_g(
@@ -51,7 +52,7 @@ Rational func_g(
 	const std::array<Vector3r, 4>& corners,
 	const std::array<int, 3>& indices);
 
-Rational phi(const Vector3r x, const std::array<Vector3r, 4>& corners);
+Rational phi(const Vector3d x, const std::array<Vector3d, 4>& corners);
 
 void get_tet_phi(bilinear& bl);
 //bool XOR(const bool a, const bool b)
@@ -104,11 +105,11 @@ int ray_segment_intersection(
 // and also tell us if the parallel case has seg-seg overlapping:
 
 
-
+bool is_triangle_degenerated(const Vector3d& t1, const Vector3d& t2, const Vector3d&t3);
 
 bool same_point(const Vector3r& p1, const Vector3r& p2);
 bool same_point(const Vector3d& p1, const Vector3d& p2);
-Vector3r tri_norm(const Vector3r& t0, const Vector3r& t1, const Vector3r& t2);
+
 
 template<typename T>
 static bool orient3D_LPI_prefilter_multiprecision(

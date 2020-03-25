@@ -409,13 +409,8 @@ bool is_point_inside_tet(const bilinear& bl, const Vector3d& p)
 
     for (int i = 0; i < 4; i++) { // facets.size()==4
 		Vector3d pt1= bl.v[bl.facets[i][0]], pt2= bl.v[bl.facets[i][1]], pt3= bl.v[bl.facets[i][2]];
-		if (orient3d(
-			p[0], p[1], p[2],
-			pt1[0], pt1[1], pt1[2],
-			pt2[0], pt2[1], pt2[2],
-			pt3[0], pt3[1], pt3[2]
-		)
-            >= 0) {
+		if (orient_3d(
+			p, pt1, pt2, pt3) >= 0) {
             return false;
         }
     }
@@ -426,20 +421,21 @@ bool is_point_inside_tet(const bilinear& bl, const Vector3d& p)
 // we already know the bilinear is degenerated, next check which kind
 int bilinear_degeneration(const bilinear& bl)
 {
-    Vector3r norm0, norm1;
-
-    // split 0-2 edge
-    norm0 = tri_norm(bl.v[0], bl.v[1], bl.v[2]);
-    norm1 = tri_norm(bl.v[0], bl.v[2], bl.v[3]);
-    if (norm0.dot(norm1) <= 0) {//TODO need exact dot product
-        return BI_DEGE_XOR_02;
-    }
-    // split 1-3 edge
-    norm0 = tri_norm(bl.v[0], bl.v[1], bl.v[3]);
-    norm1 = tri_norm(bl.v[3], bl.v[1], bl.v[2]);
-    if (norm0.dot(norm1) <= 0) {
-        return BI_DEGE_XOR_13;
-    }
+	bool dege1 = is_triangle_degenerated(bl.v[0], bl.v[1], bl.v[2]);
+	if (dege1) return BI_DEGE_PLANE;
+	bool dege2 = is_triangle_degenerated(bl.v[0], bl.v[2], bl.v[3]);
+	if (dege2) return BI_DEGE_PLANE;
+	Vector3d np = Vector3d::Random();
+	int ori = orient_3d(np, bl.v[0], bl.v[1], bl.v[2]);
+	while (ori == 0) {// if coplanar, random
+		np = Vector3d::Random();
+		ori = orient_3d(np, bl.v[0], bl.v[1], bl.v[2]);
+	}
+	int ori1= orient_3d(np, bl.v[0], bl.v[2], bl.v[3]);
+	if (ori*ori1 < 0) {
+		return BI_DEGE_XOR_02;
+	}
+    // CAUTION: no need BI_DEGE_XOR_13 anymore, because it is the same with BI_DEGE_XOR_02
     return BI_DEGE_PLANE;
 }
 
@@ -451,9 +447,6 @@ bool is_cube_intersect_degenerated_bilinear(
     bool res;
     if (dege == BI_DEGE_PLANE) {
 
-        //axis = get_triangle_project_axis(
-        //    bl.v[0], bl.v[1],
-        //    bl.v[3]); // TODO consider move axis into is_seg_intersect_triangle
         if (is_cube_edges_intersect_triangle(cube, bl.v[0], bl.v[1], bl.v[3]))
             return true;
         if (is_cube_edges_intersect_triangle(cube, bl.v[3], bl.v[1], bl.v[2]))
@@ -480,20 +473,20 @@ bool is_cube_intersect_degenerated_bilinear(
             return false;
         }
 
-        if (dege == BI_DEGE_XOR_13) { // triangle 0-1-3 and 3-1-2
-            for (int i = 0; i < 12; i++) {
-                res = int_seg_XOR(
-					segment_triangle_intersection(
-                        cube.vr[cube.edgeid[i][0]], cube.vr[cube.edgeid[i][1]],
-                        bl.v[0], bl.v[1], bl.v[3], true),
-					segment_triangle_intersection(
-                        cube.vr[cube.edgeid[i][0]], cube.vr[cube.edgeid[i][1]],
-                        bl.v[2], bl.v[1], bl.v[3], true));
-                if (res == true)
-                    return true;
-            }
-            return false;
-        }
+     //   if (dege == BI_DEGE_XOR_13) { // triangle 0-1-3 and 3-1-2
+     //       for (int i = 0; i < 12; i++) {
+     //           res = int_seg_XOR(
+					//segment_triangle_intersection(
+     //                   cube.vr[cube.edgeid[i][0]], cube.vr[cube.edgeid[i][1]],
+     //                   bl.v[0], bl.v[1], bl.v[3], true),
+					//segment_triangle_intersection(
+     //                   cube.vr[cube.edgeid[i][0]], cube.vr[cube.edgeid[i][1]],
+     //                   bl.v[2], bl.v[1], bl.v[3], true));
+     //           if (res == true)
+     //               return true;
+     //       }
+     //       return false;
+     //   }
     }
     std::cout << "!! THIS CANNOT HAPPEN" << std::endl;
     return false;
@@ -716,8 +709,8 @@ bool rootfinder(
 // finder
 bool is_seg_intersect_not_degenerated_bilinear(
     bilinear& bl,
-    const Vector3r& p0,
-    const Vector3r& p1,
+    const Vector3d& p0,
+    const Vector3d& p1,
     const bool pin0,
     const bool pin1)
 {
