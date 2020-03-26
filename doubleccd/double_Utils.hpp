@@ -96,10 +96,11 @@ bool segment_segment_intersection_2d(
 // 0 not intersected, 1 intersected, 2 s0 on segment
 // can deal with degenerated cases
 int ray_segment_intersection(
-	const Vector3r& s0,
-	const Vector3r& dir0,
-	const Vector3r& s1,
-	const Vector3r& e1);
+	const Vector3d& s0,
+	const Vector3d& e0,
+	const Vector3d& dir0,
+	const Vector3d& s1,
+	const Vector3d& e1);
 
 // this function can also tell us if they are parallel and overlapped
 // and also tell us if the parallel case has seg-seg overlapping:
@@ -361,10 +362,11 @@ int segment_triangle_intersection(
 	const bool halfopen);
 // 0 no intersection, 1 intersect, 2 point on triangle, 3 point or ray go to on t2-t3 edge, -1 shoot on border
 int ray_triangle_intersection(
-	const Vector3r& pt,
-	const Vector3r& dir,
-	const Vector3r& t1,
-	const Vector3r& t2,
-	const Vector3r& t3,
+	const Vector3d& pt,
+	const Vector3d& pt1,
+	const Vector3d& dir,
+	const Vector3d& t1,
+	const Vector3d& t2,
+	const Vector3d& t3,
 	const bool halfopen);
 } // namespace ccd

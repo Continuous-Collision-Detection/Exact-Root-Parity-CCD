@@ -21,8 +21,9 @@ namespace ccd {
 
 	int ray_bilinear_parity(
 		bilinear& bl,
-		const Vector3r& pt,
-		const Vector3r& dir,
+		const Vector3d& pt,
+		const Vector3d& pt1,
+		const Vector3d& dir,
 		const bool is_degenerated,
 		const bool is_point_in_tet);// out of tet means no touch tet
 		

@@ -105,8 +105,9 @@ namespace ccd {
 
 	int ray_bilinear_parity(
 		bilinear& bl,
-		const Vector3r& pt,
-		const Vector3r& dir,
+		const Vector3d& pt,
+		const Vector3d& pt1,
+		const Vector3d& dir,
 		const bool is_degenerated,
 		const bool is_point_in_tet)// out of tet means no touch tet
 	{
@@ -202,6 +203,7 @@ namespace ccd {
 			return 0;
 		}
 	}
+	// dir = pt1 - pt
 	int point_inside_prism(prism& psm, std::array<bilinear, 3> &bls,
 		const Vector3d& pt, const Vector3d& pt1, const Vector3d& dir, const std::vector<bool>& is_pt_in_tet)
 	{
@@ -210,7 +212,7 @@ namespace ccd {
 		for (int patch = 0; patch < 3; ++patch) {
 
 			int is_ray_patch = ray_bilinear_parity(
-				bls[patch], pt, dir, bls[patch].is_degenerated, is_pt_in_tet[patch]);
+				bls[patch], pt,pt1, dir, bls[patch].is_degenerated, is_pt_in_tet[patch]);
 			//std::cout << "is_ray_patch " << is_ray_patch << std::endl;
 
 			if (is_ray_patch == 2)
@@ -250,26 +252,59 @@ namespace ccd {
 		//std::cout << "intersection nbrs " << S << std::endl;
 		return ((S % 2) == 1) ? 1 : 0;
 	}
+
+	//this function can give a random double number between b/2 and 2*b
+	// to make a-b have no truncation 
+	void get_correct_rand(const double b, double &a) {
+		double rd;
+		if (b == 0) a = 0; return;
+		if (b > 0) {
+			rd = rand() / RAND_MAX;//random number from 0 to 1
+			a = b / 2 + 3 * rd * b / 4;// a random number from b/2 to 2b
+			while (b > 2 * a || b < a / 2) {
+				rd = rand() / RAND_MAX;//random number from 0 to 1
+				a = b / 2 + 3 * rd * b / 4;
+			}
+		}
+		else {
+			rd = rand() / RAND_MAX;//random number from 0 to 1
+			a = b / 2 + 3 * rd * b / 4;// a random number from b/2 to 2b
+			while (b > a/2 || b < 2*a) {
+				rd = rand() / RAND_MAX;//random number from 0 to 1
+				a = b / 2 + 3 * rd * b / 4;
+			}
+		}
+		return;
+
+	}
+	//this function can get a random direction and a random point np, so that np-pt=dir
+	void get_direction(const Vector3d&pt, Vector3d &np, Vector3d&dir) {
+		get_correct_rand(pt[0], np[0]);
+		get_correct_rand(pt[1], np[1]);
+		get_correct_rand(pt[2], np[2]);
+		dir = np - pt;
+	}
 	bool retrial_ccd(
 		prism& psm, std::array<bilinear, 3>& bls,
 		const Vector3d& pt,
 		const std::vector<bool>& is_pt_in_tet)
 	{
 		static const int max_trials = 8;// TODO maybe dont need to set this
-		Vector3d pt2(1, 0, 0);
+		
+		// if a/2<=b<=2*a, then a-b is exact. 
+		
+		Vector3d pt2, dir;
+		get_direction(pt, pt2, dir);
 
 		int res = -1;
 		int trials;
 		for (trials = 0; trials < max_trials; ++trials) {
-			res = point_inside_prism(psm, bls, pt, dir, is_pt_in_tet);
+			res = point_inside_prism(psm, bls, pt,pt2, dir, is_pt_in_tet);
 
 			if (res >= 0)
 				break;
 
-			Vector3d dir1 = Vector3d::Random();
-			dir[0] = dir1[0];
-			dir[1] = dir1[1];
-			dir[2] = dir1[2];
+			get_direction(pt, pt2, dir);
 		}
 
 		if (trials == max_trials) {

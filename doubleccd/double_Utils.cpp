@@ -445,67 +445,85 @@ namespace ccd {
 	}
 
 	// 0 not intersected; 1 intersected; 2 pt on s0
-	int point_on_ray(const Vector3r& s0,
-		const Vector3r& dir0, const Vector3r& pt) {
-		if (same_point(s0, pt))
+	int point_on_ray(const Vector3d& s0, const Vector3d& e0,
+		const Vector3d& dir0, const Vector3d& pt) {
+		if (same_point(s0, pt)|| same_point(e0, pt))
 			return 2;
-		Vector3r dir1 = pt - s0;
-		Vector3r norm = cross(dir0, dir1);
-		if (!same_point(norm, ORIGIN))
-			return 0;// if not coplanar, false
-		if (dir0.dot(dir1) > 0)
-			return 1;
-		return 0;
+		if (!is_triangle_degenerated(s0, e0, pt)) return 0;
+
+		// now the pt is on the line
+		if (dir0[0] > 0) {
+			if (pt[0] <= s0[0]) return 0;
+		}
+		if (dir0[0] < 0) {
+			if (pt[0] >= s0[0]) return 0;
+		}
+		if (dir0[0] == 0) {
+			if (pt[0] != s0[0]) return 0;
+		}
+		//
+		if (dir0[1] > 0) {
+			if (pt[1] <= s0[1]) return 0;
+		}
+		if (dir0[1] <= 0) {
+			if (pt[1] >= s0[1]) return 0;
+		}
+		if (dir0[1] == 0) {
+			if (pt[1] != s0[1]) return 0;
+		}
+		//
+		if (dir0[2] > 0) {
+			if (pt[2] <= s0[2]) return 0;
+		}
+		if (dir0[2] <= 0) {
+			if (pt[2] >= s0[2]) return 0;
+		}
+		if (dir0[2] == 0) {
+			if (pt[2] != s0[2]) return 0;
+		}
+		return 1;
+		
 	}
 	// 0 not intersected, 1 intersected, 2 s0 on segment
 	// can deal with degenerated cases
 	int ray_segment_intersection(
-		const Vector3r& s0,
-		const Vector3r& dir0,
-		const Vector3r& s1,
-		const Vector3r& e1) {
+		const Vector3d& s0,
+		const Vector3d& e0,
+		const Vector3d& dir0,
+		const Vector3d& s1,
+		const Vector3d& e1) {
 
 		if (same_point(e1, s1))//degenerated case
-			return point_on_ray(s0, dir0, s1);
+			return point_on_ray(s0, e0, dir0, s1);
+		
 		/////////////////////////////////////
-		Vector3r norm = cross(s0 - s1, e1 - s0);
-		if (same_point(norm, ORIGIN))
-		{
-			if (colinear_point_on_segment(s0, s1, e1))
-				return 2;
-			else return 0;
-		}
-		else {
+		if (orient_3d(s0, e0, s1, e1) != 0) return 0;
 
-			Vector3r norm1 = cross(s0 - s1, dir0);
-			if (same_point(norm1, ORIGIN))
-				return point_on_ray(s0, dir0, s1);
-
-			Vector3r norm2 = cross(e1 - s0, dir0);
-			if (same_point(norm2, ORIGIN)) {
-				return point_on_ray(s0, dir0, e1);
+		if (point_on_segment(s0, s1, e1))
+			return 2;
+		if (!is_triangle_degenerated(s1, s0, e0)) {
+			// we can get a point out of the plane
+			Vector3d np = Vector3d::Random();
+			while (orient_3d(np, s1, s0, e0) == 0) {// if coplanar, random
+				np = Vector3d::Random();
 			}
-
-			if (norm.dot(norm1) > 0 && norm.dot(norm2) > 0) {
-				return 1;
+			int o1 = orient_3d(np, e1, s0, e0);
+			if (o1 == 0) return point_on_ray(s0, e0, dir0, e1);
+			int o2 = -1 * orient_3d(np, s1, s0, e0);// already know this is not 0
+			int oo= orient_3d(np, e1, s0, s1);
+			if (oo == 0) {
+				if (point_on_ray(s0, e0, dir0, s1) > 0 || point_on_ray(s0, e0, dir0, e1) > 0)return 1;
+				return 0;
 			}
+			if (o1 == oo && o2 == oo) return 1;
 			return 0;
 		}
-
-
-		/////////////////////////////////////
-		//Vector3r dir1 = e1 - s1;
-		//Vector3r norm = cross(dir1, dir0);
-		//if (same_point(norm, ORIGIN))//parallel
-		//{
-		//	int inter1 = point_on_ray(s0, dir0, s1);
-		//	int inter2 = point_on_ray(s0, dir0, e1);
-		//	if (inter1 == 0 && inter2 == 0) return 0;
-		//	if (inter1 == 2 && inter2 == 2) return 2;
-		//	if (inter1 > 0 && inter2 == 0) return 2;
-		//	if (inter2 > 0 && inter1 == 0) return 2;
-		//	return 1;
-		//}
+		else {
+			// s1 is on the line, if s1 is on ray, return 1; else return 0.(s0 is not on seg)
+			if (point_on_ray(s0, e0, dir0, s1) == 1) return 1;
+			return 0;
+		}
+		return 0;
 
 	}
 	int line_segment_intersection(
@@ -690,21 +708,22 @@ namespace ccd {
 	}
 	// 0 no intersection, 1 intersect, 2 point on triangle(including two edges), 3 point on t2-t3 edge, -1 shoot on border
 	int ray_triangle_intersection(
-		const Vector3r& pt,
-		const Vector3r& dir,
-		const Vector3r& t1,
-		const Vector3r& t2,
-		const Vector3r& t3,
+		const Vector3d& pt,
+		const Vector3d& pt1,
+		const Vector3d& dir,
+		const Vector3d& t1,
+		const Vector3d& t2,
+		const Vector3d& t3,
 		const bool halfopen) {
 
-		Vector3r norm = cross(t2 - t1, t3 - t2);
-		if (same_point(norm, ORIGIN))// triangle degeneration
+		
+		if (is_triangle_degenerated(t1, t2, t3))// triangle degeneration
 		{
-			int inter1 = ray_segment_intersection(pt, dir, t1, t2);
+			int inter1 = ray_segment_intersection(pt, pt1, dir, t1, t2);
 			if (inter1 == 1) return -1;
 			if (inter1 == 2) return 2;
 
-			int inter2 = ray_segment_intersection(pt, dir, t1, t3);// check two segs is enough
+			int inter2 = ray_segment_intersection(pt, pt1, dir, t1, t3);// check two segs is enough
 			if (inter2 == 1) return -1;
 			if (inter2 == 2) return 2;
 
@@ -713,7 +732,7 @@ namespace ccd {
 
 		int o1 = orient3d(pt, t1, t2, t3);
 		if (o1 == 0) {//point is on the plane
-			int inter = point_inter_triangle(pt, t1, t2, t3, false, norm, halfopen);
+			int inter = point_inter_triangle(pt, t1, t2, t3, false, halfopen);
 			if (inter == 1 || inter == 2) return 2;
 			if (inter == 3) return 3;
 			//if (inter == 0) 
