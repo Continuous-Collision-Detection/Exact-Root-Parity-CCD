@@ -737,12 +737,12 @@ namespace ccd {
 			if (inter == 3) return 3;
 			//if (inter == 0) 
 			else {// pt on the plane but not intersect triangle.
-				if (norm.dot(dir) == 0) {// if ray is on the plane
-					int inter1 = ray_segment_intersection(pt, dir, t1, t2);
+				if (orient_3d(pt1, t1, t2, t3) == 0) {// if ray is on the plane
+					int inter1 = ray_segment_intersection(pt, pt1, dir, t1, t2);
 					if (inter1 == 1) return -1;
 					if (inter1 == 2) return 2;// acutally, cannot be 2 because already checked by pt_inter_tri
 
-					int inter2 = ray_segment_intersection(pt, dir, t1, t3);
+					int inter2 = ray_segment_intersection(pt, pt1, dir, t1, t3);
 					if (inter2 == 1) return -1;
 					if (inter2 == 2) return 2;
 					//actually since point do not intersect triangle, check two segs are enough
@@ -758,12 +758,15 @@ namespace ccd {
 			}
 			return 0;
 		}
+		
+		// if point not on plane, and not point to plane, return 0
+		//explicitPoint3D pte()
 		Rational dt = norm.dot(dir);// >0, dir is same direction with norm, pointing to +1 orientation
 		if (dt.get_sign() > 0 && o1 >= 0) return 0;
 		if (dt.get_sign() < 0 && o1 <= 0) return 0;
-		Vector3r np = sum(pt, dir);
+		
 		// if ray go across the plane, then get lpi and 3 orientations
-		int inter = is_line_cut_triangle(pt, np, t1, t2, t3, halfopen);
+		int inter = is_line_cut_triangle(pt, pt1, t1, t2, t3, halfopen);
 		if (inter == 0)return 0;
 		if (inter == 1)return 1;
 		if (inter == 2)return -1;//shoot on edge

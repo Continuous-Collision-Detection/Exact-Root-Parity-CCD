@@ -119,10 +119,10 @@ namespace ccd {
 				//we need to know: if shoot on any edge?(two edges return -1, one edge return 1)
 
 				r1 = ray_triangle_intersection(
-					pt, dir, bl.v[bl.facets[0][0]], bl.v[bl.facets[0][1]],
+					pt, pt1, dir, bl.v[bl.facets[0][0]], bl.v[bl.facets[0][1]],
 					bl.v[bl.facets[0][2]], true);
 				r2 = ray_triangle_intersection(
-					pt, dir, bl.v[bl.facets[1][0]], bl.v[bl.facets[1][1]],
+					pt, pt1, dir, bl.v[bl.facets[1][0]], bl.v[bl.facets[1][1]],
 					bl.v[bl.facets[1][2]], true);
 				// idea is: if -1
 				if (r1 == -1 || r2 == -1)
@@ -134,7 +134,7 @@ namespace ccd {
 				if (r1 + r2 == 1) return 1;// 1-0 case
 				if (r1 == 1 || r2 == 1) return 0;// 1-2 case
 				if (r1 == 0 && r2 == 0) return 0;
-
+				xx didnot deal with 2-1 case!
 				if (check == false) return 0;
 				else {
 					Vector3r norm0 = tri_norm(bl.v[bl.facets[0][0]], bl.v[bl.facets[0][1]],
