@@ -104,7 +104,20 @@ namespace ccd {
 			return 0;
 		}
 	}
-	int ray_shoot_correct_phi()
+	// if end point pt is inside of tet or on the border
+	int ray_shoot_correct_pair(
+		bilinear& bl,
+		const Vector3d& pt,
+		const Vector3d& pt1,
+		const Vector3d& dir) {
+		if (bl.phi_f[0] == 2) { // phi never calculated, need calculated
+			get_tet_phi(bl);
+		}
+		Rational phip = phi(pt, bl.v);
+		if (phip == 0)
+			return 2;// point on bilinear
+		return ray_correct_bilinear_face_pair_inter(pt, pt1, phip, dir, bl);
+	}
 	int ray_bilinear_parity(
 		bilinear& bl,
 		const Vector3d& pt,
@@ -145,13 +158,7 @@ namespace ccd {
 							bl.v[bl.facets[0][2]], false, false) > 0 ||
 							point_inter_triangle(pt, bl.v[bl.facets[1][0]], bl.v[bl.facets[1][1]],
 								bl.v[bl.facets[1][2]], false, false) > 0){// point on t2-t3 edge, regard as inside
-							if (bl.phi_f[0] == 2) { // phi never calculated, need calculated
-								get_tet_phi(bl);
-							}
-							Rational phip = phi(pt, bl.v);
-							if (phip == 0)
-								return 2;// point on bilinear
-							return ray_correct_bilinear_face_pair_inter(pt, pt1, phip, dir, bl);
+							return ray_shoot_correct_pair(bl, pt, pt1, dir);
 						}
 						else {
 							if (orient_3d(pt, bl.v[bl.facets[0][0]], bl.v[bl.facets[0][1]],
@@ -160,37 +167,14 @@ namespace ccd {
 							return 0;
 						}
 					}
-					if
-
-					Vector3r norm0 = tri_norm(bl.v[bl.facets[0][0]], bl.v[bl.facets[0][1]],
-						bl.v[bl.facets[0][2]]);
-					Vector3r norm1 = tri_norm(bl.v[bl.facets[1][0]], bl.v[bl.facets[1][1]],
-						bl.v[bl.facets[1][2]]);
-					if (r1 == 3 || r2 == 3) {
-						if (norm0.dot(dir) < 0 && norm1.dot(dir) < 0) return 1;
-						else return 0;
-					}
-					if (r1 == 2) {
-						if (norm0.dot(dir) < 0) return 1;
-						else return 0;
-					}
-					if (r2 == 2) {
-						if (norm1.dot(dir) < 0) return 1;
-						else return 0;
-					}
+					if (r1 == 2 || r2 == 2) return ray_shoot_correct_pair(bl, pt, pt1, dir);
 					std::cout << "impossible to go here " << std::endl;
 					return 0;
 				}
 			}
 			else { // p inside open tet 
 
-				if (bl.phi_f[0] == 2) { // phi never calculated, need calculated
-					get_tet_phi(bl);
-				}
-				Rational phip = phi(pt, bl.v);
-				if (phip == 0)
-					return 2;// point on bilinear
-				return ray_correct_bilinear_face_pair_inter(pt, pt1, phip, dir, bl);
+				return ray_shoot_correct_pair(bl, pt, pt1, dir);
 
 			}
 		}
