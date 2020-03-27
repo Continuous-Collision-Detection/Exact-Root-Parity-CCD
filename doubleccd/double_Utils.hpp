@@ -320,6 +320,13 @@ static const   std::function<int(Rational)> check_rational = [](Rational v) {
 
 };
 
+int point_inter_triangle(
+	const Vector3d&pt,
+	const Vector3d& t1,
+	const Vector3d& t2,
+	const Vector3d& t3,
+	const bool& dege, const bool halfopen);
+
 //already know lpi exist;
 // 0 not intersected, 1 intersect open triangle, 2 shoot on edge, 3 shoot on edge t2-t3
 int is_line_cut_triangle(

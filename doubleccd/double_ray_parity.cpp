@@ -2,8 +2,9 @@
 namespace ccd {
 	int ray_degenerated_bilinear_parity(
 		const bilinear& bl,
-		const Vector3r& pt,
-		const Vector3r& dir,
+		const Vector3d& pt,
+		const Vector3d& pt1,
+		const Vector3d& dir,
 		const int dege
 	)
 	{
@@ -11,7 +12,7 @@ namespace ccd {
 		int r1, r2;
 		if (dege == BI_DEGE_PLANE) {
 			r1 = ray_triangle_intersection(// -1, 0, 1, 2
-				pt, dir, bl.v[0], bl.v[1],
+				pt, pt1, dir, bl.v[0], bl.v[1],
 				bl.v[2], true);
 			if (r1 == 2)
 				return 2;
@@ -21,13 +22,13 @@ namespace ccd {
 				return 1;
 			if (r1 == 3) {
 				r1 = ray_triangle_intersection(// -1, 0, 1, 2
-					pt, dir, bl.v[0], bl.v[1],
+					pt, pt1, dir, bl.v[0], bl.v[1],
 					bl.v[2], false);//  this should have 3, if 3, see it as 1
 				if (r1 == 2) return 2;// point on t2-t3 edge
 				return 1;// ray go through t2-t3 edge
 			}
 			r2 = ray_triangle_intersection(
-				pt, dir, bl.v[0], bl.v[3],
+				pt, pt1, dir, bl.v[0], bl.v[3],
 				bl.v[2], false);
 			if (r2 == 2)
 				return 2;
@@ -42,20 +43,20 @@ namespace ccd {
 
 			if (dege == BI_DEGE_XOR_02) { // triangle 0-1-2 and 0-2-3
 				r1 = ray_triangle_intersection(
-					pt, dir, bl.v[0], bl.v[1],
+					pt, pt1, dir, bl.v[0], bl.v[1],
 					bl.v[2], true);//0: not hit, 1: hit on open triangle, 2: pt on halfopen T, since already checked, accept it 
 				r2 = ray_triangle_intersection(
-					pt, dir, bl.v[0], bl.v[3],
+					pt, pt1, dir, bl.v[0], bl.v[3],
 					bl.v[2], true);
 				return int_ray_XOR(r1, r2);
 			}
 
 			if (dege == BI_DEGE_XOR_13) { // triangle 0-1-3 and 3-1-2
 				r1 = ray_triangle_intersection(
-					pt, dir, bl.v[0], bl.v[1],
+					pt, pt1, dir, bl.v[0], bl.v[1],
 					bl.v[3], true);//0: not hit, 1: hit on open triangle, 2: pt on halfopen T, since already checked, accept it 
 				r2 = ray_triangle_intersection(
-					pt, dir, bl.v[2], bl.v[1],
+					pt, pt1, dir, bl.v[2], bl.v[1],
 					bl.v[3], true);
 				return int_ray_XOR(r1, r2);
 			}
@@ -103,7 +104,7 @@ namespace ccd {
 			return 0;
 		}
 	}
-
+	int ray_shoot_correct_phi()
 	int ray_bilinear_parity(
 		bilinear& bl,
 		const Vector3d& pt,
@@ -128,7 +129,7 @@ namespace ccd {
 				// idea is: if -1
 				if (r1 == -1 || r2 == -1)
 					return -1;
-				if (r1 == 3 || r2 == 3) check = true;
+				if (r1 == 3 || r2 == 3) check = true;// 3-3(pt on t2-t3 or shoot t2-t3) or 2-3 (pt in one face, shoot another t2-t3)
 				if (r1 == 2 && r2 == 0) check = true;
 				if (r1 == 0 && r2 == 2) check = true;
 				if (r1 == 1 && r2 == 1) return 0;
@@ -138,6 +139,29 @@ namespace ccd {
 				
 				if (check == false) return 0;
 				else {// intersect the t2-t3 edge, or point on triangle
+					if (r1 == 3 || r2 == 3) {
+						if (r1 == 2 || r2 == 2) return 0;
+						if (point_inter_triangle(pt, bl.v[bl.facets[0][0]], bl.v[bl.facets[0][1]],
+							bl.v[bl.facets[0][2]], false, false) > 0 ||
+							point_inter_triangle(pt, bl.v[bl.facets[1][0]], bl.v[bl.facets[1][1]],
+								bl.v[bl.facets[1][2]], false, false) > 0){// point on t2-t3 edge, regard as inside
+							if (bl.phi_f[0] == 2) { // phi never calculated, need calculated
+								get_tet_phi(bl);
+							}
+							Rational phip = phi(pt, bl.v);
+							if (phip == 0)
+								return 2;// point on bilinear
+							return ray_correct_bilinear_face_pair_inter(pt, pt1, phip, dir, bl);
+						}
+						else {
+							if (orient_3d(pt, bl.v[bl.facets[0][0]], bl.v[bl.facets[0][1]],
+								bl.v[bl.facets[0][2]]) > 0 && orient_3d(pt, bl.v[bl.facets[1][0]], bl.v[bl.facets[1][1]],
+									bl.v[bl.facets[1][2]]) > 0) return 1;
+							return 0;
+						}
+					}
+					if
+
 					Vector3r norm0 = tri_norm(bl.v[bl.facets[0][0]], bl.v[bl.facets[0][1]],
 						bl.v[bl.facets[0][2]]);
 					Vector3r norm1 = tri_norm(bl.v[bl.facets[1][0]], bl.v[bl.facets[1][1]],
@@ -172,7 +196,7 @@ namespace ccd {
 		}
 		else {// degenerated bilinear
 			int degetype = bilinear_degeneration(bl);
-			return ray_degenerated_bilinear_parity(bl, pt, dir, degetype);
+			return ray_degenerated_bilinear_parity(bl, pt, pt1, dir, degetype);
 		}
 	}
 

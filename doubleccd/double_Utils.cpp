@@ -547,7 +547,7 @@ namespace ccd {
 		xx
 	}
 
-	// 0 no intersection, 1 intersect, 2 point on triangle(including two edges), 3 point on t2-t3 edge, -1 shoot on border
+	// 0 no intersection, 1 intersect, 2 point on triangle(including two edges), 3 point or ray shoot t2-t3 edge, -1 shoot on border
 	int ray_triangle_intersection(
 		const Vector3d& pt,
 		const Vector3d& pt1,

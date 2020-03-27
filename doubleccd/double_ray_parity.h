@@ -6,8 +6,9 @@ namespace ccd {
 	// before going here, we already know the point can not be on the shape
 	int ray_degenerated_bilinear_parity(
 		const bilinear& bl,
-		const Vector3r& pt,
-		const Vector3r& dir,
+		const Vector3d& pt,
+		const Vector3d& pt1,
+		const Vector3d& dir,
 		const int dege
 	);
 	// the point is inside of tet, tet is not degenerated
