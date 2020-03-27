@@ -64,9 +64,10 @@ namespace ccd {
 		return false;
 	}
 	int ray_correct_bilinear_face_pair_inter(
-		const Vector3r& p,
+		const Vector3d& p,
+		const Vector3d& p1,
 		const Rational& phi_p,
-		const Vector3r& dir,
+		const Vector3d& dir,
 		const bilinear& bl)
 	{
 		int r1, r2;
@@ -74,10 +75,10 @@ namespace ccd {
 			return 2;*/
 		if (bl.phi_f[0] * phi_p.get_sign() < 0) {
 			r1 = ray_triangle_intersection(// -1,0,1,2,3
-				p, dir, bl.v[bl.facets[0][0]], bl.v[bl.facets[0][1]],
+				p, p1, dir, bl.v[bl.facets[0][0]], bl.v[bl.facets[0][1]],
 				bl.v[bl.facets[0][2]], true);
 			r2 = ray_triangle_intersection(
-				p, dir, bl.v[bl.facets[1][0]], bl.v[bl.facets[1][1]],
+				p, p1, dir, bl.v[bl.facets[1][0]], bl.v[bl.facets[1][1]],
 				bl.v[bl.facets[1][2]], true);
 			// when there is -1, -1(shoot on one of two edges); impossible to have 2; when there is 1, 1
 			// when there is 3, pt is on t2-t3 edge(impossible), or ray go across that edge, parity +1, return 1
@@ -90,10 +91,10 @@ namespace ccd {
 		}
 		else {
 			r1 = ray_triangle_intersection(
-				p, dir, bl.v[bl.facets[2][0]], bl.v[bl.facets[2][1]],
+				p, p1, dir, bl.v[bl.facets[2][0]], bl.v[bl.facets[2][1]],
 				bl.v[bl.facets[2][2]], true);
 			r2 = ray_triangle_intersection(
-				p, dir, bl.v[bl.facets[3][0]], bl.v[bl.facets[3][1]],
+				p, p1, dir, bl.v[bl.facets[3][0]], bl.v[bl.facets[3][1]],
 				bl.v[bl.facets[3][2]], true);
 			if (r1 == -1 || r2 == -1)
 				return -1;
@@ -134,9 +135,9 @@ namespace ccd {
 				if (r1 + r2 == 1) return 1;// 1-0 case
 				if (r1 == 1 || r2 == 1) return 0;// 1-2 case
 				if (r1 == 0 && r2 == 0) return 0;
-				xx didnot deal with 2-1 case!
+				
 				if (check == false) return 0;
-				else {
+				else {// intersect the t2-t3 edge, or point on triangle
 					Vector3r norm0 = tri_norm(bl.v[bl.facets[0][0]], bl.v[bl.facets[0][1]],
 						bl.v[bl.facets[0][2]]);
 					Vector3r norm1 = tri_norm(bl.v[bl.facets[1][0]], bl.v[bl.facets[1][1]],
@@ -165,7 +166,7 @@ namespace ccd {
 				Rational phip = phi(pt, bl.v);
 				if (phip == 0)
 					return 2;// point on bilinear
-				return ray_correct_bilinear_face_pair_inter(pt, phip, dir, bl);
+				return ray_correct_bilinear_face_pair_inter(pt, pt1, phip, dir, bl);
 
 			}
 		}
@@ -176,24 +177,25 @@ namespace ccd {
 	}
 
 	int ray_triangle_parity(
-		const Vector3r& pt,
-		const Vector3r& dir,
-		const Vector3r& t0,
-		const Vector3r& t1,
-		const Vector3r& t2,
+		const Vector3d& pt,
+		const Vector3d& pt1,
+		const Vector3d& dir,
+		const Vector3d& t0,
+		const Vector3d& t1,
+		const Vector3d& t2,
 		const bool is_triangle_degenerated)
 	{
 		if (!is_triangle_degenerated) {
-			return ray_triangle_intersection(pt, dir, t0, t1, t2, false);
+			return ray_triangle_intersection(pt, pt1, dir, t0, t1, t2, false);
 			// 0 not hit, 1 hit on open triangle, -1 parallel or hit on edge, need
 			// another shoot. 
 		}
 		else {
 			// if pt on it (2), return 2; if 1(including overlap) return -1
-			int i1 = ray_segment_intersection(pt, dir, t0, t1);// 2 means pt on the segment
+			int i1 = ray_segment_intersection(pt, pt1, dir, t0, t1);// 2 means pt on the segment
 			if (i1 == 2) return 2;
 			if (i1 == 1) return -1;
-			int i2 = ray_segment_intersection(pt, dir, t1, t2);
+			int i2 = ray_segment_intersection(pt, pt1, dir, t1, t2);
 			if (i2 == 2) return 2;
 			if (i2 == 1) return -1;
 			/*int i3 = ray_segment_intersection(pt, dir, t2, t0);// if degenerated, check two edges is enough
@@ -212,7 +214,7 @@ namespace ccd {
 		for (int patch = 0; patch < 3; ++patch) {
 
 			int is_ray_patch = ray_bilinear_parity(
-				bls[patch], pt,pt1, dir, bls[patch].is_degenerated, is_pt_in_tet[patch]);
+				bls[patch], pt, pt1, dir, bls[patch].is_degenerated, is_pt_in_tet[patch]);
 			//std::cout << "is_ray_patch " << is_ray_patch << std::endl;
 
 			if (is_ray_patch == 2)
@@ -227,7 +229,7 @@ namespace ccd {
 
 		int res;
 		res = ray_triangle_parity(
-			pt, dir, psm.p_vertices[0], psm.p_vertices[1], psm.p_vertices[2],
+			pt, pt1, dir, psm.p_vertices[0], psm.p_vertices[1], psm.p_vertices[2],
 			psm.is_triangle_degenerated(0));
 
 		if (res == 2)
@@ -238,7 +240,7 @@ namespace ccd {
 		if (res > 0)
 			S++;
 		res = ray_triangle_parity(
-			pt, dir, psm.p_vertices[3], psm.p_vertices[4], psm.p_vertices[5],
+			pt, pt1, dir, psm.p_vertices[3], psm.p_vertices[4], psm.p_vertices[5],
 			psm.is_triangle_degenerated(1));
 
 		if (res == 2)

@@ -14,9 +14,10 @@ namespace ccd {
 	//return: -1,1,0
 	// phi_p is the phi of end point of ray
 	int ray_correct_bilinear_face_pair_inter(
-		const Vector3r& p,
+		const Vector3d& p,
+		const Vector3d& p1,
 		const Rational& phi_p,
-		const Vector3r& dir,
+		const Vector3d& dir,
 		const bilinear& bl);
 
 	int ray_bilinear_parity(
@@ -29,11 +30,12 @@ namespace ccd {
 		
 	// -1 shoot another, 1 intersect, 2 point on triangle, 0 not intersect
 	int ray_triangle_parity(
-		const Vector3r& pt,
-		const Vector3r& dir,
-		const Vector3r& t0,
-		const Vector3r& t1,
-		const Vector3r& t2,
+		const Vector3d& pt,
+		const Vector3d& pt1,
+		const Vector3d& dir,
+		const Vector3d& t0,
+		const Vector3d& t1,
+		const Vector3d& t2,
 		const bool is_triangle_degenerated);
 
 

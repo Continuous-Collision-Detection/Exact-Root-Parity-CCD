@@ -163,24 +163,6 @@ Vector3d get_prism_corner_double(
     else
         return Vector3d();
 }
-int seg_cut_plane(
-    const Vector3r& seg0,
-    const Vector3r& seg1,
-    const Vector3r& t0,
-    const Vector3r& t1,
-    const Vector3r& t2)
-{
-    int o1, o2;
-    o1 = orient3d(seg0, t0, t1, t2);
-    o2 = orient3d(seg1, t0, t1, t2);
-    if (o1 == 1 && o2 == 1)
-        return NOT_INTERSECTED1;
-    if (o1 == -1 && o2 == -1)
-        return NOT_INTERSECTED2;
-    if (o1 == 0 && o2 == 0)
-        return COPLANAR;
-    return INTERSECTED;
-}
 
 bool is_seg_intersect_cube(
     const double& eps, const Vector3d& e0, const Vector3d& e1)

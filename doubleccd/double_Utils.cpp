@@ -43,22 +43,7 @@ namespace ccd {
 		}
 		return false;
 	}
-	int dot_product_sign(const Vector3d& a, const Vector3d& b) {
-		xx//double n = a.dot(b);
-		//if (n > 1e-8) return 1;
-		//if (n < -1e-8) return -1;
-		//expansionObject o;
-		//double ab0[2], ab1[2], ab2[2];
-		//double zero2[2]; zero2[0] = 0; zero2[1] = 0;
-		//o.Two_Prod(a[0], b[0], ab0);
-		//o.Two_Prod(a[1], b[1], ab1);
-		//o.Two_Prod(a[2], b[2], ab2);
-		//double sum1[4];
-		//int nbr1 = o.Gen_Sum(2, ab0, 2, ab1, sum1);
-		//double *sum2;
-		//int nbr2= o.Gen_Sum(2, ab2, nbr1, sum1, sum2);// i really should not implement this
-		//if
-	}
+	
 	//int orient2d(
 	//    const Vector3r& a, const Vector3r& b, const Vector3r& c, const int axis)
 	//{
@@ -271,52 +256,7 @@ namespace ccd {
 		}
 		std::cout << "!!can not happen, get tet phi" << std::endl;
 	}
-	bool segment_segment_inter(
-		const Vector3r& s0,
-		const Vector3r& e0,
-		const Vector3r& s1,
-		const Vector3r& e1,
-		Vector3r& res,
-		int axis)
-	{
-		const int i1 = (axis + 1) % 3;
-		const int i2 = (axis + 2) % 3;
-
-		const Rational dd = e0[i1] * e1[i2] - e0[i1] * s1[i2] - e0[i2] * e1[i1]
-			+ e0[i2] * s1[i1] + e1[i1] * s0[i2] - e1[i2] * s0[i1] + s0[i1] * s1[i2]
-			- s0[i2] * s1[i1];
-
-		if (dd.get_sign() == 0) {
-			return false;
-		}
-
-		const Rational t0 = (e1[i1] * s0[i2] - e1[i1] * s1[i2] - e1[i2] * s0[i1]
-			+ e1[i2] * s1[i1] + s0[i1] * s1[i2] - s0[i2] * s1[i1])
-			/ dd;
-		const Rational t1 = (e0[i1] * s0[i2] - e0[i1] * s1[i2] - e0[i2] * s0[i1]
-			+ e0[i2] * s1[i1] + s0[i1] * s1[i2] - s0[i2] * s1[i1])
-			/ dd;
-
-		// we exclude intersection on corners
-		if (t0 <= 0 || t0 >= 1 || t1 <= 0 || t1 >= 1) {
-			return false;
-		}
-
-		res = (1 - t0) * s0 + t0 * e0;
-#ifndef NDEBUG
-		const Vector3r p1 = (1 - t1) * s1 + t1 * e1;
-
-		assert(res[0] == p1[0] && res[1] == p1[1] && res[2] == p1[2]);
-#endif
-		return true;
-	}
-
-	bool is_segment_degenerated(const Vector3r& s0, const Vector3r& s1)
-	{
-		if (s0[0] == s1[0] && s0[1] == s1[1] && s0[2] == s1[2])
-			return true;
-		return false;
-	}
+	
 
 	// point and seg are colinear, now check if point is on the segment(can deal with segment degeneration)
 	bool colinear_point_on_segment(
@@ -333,82 +273,8 @@ namespace ccd {
 			return false;
 		return colinear_point_on_segment(pt, s0, s1);
 	}
-	// check if two parallel segments (or any segment is degenerated as a point) have intersection
-	bool parallel_segments_inter(
-		const Vector3r& s0,
-		const Vector3r& e0,
-		const Vector3r& s1,
-		const Vector3r& e1,
-		const bool dege0,
-		const bool dege1)
-	{
-		if (dege0)
-			return colinear_point_on_segment(s0, s1, e1);
-		if (dege1)
-			return colinear_point_on_segment(s1, s0, e0);
-		if (colinear_point_on_segment(s0, s1, e1))
-			return true;
-		if (colinear_point_on_segment(e0, s1, e1))
-			return true;
-		if (colinear_point_on_segment(s1, s0, e0))
-			return true;
-		if (colinear_point_on_segment(e1, s0, e0))
-			return true;
-		return false;
-	}
-	// segment segment intersection, can deal with degenerated segments
-	bool segment_segment_intersection(
-		const Vector3r& s0,
-		const Vector3r& e0,
-		const Vector3r& s1,
-		const Vector3r& e1)
-	{
-		// if four points not coplanar, not intersected
-		if (orient3d(s0, e0, s1, e1) != 0)
-			return false;
 
-		bool dege0 = is_segment_degenerated(s0, e0);
-		bool dege1 = is_segment_degenerated(s1, e1);
-		if (!dege0 && !dege1) {// two segments not degenerated
-			if (same_point(
-				cross(e0 - s0, e1 - s1),
-				ORIGIN)) // if two segments not degenerated are parallel
-				return parallel_segments_inter(s0, e0, s1, e1, dege0, dege1);
 
-			Vector3r norm = tri_norm(s0, s1, e0);
-			if (same_point(norm, ORIGIN))
-				return colinear_point_on_segment(s1, s0, e0);
-
-			Vector3r norm1 = tri_norm(s0, s1, e1);
-			if (same_point(norm1, ORIGIN))
-				return colinear_point_on_segment(s0, s1, e1);
-
-			Vector3r norm2 = tri_norm(e1, s1, e0);
-			if (same_point(norm2, ORIGIN))
-				return colinear_point_on_segment(e0, e1, s1);
-			Vector3r norm3 = tri_norm(e1, s0, e0);
-			if (same_point(norm3, ORIGIN))
-				return colinear_point_on_segment(e1, s0, e0);
-			// if norm is same direction with norm1, norm2, norm3, then intersected
-			if (norm.dot(norm1).get_sign() > 0 && norm.dot(norm2).get_sign() > 0 && norm.dot(norm3).get_sign() > 0)
-				return true;
-			return false;
-		}
-		if (dege0&&dege1) {
-			if (same_point(s0, s1))
-				return true;
-			else
-				return false;
-		}
-		if (dege0) {
-			return colinear_point_on_segment(s0, s1, e1);
-		}
-		if (dege1) {
-			return colinear_point_on_segment(s1, s0, e0);
-		}
-		std::cout << " impossible to go here" << std::endl;
-		return false;
-	}
 	int orient_2d(const Vector2d&p, const Vector2d&q, const Vector2d&r) {
 		return orient2d(p[0], p[1], q[0], q[1], r[0], r[1]);
 	}
@@ -526,41 +392,6 @@ namespace ccd {
 		return 0;
 
 	}
-	int line_segment_intersection(
-		const Vector3r& s0,
-		const Vector3r& dir0,
-		const Vector3r& s1,
-		const Vector3r& e1) {
-
-		if (same_point(e1, s1))//degenerated case
-			return point_on_ray(s0, dir0, s1);
-		/////////////////////////////////////
-		Vector3r norm = cross(s0 - s1, e1 - s0);
-		if (same_point(norm, ORIGIN))
-		{
-			if (colinear_point_on_segment(s0, s1, e1))
-				return 2;
-			else return 0;
-		}
-		else {
-
-			Vector3r norm1 = cross(s0 - s1, dir0);
-			if (same_point(norm1, ORIGIN))
-				return point_on_ray(s0, dir0, s1);
-
-			Vector3r norm2 = cross(e1 - s0, dir0);
-			if (same_point(norm2, ORIGIN)) {
-				return point_on_ray(s0, dir0, e1);
-			}
-
-			if (norm.dot(norm1) > 0 && norm.dot(norm2) > 0) {
-				return 1;
-			}
-			return 0;
-		}
-
-	}
-
 
 	void write(const Vector3d& v, std::ostream& out)
 	{
@@ -600,7 +431,7 @@ namespace ccd {
 			return 0;
 		}
 		else {
-			if (orient3d(pt, t1, t2, t3) != 0)
+			if (orient_3d(pt, t1, t2, t3) != 0)
 				return false;
 			/*if (point_on_segment(pt, t1, t2))
 				return 2;
@@ -677,8 +508,8 @@ namespace ccd {
 		if (is_triangle_degenerated(t1, t2, t3))
 			return 0;// since we already checked triangle edge - box segment
 
-		int o1 = orient3d(e0, t1, t2, t3);
-		int o2 = orient3d(e1, t1, t2, t3);
+		int o1 = orient_3d(e0, t1, t2, t3);
+		int o2 = orient_3d(e1, t1, t2, t3);
 		if (o1 > 0 && o2 > 0)
 			return 0;
 		if (o1 < 0 && o2 < 0)
@@ -706,6 +537,16 @@ namespace ccd {
 		}
 		return is_line_cut_triangle(e0, e1, t1, t2, t3, halfopen);
 	}
+	// pt is not on the plane
+	bool is_ray_intersect_plane(const Vector3d& pt,
+		const Vector3d& pt1,
+		const Vector3d& dir,
+		const Vector3d& t1,
+		const Vector3d& t2,
+		const Vector3d& t3) {
+		xx
+	}
+
 	// 0 no intersection, 1 intersect, 2 point on triangle(including two edges), 3 point on t2-t3 edge, -1 shoot on border
 	int ray_triangle_intersection(
 		const Vector3d& pt,
@@ -730,7 +571,7 @@ namespace ccd {
 			return 0;
 		}
 
-		int o1 = orient3d(pt, t1, t2, t3);
+		int o1 = orient_3d(pt, t1, t2, t3);
 		if (o1 == 0) {//point is on the plane
 			int inter = point_inter_triangle(pt, t1, t2, t3, false, halfopen);
 			if (inter == 1 || inter == 2) return 2;
@@ -761,9 +602,7 @@ namespace ccd {
 		
 		// if point not on plane, and not point to plane, return 0
 		//explicitPoint3D pte()
-		Rational dt = norm.dot(dir);// >0, dir is same direction with norm, pointing to +1 orientation
-		if (dt.get_sign() > 0 && o1 >= 0) return 0;
-		if (dt.get_sign() < 0 && o1 <= 0) return 0;
+		if (!is_ray_intersect_plane(pt, pt1, dir, t1, t2, t3)) return 0;
 		
 		// if ray go across the plane, then get lpi and 3 orientations
 		int inter = is_line_cut_triangle(pt, pt1, t1, t2, t3, halfopen);

@@ -39,12 +39,6 @@ void projected_cube_edges(
     Vector2d& e3);
 // cube is centered at origin, and corner is (eps,eps,eps)
 bool is_point_intersect_cube(const double eps, const Vector3d& p);
-int seg_cut_plane(
-    const Vector3r& seg0,
-    const Vector3r& seg1,
-    const Vector3r& t0,
-    const Vector3r& t1,
-    const Vector3r& t2);
 
 // Causion: open triangle!
 bool is_cube_edges_intersect_triangle(

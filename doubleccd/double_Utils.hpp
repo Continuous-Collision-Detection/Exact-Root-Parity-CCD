@@ -76,17 +76,8 @@ template <typename V> void print(const V& v)
 
 void write(const Vector3d& v, std::ostream& out);
 Vector3d read(std::istream& in);
-int dot_product_sign(const Vector3d& a, const Vector3d& b);
-int orient3d(
-    const Vector3r& a, const Vector3r& b, const Vector3r& c, const Vector3r& d);
-//int orient2d(
-//    const Vector3r& a, const Vector3r& b, const Vector3r& c, const int axis);
 
-bool segment_segment_intersection(
-	const Vector3r& s0,
-	const Vector3r& e0,
-	const Vector3r& s1,
-	const Vector3r& e1);
+
 bool segment_segment_intersection_2d(
 	const Vector2d& s0,
 	const Vector2d& e0,
@@ -108,7 +99,7 @@ int ray_segment_intersection(
 
 bool is_triangle_degenerated(const Vector3d& t1, const Vector3d& t2, const Vector3d&t3);
 
-bool same_point(const Vector3r& p1, const Vector3r& p2);
+
 bool same_point(const Vector3d& p1, const Vector3d& p2);
 
 
