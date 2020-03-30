@@ -704,7 +704,7 @@ bool is_seg_intersect_not_degenerated_bilinear(
         
         Rational phi0 = phi(p0, bl.v);
         Rational phi1 = phi(p1, bl.v);
-        if (phi0 == 0 || phi1 == 0 || phi0 != phi1)
+		if (phi0 == 0 || phi1 == 0 || phi0.get_sign() != phi1.get_sign())
             return true;
         if (line_shoot_same_pair_tet(p0, p1, phi1.get_sign(), bl)) {
             if (phi1.get_sign() == bl.phi_f[0])
@@ -829,7 +829,7 @@ bool is_cube_edge_intersect_bilinear(
     for (int i = 0; i < 12; i++) {
         if (is_seg_intersect_not_degenerated_bilinear(
                 bl, cb.vr[cb.edgeid[i][0]], cb.vr[cb.edgeid[i][1]],
-                pin[cb.edgeid[i][0]], pin[cb.edgeid[i][0]]))
+                pin[cb.edgeid[i][0]], pin[cb.edgeid[i][1]]))
             return true;
 	}
     return false;
