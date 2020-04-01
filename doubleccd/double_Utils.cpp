@@ -140,6 +140,7 @@ namespace ccd {
 		return -1;
 	}
 	
+	// parallel means not intersected
 	int is_line_cut_triangle(
 		const Vector3d& e0,
 		const Vector3d& e1,
@@ -153,10 +154,6 @@ namespace ccd {
 		//	n = Vector3r(rand(), rand(), rand());
 		//}
 
-		Vector3d np = Vector3d::Random();
-		while (orient_3d(np, t1, t2, t3) == 0) {// if coplanar, random
-			np = Vector3d::Random();
-		}
 
 		explicitPoint3D p(e0[0], e0[1], e0[2]);
 		explicitPoint3D q(e1[0], e1[1], e1[2]);
@@ -164,6 +161,8 @@ namespace ccd {
 		explicitPoint3D b(t2[0], t2[1], t2[2]);
 		explicitPoint3D c(t3[0], t3[1], t3[2]);
 		implicitPoint3D_LPI l(p, q, a, b, c);
+		explicitPoint3D ppp;
+		if (!l.approxExplicit(ppp)) return 0;// this is important
 		if (genericPoint::pointInInnerTriangle(l, a, b, c))
 			return 1;
 		if (genericPoint::pointInSegment(l, a, b))
@@ -178,84 +177,33 @@ namespace ccd {
 
 		return 0;
 	}
-	int line_triangle_inter_return_t(
-		const Vector3r& e0,
-		const Vector3r& e1,
+
+	// this function is used only when lpi exists
+	int seg_triangle_inter_return_t(
+		const Vector3d& e0,
+		const Vector3d& e1,
 		const Vector3d& t1d,
 		const Vector3d& t2d,
 		const Vector3d& t3d,
 		Rational& t)
 
 	{
-		Vector3r t1(t1d[0], t1d[1], t1d[2]), t2(t2d[0], t2d[1], t2d[2]), t3(t3d[0], t3d[1], t3d[2]);
+		//int inter = segment_triangle_intersection(e0, e1, t1d, t2d, t3d, false);
+		//if (inter == 0) return 0;// not intersected
+
+		int o1 = orient_3d(e0, t1d, t2d, t3d);
+		int o2 = orient_3d(e1, t1d, t2d, t3d);
+		if (o1 == 1 && o2 == 1) return 0;
+		if (o1 == -1 && o2 == -1) return 0;// actually not necessary
 		
-		const Rational d = e0[0] * t1[1] * t2[2] - e0[0] * t1[1] * t3[2]
-			- e0[0] * t1[2] * t2[1] + e0[0] * t1[2] * t3[1] + e0[0] * t2[1] * t3[2]
-			- e0[0] * t2[2] * t3[1] - e0[1] * t1[0] * t2[2] + e0[1] * t1[0] * t3[2]
-			+ e0[1] * t1[2] * t2[0] - e0[1] * t1[2] * t3[0] - e0[1] * t2[0] * t3[2]
-			+ e0[1] * t2[2] * t3[0] + e0[2] * t1[0] * t2[1] - e0[2] * t1[0] * t3[1]
-			- e0[2] * t1[1] * t2[0] + e0[2] * t1[1] * t3[0] + e0[2] * t2[0] * t3[1]
-			- e0[2] * t2[1] * t3[0] - e1[0] * t1[1] * t2[2] + e1[0] * t1[1] * t3[2]
-			+ e1[0] * t1[2] * t2[1] - e1[0] * t1[2] * t3[1] - e1[0] * t2[1] * t3[2]
-			+ e1[0] * t2[2] * t3[1] + e1[1] * t1[0] * t2[2] - e1[1] * t1[0] * t3[2]
-			- e1[1] * t1[2] * t2[0] + e1[1] * t1[2] * t3[0] + e1[1] * t2[0] * t3[2]
-			- e1[1] * t2[2] * t3[0] - e1[2] * t1[0] * t2[1] + e1[2] * t1[0] * t3[1]
-			+ e1[2] * t1[1] * t2[0] - e1[2] * t1[1] * t3[0] - e1[2] * t2[0] * t3[1]
-			+ e1[2] * t2[1] * t3[0];
-
-		if (d.get_sign() == 0) // coplanar
-			return -1;
-		t = (e0[0] * t1[1] * t2[2] - e0[0] * t1[1] * t3[2] - e0[0] * t1[2] * t2[1]
-			+ e0[0] * t1[2] * t3[1] + e0[0] * t2[1] * t3[2] - e0[0] * t2[2] * t3[1]
-			- e0[1] * t1[0] * t2[2] + e0[1] * t1[0] * t3[2] + e0[1] * t1[2] * t2[0]
-			- e0[1] * t1[2] * t3[0] - e0[1] * t2[0] * t3[2] + e0[1] * t2[2] * t3[0]
-			+ e0[2] * t1[0] * t2[1] - e0[2] * t1[0] * t3[1] - e0[2] * t1[1] * t2[0]
-			+ e0[2] * t1[1] * t3[0] + e0[2] * t2[0] * t3[1] - e0[2] * t2[1] * t3[0]
-			- t1[0] * t2[1] * t3[2] + t1[0] * t2[2] * t3[1] + t1[1] * t2[0] * t3[2]
-			- t1[1] * t2[2] * t3[0] - t1[2] * t2[0] * t3[1]
-			+ t1[2] * t2[1] * t3[0])
-			/ d;
-
-		const Rational u = (-e0[0] * e1[1] * t1[2] + e0[0] * e1[1] * t3[2]
-			+ e0[0] * e1[2] * t1[1] - e0[0] * e1[2] * t3[1]
-			- e0[0] * t1[1] * t3[2] + e0[0] * t1[2] * t3[1]
-			+ e0[1] * e1[0] * t1[2] - e0[1] * e1[0] * t3[2]
-			- e0[1] * e1[2] * t1[0] + e0[1] * e1[2] * t3[0]
-			+ e0[1] * t1[0] * t3[2] - e0[1] * t1[2] * t3[0]
-			- e0[2] * e1[0] * t1[1] + e0[2] * e1[0] * t3[1]
-			+ e0[2] * e1[1] * t1[0] - e0[2] * e1[1] * t3[0]
-			- e0[2] * t1[0] * t3[1] + e0[2] * t1[1] * t3[0]
-			+ e1[0] * t1[1] * t3[2] - e1[0] * t1[2] * t3[1]
-			- e1[1] * t1[0] * t3[2] + e1[1] * t1[2] * t3[0]
-			+ e1[2] * t1[0] * t3[1] - e1[2] * t1[1] * t3[0])
-			/ d;
-		const Rational v = (e0[0] * e1[1] * t1[2] - e0[0] * e1[1] * t2[2]
-			- e0[0] * e1[2] * t1[1] + e0[0] * e1[2] * t2[1]
-			+ e0[0] * t1[1] * t2[2] - e0[0] * t1[2] * t2[1]
-			- e0[1] * e1[0] * t1[2] + e0[1] * e1[0] * t2[2]
-			+ e0[1] * e1[2] * t1[0] - e0[1] * e1[2] * t2[0]
-			- e0[1] * t1[0] * t2[2] + e0[1] * t1[2] * t2[0]
-			+ e0[2] * e1[0] * t1[1] - e0[2] * e1[0] * t2[1]
-			- e0[2] * e1[1] * t1[0] + e0[2] * e1[1] * t2[0]
-			+ e0[2] * t1[0] * t2[1] - e0[2] * t1[1] * t2[0]
-			- e1[0] * t1[1] * t2[2] + e1[0] * t1[2] * t2[1]
-			+ e1[1] * t1[0] * t2[2] - e1[1] * t1[2] * t2[0]
-			- e1[2] * t1[0] * t2[1] + e1[2] * t1[1] * t2[0])
-			/ d;
-
-		// std::cout << t << std::endl;
-
-		// std::cout << u << std::endl;
-
-		// std::cout << v << std::endl;
-
-		if (u >= 0 && u <= 1 && v >= 0 && v <= 1 && u + v <= 1) {
-			if (u == 0 || u == 1 || v == 0 || v == 1 || u + v == 1)
-				return 2; // on the border
-			return 1;
-		}
-
-		return 0;
+		Rational a11, a12, a13, d, n;
+		bool result = orient3D_LPI_prefilter_multiprecision(
+			Rational(e0[0]), Rational(e0[1]), Rational(e0[2]), Rational(e1[0]), Rational(e1[1]), Rational(e1[2]),
+			Rational(t1d[0]), Rational(t1d[1]), Rational(t1d[2]), Rational(t2d[0]), Rational(t2d[1]), Rational(t2d[2]),
+			Rational(t3d[0]), Rational(t3d[1]), Rational(t3d[2]), a11, a12, a13, d, n, check_rational);
+		
+		t = n / d;
+		return 1;
 
 	}
 	void get_tet_phi(bilinear& bl)

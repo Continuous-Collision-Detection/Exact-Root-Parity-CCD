@@ -650,12 +650,12 @@ bool rootfinder(
     int fid = 2 * pairid;// it should be 0 or 2
     Rational t;
     if (p0in) {
-        bool res1=line_triangle_inter_return_t(
-            p0, p1, bl.v[bl.facets[fid][0]], bl.v[bl.facets[fid][1]],
+        bool res1=seg_triangle_inter_return_t(
+            p0d, p1d, bl.v[bl.facets[fid][0]], bl.v[bl.facets[fid][1]],
             bl.v[bl.facets[fid][2]], t);
         if (!res1) {
-            res1=line_triangle_inter_return_t(
-                p0, p1, bl.v[bl.facets[fid+1][0]], bl.v[bl.facets[fid+1][1]],
+            res1=seg_triangle_inter_return_t(
+                p0d, p1d, bl.v[bl.facets[fid+1][0]], bl.v[bl.facets[fid+1][1]],
                 bl.v[bl.facets[fid+1][2]], t);
         }
 		if (!res1)
@@ -665,12 +665,12 @@ bool rootfinder(
     }
     if (p1in) { // change the order of input to get t just because we want
                 // domain to be [0, t]
-        bool res1 = line_triangle_inter_return_t(//TODO here get n1, d1, n2, d2
-            p1, p0, bl.v[bl.facets[fid][0]], bl.v[bl.facets[fid][1]],
+        bool res1 = seg_triangle_inter_return_t(//TODO here get n1, d1, n2, d2
+            p1d, p0d, bl.v[bl.facets[fid][0]], bl.v[bl.facets[fid][1]],
             bl.v[bl.facets[fid][2]], t);
         if (!res1) {
-			res1 = line_triangle_inter_return_t(
-                p1, p0, bl.v[bl.facets[fid + 1][0]],
+			res1 = seg_triangle_inter_return_t(
+                p1d, p0d, bl.v[bl.facets[fid + 1][0]],
                 bl.v[bl.facets[fid + 1][1]], bl.v[bl.facets[fid + 1][2]], t);
         }
 		if (!res1)
@@ -680,13 +680,13 @@ bool rootfinder(
     }
 
     Rational t1;
-	bool res1 = line_triangle_inter_return_t(
-        p0, p1, bl.v[bl.facets[fid][0]], bl.v[bl.facets[fid][1]],
+	bool res1 = seg_triangle_inter_return_t(
+        p0d, p1d, bl.v[bl.facets[fid][0]], bl.v[bl.facets[fid][1]],
         bl.v[bl.facets[fid][2]], t);
 	if (!res1)
 		return false; // means not really intersected
-	bool res2 = line_triangle_inter_return_t(
-        p0, p1, bl.v[bl.facets[fid + 1][0]], bl.v[bl.facets[fid + 1][1]],
+	bool res2 = seg_triangle_inter_return_t(
+        p0d, p1d, bl.v[bl.facets[fid + 1][0]], bl.v[bl.facets[fid + 1][1]],
         bl.v[bl.facets[fid + 1][2]], t1);
 	if (!res2)
 		return false; // means not really intersected

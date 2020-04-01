@@ -167,9 +167,9 @@ int is_line_cut_triangle(
 	const Vector3d& t2,
 	const Vector3d& t3,
 	const bool halfopen);
-int line_triangle_inter_return_t(
-	const Vector3r& e0,
-	const Vector3r& e1,
+int seg_triangle_inter_return_t(
+	const Vector3d& e0,
+	const Vector3d& e1,
 	const Vector3d& t1,
 	const Vector3d& t2,
 	const Vector3d& t3,
