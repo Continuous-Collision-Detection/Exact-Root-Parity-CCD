@@ -66,7 +66,23 @@ namespace ccd {
 	//    const Rational det = v1[i1] * v2[i2] - v1[i2] * v2[i1];
 	//    return det.get_sign();
 	//}
-	Rational phi(const Vector3d x, const std::array<Vector3d, 4>& corners)
+	Rational phi(const Vector3d xd, const std::array<Vector3d, 4>& corners)
+	{
+		static const std::array<int, 4> vv = { { 0, 1, 2, 3 } };
+		Vector3r x(xd[0], xd[1], xd[2]);
+		const Rational g012 = func_g(x, corners, { { vv[0], vv[1], vv[2] } });
+		const Rational g132 = func_g(x, corners, { { vv[1], vv[3], vv[2] } });
+		const Rational g013 = func_g(x, corners, { { vv[0], vv[1], vv[3] } });
+		const Rational g032 = func_g(x, corners, { { vv[0], vv[3], vv[2] } });
+
+		const Rational h12 = g012 * g032;
+		const Rational h03 = g132 * g013;
+
+		const Rational phi = h12 - h03;
+
+		return phi;
+	}
+	Rational phi(const Vector3r x, const std::array<Vector3d, 4>& corners)
 	{
 		static const std::array<int, 4> vv = { { 0, 1, 2, 3 } };
 		const Rational g012 = func_g(x, corners, { { vv[0], vv[1], vv[2] } });
@@ -84,14 +100,14 @@ namespace ccd {
 	
 	
 	Rational func_g(
-		const Vector3d& x,
+		const Vector3r& xr,
 		const std::array<Vector3d, 4>& corners,
 		const std::array<int, 3>& indices)
 	{
 		const int p = indices[0];
 		const int q = indices[1];
 		const int r = indices[2];
-		Vector3r xr(x[0], x[1], x[2]), pr(corners[p][0], corners[p][1], corners[p][2]), 
+		Vector3r  pr(corners[p][0], corners[p][1], corners[p][2]), 
 			qr(corners[q][0], corners[q][1], corners[q][2]), rr(corners[r][0], corners[r][1], corners[r][2]);
 		return (xr - pr)
 			.dot(cross(qr - pr, rr - pr));// TODO maybe minus is not allowed
@@ -165,12 +181,14 @@ namespace ccd {
 	int line_triangle_inter_return_t(
 		const Vector3r& e0,
 		const Vector3r& e1,
-		const Vector3r& t1,
-		const Vector3r& t2,
-		const Vector3r& t3,
+		const Vector3d& t1d,
+		const Vector3d& t2d,
+		const Vector3d& t3d,
 		Rational& t)
 
 	{
+		Vector3r t1(t1d[0], t1d[1], t1d[2]), t2(t2d[0], t2d[1], t2d[2]), t3(t3d[0], t3d[1], t3d[2]);
+		
 		const Rational d = e0[0] * t1[1] * t2[2] - e0[0] * t1[1] * t3[2]
 			- e0[0] * t1[2] * t2[1] + e0[0] * t1[2] * t3[1] + e0[0] * t2[1] * t3[2]
 			- e0[0] * t2[2] * t3[1] - e0[1] * t1[0] * t2[2] + e0[1] * t1[0] * t3[2]
@@ -242,7 +260,14 @@ namespace ccd {
 	}
 	void get_tet_phi(bilinear& bl)
 	{
-		Vector3r p02 = (bl.v[0] + bl.v[2]) / 2;
+		Rational v0, v1, v2;
+		v0 = Rational(bl.v[0][0]) + Rational(bl.v[2][0]);
+		v1 = Rational(bl.v[0][1]) + Rational(bl.v[2][1]);
+		v2 = Rational(bl.v[0][2]) + Rational(bl.v[2][2]);
+		Vector3r p02;
+		p02[0] = v0 / Rational(2); p02[1] = v1 / Rational(2); p02[2] = v2 / Rational(2);
+		
+		
 		Rational phi02 = phi(p02, bl.v);
 		if (phi02.get_sign() > 0) {
 			bl.phi_f[0] = 1;

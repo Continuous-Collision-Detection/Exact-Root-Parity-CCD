@@ -561,7 +561,7 @@ void get_quadratic_function(
     Rational& c)
 {
 	Vector3r x0(x0d[0], x0d[1], x0d[2]), x1(x1d[0], x1d[1], x1d[2]), x2(x2d[0], x2d[1], x2d[2]),
-		x0(x3d[0], x3d[1], x3d[2]);
+		x3(x3d[0], x3d[1], x3d[2]);
     Rational x00 = x0[0], x01 = x0[1], x02 = x0[2];
     Rational x10 = x1[0], x11 = x1[1], x12 = x1[2];
     Rational x20 = x2[0], x21 = x2[1], x22 = x2[2];
@@ -622,7 +622,7 @@ void get_quadratic_function(
                + (v02 - x02) * (x100 * x301 - x101 * x300));
 }
 bool get_function_find_root(
-    const bilinear& bl, const Vector3r& p0, const Vector3d& p1, const Rational &t0, const Rational &t1)
+    const bilinear& bl, const Vector3r& p0, const Vector3r& p1, const Rational &t0, const Rational &t1)
 {
     Rational a, b, c;
 	//Vector3r p0(p0d[0], p0d[1], p0d[2]), p1(p1d[0], p1d[1], p1d[2]);
