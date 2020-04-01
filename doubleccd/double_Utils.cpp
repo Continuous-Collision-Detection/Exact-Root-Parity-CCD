@@ -1,7 +1,7 @@
 #include "double_Utils.hpp"
 #include <predicates/indirect_predicates.h>
 #include <fstream>
-
+#include "rayPlaneIntersection.h"
 namespace ccd {
 	bilinear::bilinear(
 		const Vector3d& v0,
@@ -544,7 +544,9 @@ namespace ccd {
 		const Vector3d& t1,
 		const Vector3d& t2,
 		const Vector3d& t3) {
-		xx
+		explicitPoint3D p(pt1[0], pt1[1], pt1[2]), d(dir[0], dir[1], dir[2]);
+		explicitPoint3D T1(t1[0], t1[1], t1[2]), T2(t2[0], t2[1], t2[2]), T3(t3[0], t3[1], t3[2]);
+		return rayIntersectsPlane(p, d, T1, T2, T3);
 	}
 
 	// 0 no intersection, 1 intersect, 2 point on triangle(including two edges), 3 point or ray shoot t2-t3 edge, -1 shoot on border

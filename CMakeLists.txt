@@ -66,6 +66,8 @@ set(DOUBLECCD_SOURCES
 	${CCD_FOLDER}/double_Utils.cpp
 	${CCD_FOLDER}/double_Utils.hpp
 	${CCD_FOLDER}/Rational.hpp
+	${CCD_FOLDER}/rayPlaneIntersection.h
+	${CCD_FOLDER}/rayPlaneIntersection.cpp
 )
  add_library(doubleCCD  ${DOUBLECCD_SOURCES})
  
