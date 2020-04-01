@@ -492,7 +492,7 @@ bool line_shoot_same_pair_tet(
         else
             fid = 2;
     }// get which pair of facets to check
-	//TODO check if line is parallel to the triangle, if so, return false
+	//if line is parallel to the triangle, return false
 	int inter0 = is_line_cut_triangle(p0, p1, bl.v[bl.facets[fid][0]], bl.v[bl.facets[fid][1]],
 		bl.v[bl.facets[fid][2]], false);
 		
@@ -624,6 +624,8 @@ void get_quadratic_function(
 bool get_function_find_root(
     const bilinear& bl, const Vector3r& p0, const Vector3r& p1, const Rational &t0, const Rational &t1)
 {
+	if (t0 > 1 || t0 < 0) std::cout << "t is not right: exceed the limit" << std::endl;
+	if (t1 > 1 || t1 < 0) std::cout << "t is not right: exceed the limit" << std::endl;
     Rational a, b, c;
 	//Vector3r p0(p0d[0], p0d[1], p0d[2]), p1(p1d[0], p1d[1], p1d[2]);
     Vector3r dir = p1 - p0;

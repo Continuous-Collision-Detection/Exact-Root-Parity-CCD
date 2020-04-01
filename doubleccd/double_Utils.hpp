@@ -131,7 +131,7 @@ static bool orient3D_LPI_prefilter_multiprecision(
 	T py_ry(py - ry);
 	T pz_rz(pz - rz);
 
-	n = ((((py_ry)* a2133) - ((px_rx)* a2233)) - ((pz_rz)* a2132));
+	n = ((((py_ry)* a2133) - ((px_rx)* a2233)) - ((pz_rz)* a2132));// caution, this is -n actually
 
 	a11 = a11 * n;
 	a12 = a12 * n;

@@ -178,7 +178,7 @@ namespace ccd {
 		return 0;
 	}
 
-	// this function is used only when lpi exists
+	//  when lpi does not exist, return 0
 	int seg_triangle_inter_return_t(
 		const Vector3d& e0,
 		const Vector3d& e1,
@@ -188,21 +188,20 @@ namespace ccd {
 		Rational& t)
 
 	{
-		//int inter = segment_triangle_intersection(e0, e1, t1d, t2d, t3d, false);
-		//if (inter == 0) return 0;// not intersected
-
 		int o1 = orient_3d(e0, t1d, t2d, t3d);
 		int o2 = orient_3d(e1, t1d, t2d, t3d);
-		if (o1 == 1 && o2 == 1) return 0;
-		if (o1 == -1 && o2 == -1) return 0;// actually not necessary
+		if (o1 == o2) return 0;//already know lpi exist, check if seg go cross the plane 
 		
+		int inter = segment_triangle_intersection(e0, e1, t1d, t2d, t3d, false);
+		if (inter == 0) return 0;// not intersected
+		if (inter == 2) std::cout << "wrong here seg_triangle_inter_return_t" << std::endl;
 		Rational a11, a12, a13, d, n;
 		bool result = orient3D_LPI_prefilter_multiprecision(
 			Rational(e0[0]), Rational(e0[1]), Rational(e0[2]), Rational(e1[0]), Rational(e1[1]), Rational(e1[2]),
 			Rational(t1d[0]), Rational(t1d[1]), Rational(t1d[2]), Rational(t2d[0]), Rational(t2d[1]), Rational(t2d[2]),
 			Rational(t3d[0]), Rational(t3d[1]), Rational(t3d[2]), a11, a12, a13, d, n, check_rational);
 		
-		t = n / d;
+		t = -n / d;// in the function, n is actually -n
 		return 1;
 
 	}
