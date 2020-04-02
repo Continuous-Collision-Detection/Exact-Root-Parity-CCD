@@ -107,6 +107,8 @@ add_executable(${PROJECT_NAME}_bin
 
 target_link_libraries(${PROJECT_NAME}_bin PUBLIC ${PROJECT_NAME})
 target_link_libraries(${PROJECT_NAME}_bin PUBLIC doubleCCD)
+set(DATA_PATH "${CMAKE_CURRENT_SOURCE_DIR}/data/")
+target_compile_definitions(${PROJECT_NAME}_bin PUBLIC -DCCD_DATA_PATH=\"${DATA_PATH}\")
 
 
 ################################################################################

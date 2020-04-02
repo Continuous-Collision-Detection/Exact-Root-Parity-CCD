@@ -1,6 +1,6 @@
 #include <doubleCCD/double_ray_parity.h>
 
-namespace ccd {
+namespace doubleccd {
 	int ray_degenerated_bilinear_parity(
 		const bilinear& bl,
 		const Vector3d& pt,

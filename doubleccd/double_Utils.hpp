@@ -5,7 +5,7 @@
 #include <array>
 #include <Eigen/Core>
 
-namespace ccd {
+namespace doubleccd {
 
 typedef Eigen::Matrix<Rational, 3, 1> Vector3r;
 typedef Eigen::Matrix<double, 3, 1> Vector3d;

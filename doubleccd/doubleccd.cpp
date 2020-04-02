@@ -1,7 +1,7 @@
 /// Our exact CCD method
 #include <doubleCCD/doubleccd.hpp>
 
-namespace ccd {
+namespace doubleccd {
 
 // Detect collisions between a vertex and a triangular face.
 bool vertexFaceCCD(
@@ -137,4 +137,4 @@ bool edgeEdgeCCD(
     throw "not implemented";
 }
 void test() { std::cout << "compiles correct " << std::endl; }
-} // namespace ccd
+} // namespace doubleccd

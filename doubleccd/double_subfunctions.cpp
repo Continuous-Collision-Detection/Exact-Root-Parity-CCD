@@ -3,7 +3,7 @@
 //#include <exact_subtraction.hpp>
 
 //#include <ray_parity.h>
-namespace ccd {
+namespace doubleccd {
 
 // cube
 cube::cube(double eps)
@@ -266,7 +266,7 @@ bool is_point_intersect_cube(const double eps, const Vector3d& p)
 //            return 2;
 //}
 bool is_cube_edges_intersect_triangle(
-    const ccd::cube& cb,
+    const cube& cb,
     const Vector3d& t0,
     const Vector3d& t1,
     const Vector3d& t2)

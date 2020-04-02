@@ -2,7 +2,7 @@
 #include <doubleCCD/double_Utils.hpp>
 #include <array>
 #include <vector>
-namespace ccd {
+namespace doubleccd {
 class cube {
 public:
     cube(double eps);
@@ -42,7 +42,7 @@ bool is_point_intersect_cube(const double eps, const Vector3d& p);
 
 // Causion: open triangle!
 bool is_cube_edges_intersect_triangle(
-   const ccd::cube& cb, const Vector3d& t0, const Vector3d& t1, const Vector3d& t2);
+   const cube& cb, const Vector3d& t0, const Vector3d& t1, const Vector3d& t2);
 
 // segment and triangle are coplanar, check intersection
 
@@ -139,4 +139,4 @@ int bilinear_degeneration(const bilinear& bl);
 bool is_cube_edge_intersect_bilinear(
     bilinear& bl, const cube& cb, const std::array<bool, 8>& pin);
 
-} // namespace ccd
+} // namespace doubleccd

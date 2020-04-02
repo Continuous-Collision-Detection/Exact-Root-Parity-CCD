@@ -2,7 +2,7 @@
 #pragma once
 
 #include <doubleCCD/double_ray_parity.h>
-namespace ccd {
+namespace doubleccd {
 
 /**
  * @brief Detect collisions between a vertex and a triangular face.
@@ -84,4 +84,4 @@ bool edgeEdgeCCD(
     const Vector3d& edge1_vertex0_end,
     const Vector3d& edge1_vertex1_end);
 void test();
-} // namespace ccd
+} // namespace doubleccd

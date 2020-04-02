@@ -9,8 +9,17 @@
 #include <fstream>
 //#include <exact_subtraction.hpp>
 //#include<subfunctions.h>
-using namespace ccd;
+using namespace doubleccd;
 using namespace std;
+
+std::string root_path = CCD_DATA_PATH;
+#ifdef WIN32
+std::string path_sep = "\\";
+#else
+std::string path_sep = "/";
+#endif
+
+
 struct sccd {
     Vector3d pts;
     Vector3d pte;
@@ -126,7 +135,7 @@ bool read_result(const string inputFileName, vector<bool>& data)
 
 void test1() {
     std::vector<sccd> data;
-    read_CSV("D:\\vs\\collision\\CCD\\data\\cow-head-collisions.csv", data);
+    read_CSV(root_path + path_sep + "cow-head-collisions.csv", data);
     std::vector<bool> results;
     int fn = data.size(); // 50000;
     results.resize(fn);
@@ -162,9 +171,9 @@ void test1() {
 }
 void test_compare() {
 	std::vector<sccd> data;
-	read_CSV("D:\\vs\\collision\\CCD\\data\\cow-head-collisions.csv", data);
+	read_CSV(root_path + path_sep+ "cow-head-collisions.csv", data);
 	vector<bool> rst;
-	read_result("D:\\vs\\collision\\CCD\\data\\result_all.csv", rst);
+	read_result(root_path + path_sep+ "result_all.csv", rst);
 	int rst_true = 0;
 	for (int i = 0; i < rst.size(); i++) {
 		if (rst[i])

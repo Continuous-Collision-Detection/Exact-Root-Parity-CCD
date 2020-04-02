@@ -1,8 +1,10 @@
+#include <Eigen/Dense>
 #include <doubleCCD/double_Utils.hpp>
 #include <doubleCCD/rayPlaneIntersection.h>
 #include <fstream>
 #include <predicates/indirect_predicates.h>
-namespace ccd {
+
+namespace doubleccd {
 	bilinear::bilinear(
 		const Vector3d& v0,
 		const Vector3d& v1,

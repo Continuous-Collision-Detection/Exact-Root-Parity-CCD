@@ -30,12 +30,15 @@ if(NOT TARGET indirect_predicates)
 	ccd_download_indirect_predicates()
 	endif()
   set(INDIRECTPREDICATES_SOURCES
+  ${CCD_EXTERNAL}/indirect_predicates/implicit_point.cpp
+  ${CCD_EXTERNAL}/indirect_predicates/implicit_point.h
+  ${CCD_EXTERNAL}/indirect_predicates/numerics.cpp
+	${CCD_EXTERNAL}/indirect_predicates/numerics.h
 	${CCD_EXTERNAL}/indirect_predicates/predicates/indirect_predicates.cpp
-	${CCD_EXTERNAL}/indirect_predicates/predicates/indirect_predicates.h
+  ${CCD_EXTERNAL}/indirect_predicates/predicates/indirect_predicates.h
 )
   add_library(indirect_predicates  ${INDIRECTPREDICATES_SOURCES})
-  #indirect_predicates_copy_headers(${INDIRECTPREDICATES_SOURCES})
-  target_include_directories(indirect_predicates PUBLIC ${CCD_EXTERNAL}/indirect_predicates)
+  target_include_directories(indirect_predicates PUBLIC ${CCD_EXTERNAL}/indirect_predicates ${CCD_EXTERNAL}/indirect_predicates/predicates)
 
 endif()
 
