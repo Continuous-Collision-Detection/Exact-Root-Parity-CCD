@@ -1,7 +1,7 @@
-#include "double_Utils.hpp"
-#include <predicates/indirect_predicates.h>
+#include <doubleCCD/double_Utils.hpp>
+#include <doubleCCD/rayPlaneIntersection.h>
 #include <fstream>
-#include "rayPlaneIntersection.h"
+#include <predicates/indirect_predicates.h>
 namespace ccd {
 	bilinear::bilinear(
 		const Vector3d& v0,
@@ -43,7 +43,7 @@ namespace ccd {
 		}
 		return false;
 	}
-	
+
 	//int orient2d(
 	//    const Vector3r& a, const Vector3r& b, const Vector3r& c, const int axis)
 	//{
@@ -97,8 +97,8 @@ namespace ccd {
 
 		return phi;
 	}
-	
-	
+
+
 	Rational func_g(
 		const Vector3r& xr,
 		const std::array<Vector3d, 4>& corners,
@@ -107,7 +107,7 @@ namespace ccd {
 		const int p = indices[0];
 		const int q = indices[1];
 		const int r = indices[2];
-		Vector3r  pr(corners[p][0], corners[p][1], corners[p][2]), 
+		Vector3r  pr(corners[p][0], corners[p][1], corners[p][2]),
 			qr(corners[q][0], corners[q][1], corners[q][2]), rr(corners[r][0], corners[r][1], corners[r][2]);
 		return (xr - pr)
 			.dot(cross(qr - pr, rr - pr));// TODO maybe minus is not allowed
@@ -139,7 +139,7 @@ namespace ccd {
 		std::cout << "impossible to go here " << std::endl;
 		return -1;
 	}
-	
+
 	// parallel means not intersected
 	int is_line_cut_triangle(
 		const Vector3d& e0,
@@ -190,8 +190,8 @@ namespace ccd {
 	{
 		int o1 = orient_3d(e0, t1d, t2d, t3d);
 		int o2 = orient_3d(e1, t1d, t2d, t3d);
-		if (o1 == o2) return 0;//already know lpi exist, check if seg go cross the plane 
-		
+		if (o1 == o2) return 0;//already know lpi exist, check if seg go cross the plane
+
 		int inter = segment_triangle_intersection(e0, e1, t1d, t2d, t3d, false);
 		if (inter == 0) return 0;// not intersected
 		if (inter == 2) std::cout << "wrong here seg_triangle_inter_return_t" << std::endl;
@@ -200,7 +200,7 @@ namespace ccd {
 			Rational(e0[0]), Rational(e0[1]), Rational(e0[2]), Rational(e1[0]), Rational(e1[1]), Rational(e1[2]),
 			Rational(t1d[0]), Rational(t1d[1]), Rational(t1d[2]), Rational(t2d[0]), Rational(t2d[1]), Rational(t2d[2]),
 			Rational(t3d[0]), Rational(t3d[1]), Rational(t3d[2]), a11, a12, a13, d, n, check_rational);
-		
+
 		t = -n / d;// in the function, n is actually -n
 		return 1;
 
@@ -213,8 +213,8 @@ namespace ccd {
 		v2 = Rational(bl.v[0][2]) + Rational(bl.v[2][2]);
 		Vector3r p02;
 		p02[0] = v0 / Rational(2); p02[1] = v1 / Rational(2); p02[2] = v2 / Rational(2);
-		
-		
+
+
 		Rational phi02 = phi(p02, bl.v);
 		if (phi02.get_sign() > 0) {
 			bl.phi_f[0] = 1;
@@ -228,7 +228,7 @@ namespace ccd {
 		}
 		std::cout << "!!can not happen, get tet phi" << std::endl;
 	}
-	
+
 
 	// point and seg are colinear, now check if point is on the segment(can deal with segment degeneration)
 	bool colinear_point_on_segment(
@@ -320,7 +320,7 @@ namespace ccd {
 			if (pt[2] != s0[2]) return 0;
 		}
 		return 1;
-		
+
 	}
 	// 0 not intersected, 1 intersected, 2 s0 on segment
 	// can deal with degenerated cases
@@ -333,7 +333,7 @@ namespace ccd {
 
 		if (same_point(e1, s1))//degenerated case
 			return point_on_ray(s0, e0, dir0, s1);
-		
+
 		/////////////////////////////////////
 		if (orient_3d(s0, e0, s1, e1) != 0) return 0;
 
@@ -416,7 +416,7 @@ namespace ccd {
 				np = Vector3d::Random();
 			}
 			int o1 = orient_3d(pt, np, t1, t2);
-			int o2 = orient_3d(pt, np, t2, t3);// this edge 
+			int o2 = orient_3d(pt, np, t2, t3);// this edge
 			int o3 = orient_3d(pt, np, t3, t1);
 			if (halfopen) {
 				if (o2 == 0 && o1 == o3)
@@ -468,7 +468,7 @@ namespace ccd {
 	// if halfopen= true, can tell us if intersect the edge t2-t3
 	// return 0, 1, 2, 3
 	// this function is only used to check if seg intersect no degenerated bilinear
-	//and if seg intersect opposite facets of tet. 
+	//and if seg intersect opposite facets of tet.
 	int segment_triangle_intersection(
 		const Vector3d& e0,
 		const Vector3d& e1,
@@ -531,7 +531,7 @@ namespace ccd {
 		const Vector3d& t3,
 		const bool halfopen) {
 
-		
+
 		if (is_triangle_degenerated(t1, t2, t3))// triangle degeneration
 		{
 			int inter1 = ray_segment_intersection(pt, pt1, dir, t1, t2);
@@ -550,7 +550,7 @@ namespace ccd {
 			int inter = point_inter_triangle(pt, t1, t2, t3, false, halfopen);
 			if (inter == 1 || inter == 2) return 2;
 			if (inter == 3) return 3;
-			//if (inter == 0) 
+			//if (inter == 0)
 			else {// pt on the plane but not intersect triangle.
 				if (orient_3d(pt1, t1, t2, t3) == 0) {// if ray is on the plane
 					int inter1 = ray_segment_intersection(pt, pt1, dir, t1, t2);
@@ -562,7 +562,7 @@ namespace ccd {
 					if (inter2 == 2) return 2;
 					//actually since point do not intersect triangle, check two segs are enough
 					//int inter3 = ray_segment_intersection(pt, dir, t2, t3);
-					//// ray overlaps t2-t3, shoot another ray, ray intersect it, shoot another one 
+					//// ray overlaps t2-t3, shoot another ray, ray intersect it, shoot another one
 					//if (inter3 == 1) return -1;
 					//if (inter3 == 2) return 2;
 
@@ -573,11 +573,11 @@ namespace ccd {
 			}
 			return 0;
 		}
-		
+
 		// if point not on plane, and not point to plane, return 0
 		//explicitPoint3D pte()
 		if (!is_ray_intersect_plane(pt, pt1, dir, t1, t2, t3)) return 0;
-		
+
 		// if ray go across the plane, then get lpi and 3 orientations
 		int inter = is_line_cut_triangle(pt, pt1, t1, t2, t3, halfopen);
 		if (inter == 0)return 0;
@@ -588,7 +588,7 @@ namespace ccd {
 		return 0;
 	}
 
-	
+
 
 
 } // namespace ccd

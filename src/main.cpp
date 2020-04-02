@@ -4,9 +4,9 @@
 #include <vector>
 //#include<Utils.hpp>
 //#include<subfunctions.h>
-#include <../doubleccd/doubleccd.hpp>
-#include <fstream>
 #include <array>
+#include <doubleCCD/doubleccd.hpp>
+#include <fstream>
 //#include <exact_subtraction.hpp>
 //#include<subfunctions.h>
 using namespace ccd;
@@ -113,7 +113,7 @@ bool read_result(const string inputFileName, vector<bool>& data)
                 }
             }
 
-            data.emplace_back(record);
+            data.push_back(record);
         }
     }
     if (!infile.eof()) {

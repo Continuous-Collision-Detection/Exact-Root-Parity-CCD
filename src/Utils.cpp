@@ -1,4 +1,4 @@
-#include <Utils.hpp>
+#include <CCD/Utils.hpp>
 
 #include <fstream>
 
@@ -390,7 +390,7 @@ bool segment_segment_intersection(
                 cross(e0 - s0, e1 - s1),
                 ORIGIN)) // if two segments not degenerated are parallel
             return parallel_segments_inter(s0, e0, s1, e1, dege0, dege1);
-        
+
 		Vector3r norm = tri_norm(s0, s1, e0);
         if (same_point(norm, ORIGIN))
             return colinear_point_on_segment(s1, s0, e0);
@@ -445,7 +445,7 @@ int ray_segment_intersection(
 	const Vector3r& dir0,
 	const Vector3r& s1,
 	const Vector3r& e1) {
-	
+
 	if (same_point(e1, s1))//degenerated case
 		return point_on_ray(s0, dir0, s1);
 	/////////////////////////////////////
@@ -487,7 +487,7 @@ int ray_segment_intersection(
 	//	if (inter2 > 0 && inter1 == 0) return 2;
 	//	return 1;
 	//}
-	
+
 }
 int line_segment_intersection(
 	const Vector3r& s0,
@@ -550,7 +550,7 @@ Vector3d read(std::istream& in)
 // 2 on edge, 1 interior, 0 not intersect, 3 intersect OPEN edge t2-t3
 // norm follows right hand law
 int point_inter_triangle(
-	const Vector3r&pt, 
+	const Vector3r&pt,
 	const Vector3r& t1,
 	const Vector3r& t2,
 	const Vector3r& t3,
@@ -573,13 +573,13 @@ int point_inter_triangle(
 			return 2;*///no need to do above
 		Vector3r np = sum(t1, norm);
 		int o1 = orient3d(pt, np, t1, t2);
-		int o2 = orient3d(pt, np, t2, t3);// this edge 
+		int o2 = orient3d(pt, np, t2, t3);// this edge
 		int o3 = orient3d(pt, np, t3, t1);
 		if (halfopen) {
 			if (o2 == 0 && o1 == o3)
 				return 3;// on open edge t2-t3
 		}
-		
+
 		if (o1 == o2 && o1 == o3)
 			return 1;
 		if (o1 == 0 && o2 * o3 >= 0)
@@ -588,7 +588,7 @@ int point_inter_triangle(
 			return 2;
 		if (o3 == 0 && o2* o1 >= 0)
 			return 2;
-		
+
 		return 0;
 	}
 }
@@ -597,7 +597,7 @@ int point_inter_triangle(
 // if halfopen= true, can tell us if intersect the edge t2-t3
 // return 0, 1, 2, 3
 // this function is only used to check if seg intersect no degenerated bilinear
-//and if seg intersect opposite facets of tet. 
+//and if seg intersect opposite facets of tet.
 int segment_triangle_intersection(
 	const Vector3r& e0,
 	const Vector3r& e1,
@@ -605,7 +605,7 @@ int segment_triangle_intersection(
 	const Vector3r& t2,
 	const Vector3r& t3,
 	const bool halfopen) {
-	
+
 	Vector3r norm = cross(t2 - t1, t3 - t2);
 	if (same_point(norm, ORIGIN))// triangle degeneration
 	{
@@ -670,7 +670,7 @@ int ray_triangle_intersection(
 		int inter = point_inter_triangle(pt, t1, t2, t3, false, norm, halfopen);
 		if (inter == 1 || inter == 2) return 2;
 		if (inter == 3) return 3;
-		//if (inter == 0) 
+		//if (inter == 0)
 		else {// pt on the plane but not intersect triangle.
 			if (norm.dot(dir) == 0) {// if ray is on the plane
 				int inter1 = ray_segment_intersection(pt, dir, t1, t2);
@@ -682,14 +682,14 @@ int ray_triangle_intersection(
 				if (inter2 == 2) return 2;
 				//actually since point do not intersect triangle, check two segs are enough
 				//int inter3 = ray_segment_intersection(pt, dir, t2, t3);
-				//// ray overlaps t2-t3, shoot another ray, ray intersect it, shoot another one 
+				//// ray overlaps t2-t3, shoot another ray, ray intersect it, shoot another one
 				//if (inter3 == 1) return -1;
 				//if (inter3 == 2) return 2;
 
 				return 0;
 			}
-			
-			
+
+
 		}
 		return 0;
 	}
@@ -703,13 +703,13 @@ int ray_triangle_intersection(
 	if (inter == 1)return 1;
 	if (inter == 2)return -1;//shoot on edge
 	if (inter == 3) return 3;
-	
+
 	return 0;
 }
 
 // if a line (going across pt, pt+dir) intersects triangle
 // triangle is not degenerated
-// 0 not intersected, 1 intersected, 
+// 0 not intersected, 1 intersected,
 //check open triangle, coplanar is not intersected
 int line_triangle_intersection(
 	const Vector3r& pt,

@@ -1,5 +1,5 @@
-#include "double_subfunctions.h"
-#include "predicates/indirect_predicates.h"
+#include <predicates/indirect_predicates.h>
+#include <doubleCCD/double_subfunctions.h>
 //#include <exact_subtraction.hpp>
 
 //#include <ray_parity.h>
@@ -184,7 +184,7 @@ bool is_seg_intersect_cube(
 bool is_seg_intersect_cube_2d(
     const double eps, const Vector3d& e0, const Vector3d& e1, int axis)
 {
-	Vector2d p0, p1, p2, p3, 
+	Vector2d p0, p1, p2, p3,
 		e0p, e1p;// e0 and e1 projected to 2d
     projected_cube_edges(eps, p0, p1, p2, p3);// TODO move this out
 
@@ -495,7 +495,7 @@ bool line_shoot_same_pair_tet(
 	//if line is parallel to the triangle, return false
 	int inter0 = is_line_cut_triangle(p0, p1, bl.v[bl.facets[fid][0]], bl.v[bl.facets[fid][1]],
 		bl.v[bl.facets[fid][2]], false);
-		
+
 	int inter1 = is_line_cut_triangle(p0, p1, bl.v[bl.facets[fid + 1][0]], bl.v[bl.facets[fid + 1][1]],
 		bl.v[bl.facets[fid + 1][2]], false);
 
@@ -708,7 +708,7 @@ bool is_seg_intersect_not_degenerated_bilinear(
 	//then check if the line intersect two opposite facets of bilinear, if so, use
 	//rootfinder, else, not intersected
     if (pin0 && pin1) { // two points are all inside
-        
+
         Rational phi0 = phi(p0, bl.v);
         Rational phi1 = phi(p1, bl.v);
 		if (phi0 == 0 || phi1 == 0 || phi0.get_sign() != phi1.get_sign())
@@ -719,7 +719,7 @@ bool is_seg_intersect_not_degenerated_bilinear(
             else
                 return rootfinder(bl, p0, p1, pin0, pin1, 1);
 		}
-            
+
         else
             return false; // if the phis are the same, and shoot same pair, need
                           // to use rootfinder
@@ -745,13 +745,13 @@ bool is_seg_intersect_not_degenerated_bilinear(
         if (bl.phi_f[0] == 2)
             get_tet_phi(bl);
         if (hitpair == -1)
-            return false; 
+            return false;
         if (phi0.get_sign()
             != bl.phi_f[hitpair]) { // if different, intersected, if same,
                                     // extend; if shoot same, rootfinder, if
                                     // shoot diff, false
             return true;
-        } 
+        }
 
         else {
             if (line_shoot_same_pair_tet(p0, p1, phi0.get_sign(), bl)) {
@@ -760,7 +760,7 @@ bool is_seg_intersect_not_degenerated_bilinear(
                 else
                     return rootfinder(bl, p0, p1, pin0, pin1, 1);
 			}
-                
+
             else
                 return false; // if the phis are the same, and shoot same pair,
                               // need to use rootfinder
@@ -789,7 +789,7 @@ bool is_seg_intersect_not_degenerated_bilinear(
             return false; // parallel , should be impossible
         if (phi1.get_sign() != bl.phi_f[hitpair]) {
             return true;
-        } 
+        }
 
         else {
             if (line_shoot_same_pair_tet(p0, p1, phi1.get_sign(), bl)) {
@@ -806,14 +806,14 @@ bool is_seg_intersect_not_degenerated_bilinear(
     if (!pin0
         && !pin1) { // not intersect tet (false), or intersect same side(root
                     // finder) or intersect diff side(checked before)
-		
+
         if (line_shoot_same_pair_tet(p0, p1, 1, bl)) {
             if (1 == bl.phi_f[0])
                 return rootfinder(bl, p0, p1, pin0, pin1, 0);
             else
                 return rootfinder(bl, p0, p1, pin0, pin1, 1);
 		}
-            
+
         else if (line_shoot_same_pair_tet(p0, p1, -1, bl)) {
             if (-1 == bl.phi_f[0])
                 return rootfinder(bl, p0, p1, pin0, pin1, 0);
@@ -850,7 +850,7 @@ bool is_cube_intersect_tet_opposite_faces(
     bool &cube_inter_tet)
 {
 	cube_inter_tet = false;
-    if (!bl.is_degenerated) {        
+    if (!bl.is_degenerated) {
         for (int i = 0; i < 8; i++) {
 			vin[i] = false;
             if (is_point_inside_tet(bl, cube.vr[i])) {
@@ -859,7 +859,7 @@ bool is_cube_intersect_tet_opposite_faces(
             }
         }
     } else {
-        
+
         return is_cube_intersect_degenerated_bilinear(bl, cube);
     }
 

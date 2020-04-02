@@ -1,5 +1,4 @@
-#include "implicit_point.h"
-#include "rayPlaneIntersection.h"
+#include <doubleCCD/rayPlaneIntersection.h>
 #pragma intrinsic(fabs)
 
 int deltaVolume_filtered(double px, double py, double pz, double dx, double dy, double dz, double qx, double qy, double qz, double rx, double ry, double rz, double sx, double sy, double sz)

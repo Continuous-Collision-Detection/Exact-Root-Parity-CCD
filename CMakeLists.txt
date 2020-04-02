@@ -42,39 +42,41 @@ include(CCDUtils)
 # Library
 ################################################################################
 
-include(src/SOURCE.cmake)
 
+add_subdirectory(src)
 prepend_current_path(SOURCES)
-add_library(${PROJECT_NAME} ${SOURCES})
 CCD_copy_headers(${SOURCES})
 CCD_set_source_group(${SOURCES})
-target_sources(${PROJECT_NAME} PRIVATE ${SOURCES})
-target_include_directories(${PROJECT_NAME} PUBLIC src/)
+
+add_library(${PROJECT_NAME} ${SOURCES})
+target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_BINARY_DIR}/include)
+
+# libigl
+target_link_libraries(${PROJECT_NAME} PUBLIC igl::core)
+
+# Logger
+target_link_libraries(${PROJECT_NAME} PUBLIC spdlog::spdlog)
+
+# Extra warnings
+target_link_libraries(${PROJECT_NAME} PRIVATE warnings::all)
+#GMP
+
+target_include_directories(${PROJECT_NAME} PUBLIC ${GMP_INCLUDE_DIRS} src)
+target_link_libraries(${PROJECT_NAME} PUBLIC ${GMP_LIBRARIES})
 
 
-
+################################################################################
+################################################################################
 
 # doubleCCD
-set(CCD_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/doubleccd")
-set(DOUBLECCD_SOURCES
-	${CCD_FOLDER}/doubleccd.hpp
-	${CCD_FOLDER}/doubleccd.cpp
-	${CCD_FOLDER}/double_ray_parity.h
-	${CCD_FOLDER}/double_ray_parity.cpp
-	${CCD_FOLDER}/double_subfunctions.h
-	${CCD_FOLDER}/double_subfunctions.cpp
-	${CCD_FOLDER}/double_Utils.cpp
-	${CCD_FOLDER}/double_Utils.hpp
-	${CCD_FOLDER}/Rational.hpp
-	${CCD_FOLDER}/rayPlaneIntersection.h
-	${CCD_FOLDER}/rayPlaneIntersection.cpp
-)
- add_library(doubleCCD  ${DOUBLECCD_SOURCES})
- doubleCCD_copy_headers(${DOUBLECCD_SOURCES})
- #target_sources(doubleCCD PRIVATE ${DOUBLECCD_SOURCES})
- target_include_directories(doubleCCD PUBLIC ${CCD_FOLDER}/)
- target_link_libraries(doubleCCD PUBLIC indirect_predicates)
- # double ccd
+add_subdirectory(doubleccd)
+prepend_current_path(DOUBLECCD_SOURCES)
+doubleCCD_copy_headers(${DOUBLECCD_SOURCES})
+CCD_set_source_group(${DOUBLECCD_SOURCES})
+
+add_library(doubleCCD  ${DOUBLECCD_SOURCES})
+target_include_directories(doubleCCD PUBLIC ${PROJECT_BINARY_DIR}/include)
+target_link_libraries(doubleCCD PUBLIC indirect_predicates)
 
 # libigl
 target_link_libraries(doubleCCD PUBLIC igl::core)
@@ -93,6 +95,7 @@ ENDIF()
 target_include_directories(doubleCCD PUBLIC ${GMP_INCLUDE_DIRS})
 target_link_libraries(doubleCCD PUBLIC ${GMP_LIBRARIES})
 
+
 ################################################################################
 # Executable
 ################################################################################
@@ -104,29 +107,7 @@ add_executable(${PROJECT_NAME}_bin
 
 target_link_libraries(${PROJECT_NAME}_bin PUBLIC ${PROJECT_NAME})
 target_link_libraries(${PROJECT_NAME}_bin PUBLIC doubleCCD)
-# indirect_predicates
 
-
-
-###################################3
-
-
-################################################################################
-# Required Libraries
-################################################################################
-
-# libigl
-target_link_libraries(${PROJECT_NAME} PUBLIC igl::core)
-
-# Logger
-target_link_libraries(${PROJECT_NAME} PUBLIC spdlog::spdlog)
-
-# Extra warnings
-target_link_libraries(${PROJECT_NAME} PRIVATE warnings::all)
-#GMP
-
-target_include_directories(${PROJECT_NAME} PUBLIC ${GMP_INCLUDE_DIRS} src)
-target_link_libraries(${PROJECT_NAME} PUBLIC ${GMP_LIBRARIES})
 
 ################################################################################
 # Tests

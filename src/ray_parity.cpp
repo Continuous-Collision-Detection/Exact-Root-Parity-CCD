@@ -1,4 +1,5 @@
-#include <ray_parity.h>
+#include <CCD/ray_parity.h>
+
 namespace ccd {
 	int ray_degenerated_bilinear_parity(
 		const bilinear& bl,
@@ -43,7 +44,7 @@ namespace ccd {
 			if (dege == BI_DEGE_XOR_02) { // triangle 0-1-2 and 0-2-3
 				r1 = ray_triangle_intersection(
 					pt, dir, bl.v[0], bl.v[1],
-					bl.v[2], true);//0: not hit, 1: hit on open triangle, 2: pt on halfopen T, since already checked, accept it 
+					bl.v[2], true);//0: not hit, 1: hit on open triangle, 2: pt on halfopen T, since already checked, accept it
 				r2 = ray_triangle_intersection(
 					pt, dir, bl.v[0], bl.v[3],
 					bl.v[2], true);
@@ -53,7 +54,7 @@ namespace ccd {
 			if (dege == BI_DEGE_XOR_13) { // triangle 0-1-3 and 3-1-2
 				r1 = ray_triangle_intersection(
 					pt, dir, bl.v[0], bl.v[1],
-					bl.v[3], true);//0: not hit, 1: hit on open triangle, 2: pt on halfopen T, since already checked, accept it 
+					bl.v[3], true);//0: not hit, 1: hit on open triangle, 2: pt on halfopen T, since already checked, accept it
 				r2 = ray_triangle_intersection(
 					pt, dir, bl.v[2], bl.v[1],
 					bl.v[3], true);
@@ -156,7 +157,7 @@ namespace ccd {
 					return 0;
 				}
 			}
-			else { // p inside open tet 
+			else { // p inside open tet
 
 				if (bl.phi_f[0] == 2) { // phi never calculated, need calculated
 					get_tet_phi(bl);
@@ -185,7 +186,7 @@ namespace ccd {
 		if (!is_triangle_degenerated) {
 			return ray_triangle_intersection(pt, dir, t0, t1, t2, false);
 			// 0 not hit, 1 hit on open triangle, -1 parallel or hit on edge, need
-			// another shoot. 
+			// another shoot.
 		}
 		else {
 			// if pt on it (2), return 2; if 1(including overlap) return -1
@@ -229,7 +230,7 @@ namespace ccd {
 			psm.is_triangle_degenerated(0));
 
 		if (res == 2)
-			return 1;// it should be impossible 
+			return 1;// it should be impossible
 		if (res == -1)
 			return -1;
 
@@ -240,7 +241,7 @@ namespace ccd {
 			psm.is_triangle_degenerated(1));
 
 		if (res == 2)
-			return 1; // it should be impossible 
+			return 1; // it should be impossible
 		if (res == -1)
 			return -1;
 

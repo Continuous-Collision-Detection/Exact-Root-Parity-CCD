@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Rational.hpp"
+#include <doubleCCD/Rational.hpp>
 #include <vector>
 #include <array>
 #include <Eigen/Core>
@@ -176,7 +176,7 @@ int seg_triangle_inter_return_t(
 	Rational& t);
 // if a line (going across pt, pt+dir) intersects triangle
 // triangle is not degenerated
-// 0 not intersected, 1 intersected, 3 intersected t2-t3 edge 
+// 0 not intersected, 1 intersected, 3 intersected t2-t3 edge
 
 // we check if triangle intersect segment,
 // this function is used in cube edge--prism tri and cube edge--bilinear tri

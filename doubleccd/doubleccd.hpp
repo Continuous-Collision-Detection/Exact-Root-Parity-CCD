@@ -1,7 +1,7 @@
 /// @brief Our exact CCD method
 #pragma once
 
-#include "double_ray_parity.h"
+#include <doubleCCD/double_ray_parity.h>
 namespace ccd {
 
 /**

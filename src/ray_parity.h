@@ -1,6 +1,6 @@
 #pragma once
 //#include <Utils.hpp>
-#include <subfunctions.h>
+#include <CCD/subfunctions.h>
 namespace ccd {
 
 	// before going here, we already know the point can not be on the shape
@@ -25,7 +25,7 @@ namespace ccd {
 		const Vector3r& dir,
 		const bool is_degenerated,
 		const bool is_point_in_tet);// out of tet means no touch tet
-		
+
 	// -1 shoot another, 1 intersect, 2 point on triangle, 0 not intersect
 	int ray_triangle_parity(
 		const Vector3r& pt,

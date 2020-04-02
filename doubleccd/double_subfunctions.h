@@ -1,5 +1,5 @@
 #pragma once
-#include "double_Utils.hpp"
+#include <doubleCCD/double_Utils.hpp>
 #include <array>
 #include <vector>
 namespace ccd {
@@ -114,7 +114,7 @@ public:
     bool is_triangle_degenerated(const int up_or_bottom);
     std::array<std::array<int, 2>, 9> prism_edge_id;
     std::array<Vector3d, 6> p_vertices;
-    
+
 
 private:
     Vector3d vsr;

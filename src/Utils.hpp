@@ -1,9 +1,11 @@
 #pragma once
 
-#include <Rational.hpp>
-#include <vector>
-#include <array>
+#include <CCD/Rational.hpp>
 #include <Eigen/Core>
+#include <array>
+#include <vector>
+
+#include <cfenv>
 
 namespace ccd {
 
@@ -337,7 +339,7 @@ int line_triangle_inter_return_t(
 	Rational& t);
 // if a line (going across pt, pt+dir) intersects triangle
 // triangle is not degenerated
-// 0 not intersected, 1 intersected, 3 intersected t2-t3 edge 
+// 0 not intersected, 1 intersected, 3 intersected t2-t3 edge
 int line_triangle_intersection(
 	const Vector3r& pt,
 	const Vector3r& dir,

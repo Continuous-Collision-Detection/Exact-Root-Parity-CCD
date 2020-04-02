@@ -1,5 +1,6 @@
 /// Our exact CCD method
-#include "doubleccd.hpp"
+#include <doubleCCD/doubleccd.hpp>
+
 namespace ccd {
 
 // Detect collisions between a vertex and a triangular face.
@@ -62,7 +63,7 @@ bool vertexFaceCCD(
 			vfprism.p_vertices[5]))
 			return true;
 	}
-    
+
 
     // step 3 tet facets- cube edges
     std::array<std::array<bool, 8>, 3> v_tet;//cube vertices - tets positions
@@ -101,7 +102,7 @@ bool vertexFaceCCD(
 			return true;
 	}
 	//down here is the last part of the algorithm
-	
+
 	int min_v = 3;
     int curr_v;
     int target = 0;

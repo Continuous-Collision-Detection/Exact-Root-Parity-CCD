@@ -1,5 +1,5 @@
 /// Our exact CCD method
-#include <ccd.hpp>
+#include <CCD/ccd.hpp>
 namespace ccd {
 
 // Detect collisions between a vertex and a triangular face.
@@ -96,7 +96,7 @@ bool vertexFaceCCD(
 			return true;
 	}
 	//down here is the last part of the algorithm
-	
+
 	int min_v = 3;
     int curr_v;
     int target = 0;
