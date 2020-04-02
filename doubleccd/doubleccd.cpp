@@ -27,7 +27,7 @@ bool vertexFaceCCD(
     const Vector3d& face_vertex2_end,
     const double eps)
 {
-
+	std::cout << "double ccd" << std::endl;
     prism vfprism(
         vertex_start, face_vertex0_start, face_vertex1_start,
         face_vertex2_start, vertex_end, face_vertex0_end, face_vertex1_end,

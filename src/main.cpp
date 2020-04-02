@@ -1,9 +1,10 @@
 #include <iostream>
 //
-#include <ccd.hpp>
+//#include <ccd.hpp>
 #include <vector>
 //#include<Utils.hpp>
-#include<subfunctions.h>
+//#include<subfunctions.h>
+#include <../doubleccd/doubleccd.hpp>
 #include <fstream>
 #include <array>
 //#include <exact_subtraction.hpp>

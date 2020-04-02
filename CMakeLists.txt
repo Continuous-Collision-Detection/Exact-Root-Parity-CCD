@@ -70,26 +70,11 @@ set(DOUBLECCD_SOURCES
 	${CCD_FOLDER}/rayPlaneIntersection.cpp
 )
  add_library(doubleCCD  ${DOUBLECCD_SOURCES})
- 
-
-################################################################################
-# Executable
-################################################################################
-
-add_executable(${PROJECT_NAME}_bin
-  # Add executable source here
-  src/main.cpp
-)
-
-target_link_libraries(${PROJECT_NAME}_bin PUBLIC ${PROJECT_NAME})
-
-# indirect_predicates
-target_link_libraries(doubleCCD PUBLIC indirect_predicates)
-
-
-###################################3
-# double ccd
-target_link_libraries(doubleCCD PUBLIC igl::core)
+ doubleCCD_copy_headers(${DOUBLECCD_SOURCES})
+ #target_sources(doubleCCD PRIVATE ${DOUBLECCD_SOURCES})
+ target_include_directories(doubleCCD PUBLIC ${CCD_FOLDER}/)
+ target_link_libraries(doubleCCD PUBLIC indirect_predicates)
+ # double ccd
 
 # libigl
 target_link_libraries(doubleCCD PUBLIC igl::core)
@@ -105,10 +90,27 @@ find_package(GMPECCD)
 IF(NOT ${GMP_FOUND})
         MESSAGE(FATAL_ERROR "Cannot find GMP")
 ENDIF()
-target_include_directories(doubleCCD PUBLIC ${GMP_INCLUDE_DIRS} src)
+target_include_directories(doubleCCD PUBLIC ${GMP_INCLUDE_DIRS})
 target_link_libraries(doubleCCD PUBLIC ${GMP_LIBRARIES})
 
+################################################################################
+# Executable
+################################################################################
+
+add_executable(${PROJECT_NAME}_bin
+  # Add executable source here
+  src/main.cpp
+)
+
+target_link_libraries(${PROJECT_NAME}_bin PUBLIC ${PROJECT_NAME})
 target_link_libraries(${PROJECT_NAME}_bin PUBLIC doubleCCD)
+# indirect_predicates
+
+
+
+###################################3
+
+
 ################################################################################
 # Required Libraries
 ################################################################################
