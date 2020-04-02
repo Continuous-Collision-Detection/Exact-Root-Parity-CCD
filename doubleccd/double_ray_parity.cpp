@@ -294,6 +294,14 @@ namespace doubleccd {
 		get_correct_rand(pt[1], np[1]);
 		get_correct_rand(pt[2], np[2]);
 		dir = np - pt;
+		Rational r0, r1, r2;
+		r0 = np[0] - pt[0];
+		r1 = np[1] - pt[1];
+		r2 = np[2] - pt[2];
+		if (r0 != (Rational(np[0]) - Rational(pt[0]))
+			|| r1 != (Rational(np[1]) - Rational(pt[1])) ||
+			r2 != (Rational(np[2]) - Rational(pt[2])))
+			std::cout << "get point on ray wrong" << std::endl;
 	}
 	bool retrial_ccd(
 		prism& psm, std::array<bilinear, 3>& bls,

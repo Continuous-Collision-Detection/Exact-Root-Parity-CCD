@@ -262,6 +262,7 @@ namespace ccd {
 		int res = -1;
 		int trials;
 		for (trials = 0; trials < max_trials; ++trials) {
+			std::cout << "shoot once in rational" << std::endl;
 			res = point_inside_prism(psm, bls, pt, dir, is_pt_in_tet);
 
 			if (res >= 0)

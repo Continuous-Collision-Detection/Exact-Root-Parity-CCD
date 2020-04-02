@@ -206,10 +206,51 @@ void test_compare() {
 	std::cout << "inside number " << inside << std::endl;
 
 }
+
+void test_shifted_compare() {
+	std::vector<sccd> data;
+	read_CSV(root_path + path_sep + "cow-head-collisions.csv", data);
+	vector<bool> rst;
+	read_result(root_path + path_sep + "result_all.csv", rst);
+	int rst_true = 0;
+	for (int i = 0; i < rst.size(); i++) {
+		if (rst[i])
+			rst_true++;
+	}
+	std::cout << "original collision nbr, " << rst_true << std::endl;
+	std::vector<bool> results,results1;
+	int fn = data.size(); // 50000;
+	results.resize(fn);
+	results1.resize(fn);
+	int inside = 0;
+	for (int i = 244; i < 245; i++) {
+		if (i % 200 == 0)std::cout << "i " << i << std::endl;
+		//std::cout << "i " << std::endl;
+		results[i] = vertexFaceCCD(//double 
+			data[i].pts, data[i].v1s, data[i].v2s, data[i].v3s,
+			data[i].pte, data[i].v1e, data[i].v2e, data[i].v3e, 1e-8);
+		results1[i] = ccd::vertexFaceCCD(//rational
+			data[i].pts, data[i].v1s, data[i].v2s, data[i].v3s,
+			data[i].pte, data[i].v1e, data[i].v2e, data[i].v3e, 1e-8);
+		//if (rst[i] == 1 && results[i] == 0) {//when old method says yes but we missed it
+		//	std::cout << "wrong! i= " << i << std::endl;
+		//}
+		if (results1[i] != results[i]) {//when old method says yes but we missed it
+			std::cout << "double don't match rational! i= " << i << std::endl;
+			std::cout << "Rational vs double " << results1[i]<<" "<<results[i] << std::endl;
+		}
+		//std::cout << "result " << results[i] << std::endl;
+		if (results[i] == true) inside++;
+	}
+	std::cout << int_seg_XOR(1, 0) << std::endl;
+	cube cb(0.1);
+	std::cout << "inside number " << inside << std::endl;
+
+}
 int main(int argc, char* argv[])
 {
     // TODO: Put something more relevant here
     //ccd::test();
-	test_compare();
+	test_shifted_compare();
     return 1;
 }

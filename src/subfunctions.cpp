@@ -1,5 +1,5 @@
 #include <CCD/subfunctions.h>
-//#include <exact_subtraction.hpp>
+#include <CCD/exact_subtraction.hpp>
 
 //#include <ray_parity.h>
 namespace ccd {
@@ -308,7 +308,66 @@ bool is_cube_edges_intersect_triangle(
     }
     return false;
 }
+// x0 is the point, x1, x2, x3 is the triangle
+void get_prism_vertices_double(
+	const Vector3d& x0,
+	const Vector3d& x1,
+	const Vector3d& x2,
+	const Vector3d& x3,
+	const Vector3d& x0b,
+	const Vector3d& x1b,
+	const Vector3d& x2b,
+	const Vector3d& x3b,
+	double& k,
+	std::array<Vector3d, 6> &p_vertices)
+{
+	std::vector<std::pair<double, double>> sub;
 
+	sub.clear();
+	sub.reserve(18);
+	std::pair<double, double> temp;
+	for (int i = 0; i < 3; i++) {
+		temp.first = x0[i];
+		temp.second = x1[i];
+		sub.push_back(temp);
+	}
+	for (int i = 0; i < 3; i++) {
+		temp.first = x0[i];
+		temp.second = x3[i];
+		sub.push_back(temp);
+	}
+	for (int i = 0; i < 3; i++) {
+		temp.first = x0[i];
+		temp.second = x2[i];
+		sub.push_back(temp);
+	}
+	//
+	for (int i = 0; i < 3; i++) {
+		temp.first = x0b[i];
+		temp.second = x1b[i];
+		sub.push_back(temp);
+	}
+	for (int i = 0; i < 3; i++) {
+		temp.first = x0b[i];
+		temp.second = x3b[i];
+		sub.push_back(temp);
+	}
+	for (int i = 0; i < 3; i++) {
+		temp.first = x0b[i];
+		temp.second = x2b[i];
+		sub.push_back(temp);
+	}
+
+	k = displaceSubtractions_double(sub);
+	int c = 0;
+	for (int i = 0; i < 6; i++) {
+		for (int j = 0; j < 3; j++) {
+			p_vertices[i][j] = sub[c].first - sub[c].second;
+			c++;
+		}
+	}
+
+}
 prism::prism(
     const Vector3d& vs,
     const Vector3d& fs0,
@@ -329,13 +388,17 @@ prism::prism(
         fe1r[i] = fe1[i];
         fe2r[i] = fe2[i];
     }
-    p_vertices[0] = get_prism_corner(0, 0, 0);
-    p_vertices[1] = get_prism_corner(0, 1, 0);
-    p_vertices[2] = get_prism_corner(1, 0, 0);
-    p_vertices[3] = get_prism_corner(0, 0, 1);
-    p_vertices[4] = get_prism_corner(0, 1, 1);
-    p_vertices[5] = get_prism_corner(1, 0, 1);
-    // these are the 6 vertices of the prism,right hand law
+	std::array<Vector3d, 6> v_double;
+	double k;
+	// these are the 6 vertices of the prism,right hand law
+	get_prism_vertices_double(vs, fs0, fs1, fs2, ve, fe0, fe1, fe2, k, v_double);
+	p_vertices[0] = Vector3r(v_double[0][0], v_double[0][1], v_double[0][2]);
+    p_vertices[1] = Vector3r(v_double[1][0], v_double[1][1], v_double[1][2]);
+    p_vertices[2] = Vector3r(v_double[2][0], v_double[2][1], v_double[2][2]);
+    p_vertices[3] = Vector3r(v_double[3][0], v_double[3][1], v_double[3][2]);
+    p_vertices[4] = Vector3r(v_double[4][0], v_double[4][1], v_double[4][2]);
+    p_vertices[5] = Vector3r(v_double[5][0], v_double[5][1], v_double[5][2]);
+
     std::array<int, 2> eid;
 
     eid[0] = 0;

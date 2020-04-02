@@ -10,6 +10,7 @@ doubleccd/double_Utils.hpp
 doubleccd/Rational.hpp
 doubleccd/rayPlaneIntersection.h
 doubleccd/rayPlaneIntersection.cpp
+doubleccd/exact_subtraction.hpp
 PARENT_SCOPE
 )
 ################################################################################

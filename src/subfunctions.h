@@ -86,18 +86,7 @@ Vector3d get_prism_corner_double(
     const Vector3d& face_vertex1_end,
     const Vector3d& face_vertex2_end,
     int i);
-std::array<Vector3d, 6> get_prism_vertices_double(
-    const Vector3d& x0,
-    const Vector3d& x1,
-    const Vector3d& x2,
-    const Vector3d& x3,
-    const Vector3d& x0b,
-    const Vector3d& x1b,
-    const Vector3d& x2b,
-    const Vector3d& x3b,
-    double& k,
-    bool& correct,
-    double& maxerror);
+
 class prism {
 public:
     prism(
