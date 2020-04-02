@@ -1,6 +1,8 @@
 #include <predicates/indirect_predicates.h>
 #include <doubleCCD/double_subfunctions.h>
-//#include <exact_subtraction.hpp>
+#include<Eigen/Dense>
+#include <doubleCCD/doubleccd.hpp>
+#include <CCD/exact_subtraction.hpp>
 
 //#include <ray_parity.h>
 namespace doubleccd {
@@ -288,7 +290,81 @@ bool is_cube_edges_intersect_triangle(
     }
     return false;
 }
-
+std::array<Vector3d, 6> get_prism_vertices_double(
+	const Vector3d& x0,
+	const Vector3d& x1,
+	const Vector3d& x2,
+	const Vector3d& x3,
+	const Vector3d& x0b,
+	const Vector3d& x1b,
+	const Vector3d& x2b,
+	const Vector3d& x3b,
+	double& k,
+	bool& correct,
+	double& maxerror,
+	std::vector<std::pair<double, double>> &sub)
+{
+	//sub =[v0;v1;v2;v3;v4;v5] which are the 6 vertices of the prism
+	sub.clear();
+	sub.reserve(18);
+	std::pair<double, double> temp;
+	correct = true;
+	for (int i = 0; i < 3; i++) {
+		temp.first = x0[i];
+		temp.second = x1[i];
+		sub.push_back(temp);
+	}
+	for (int i = 0; i < 3; i++) {
+		temp.first = x0[i];
+		temp.second = x3[i];
+		sub.push_back(temp);
+	}
+	for (int i = 0; i < 3; i++) {
+		temp.first = x0[i];
+		temp.second = x2[i];
+		sub.push_back(temp);
+	}
+	//
+	for (int i = 0; i < 3; i++) {
+		temp.first = x0b[i];
+		temp.second = x1b[i];
+		sub.push_back(temp);
+	}
+	for (int i = 0; i < 3; i++) {
+		temp.first = x0b[i];
+		temp.second = x3b[i];
+		sub.push_back(temp);
+	}
+	for (int i = 0; i < 3; i++) {
+		temp.first = x0b[i];
+		temp.second = x2b[i];
+		sub.push_back(temp);
+	}
+	std::vector<std::pair<double, double>> sub_record
+		= sub; // record the origin data
+	k = displaceSubtractions_double(sub);
+	std::array<Vector3d, 6> result;
+	int ct = 0;
+	maxerror = 0;
+	for (int i = 0; i < 6; i++) {
+		for (int j = 0; j < 3; j++) {
+			result[i][j] = sub[ct].first - sub[ct].second;
+			if (Rational(sub[ct].first) - Rational(sub[ct].second)
+				!= result[i][j]) {
+				correct = false;
+			}
+			double mns = sub_record[ct].first - sub_record[ct].second;
+			Rational m = Rational(result[i][j])
+				- Rational(mns);
+			double md = m.to_double();
+			if (fabs(md) > maxerror) {
+				maxerror = fabs(md);
+			}
+			ct++;
+		}
+	}
+	return result;
+}
 prism::prism(
     const Vector3d& vs,
     const Vector3d& fs0,

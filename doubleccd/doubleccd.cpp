@@ -28,7 +28,7 @@ bool vertexFaceCCD(
     const Vector3d& face_vertex2_end,
     const double eps)
 {
-	std::cout << "double ccd" << std::endl;
+	//std::cout << "double ccd" << std::endl;
     prism vfprism(
         vertex_start, face_vertex0_start, face_vertex1_start,
         face_vertex2_start, vertex_end, face_vertex0_end, face_vertex1_end,
@@ -113,7 +113,7 @@ bool vertexFaceCCD(
             target = i;
         }
     }
-
+	std::cout << "we shoot ray " << std::endl;
     std::vector<bool> p_tet;
     p_tet.resize(3);
     p_tet[0] = v_tet[0][target];
