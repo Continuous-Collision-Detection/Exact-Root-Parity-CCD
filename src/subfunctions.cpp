@@ -197,6 +197,34 @@ bool is_seg_intersect_cube(
         return true;
     return false;
 }
+bool seg_intersect_cube(const double eps, const Vector3r& e0, const Vector3r& e1) {
+	cube cb(eps);
+	std::vector<std::array<int, 3>> tids;
+	tids.push_back({ {0,1,3} });
+	tids.push_back({ {1,3,2} });
+	tids.push_back({ {0,1,4} });
+	tids.push_back({ {1,4,5} });
+	tids.push_back({ {1,5,6} });
+	tids.push_back({ {1,2,6} });
+	tids.push_back({ {3,2,7} });
+	tids.push_back({ {2,7,6} });
+	tids.push_back({ {0,3,7} });
+	tids.push_back({ {0,7,4} });
+	tids.push_back({ {4,5,7} });
+	tids.push_back({ {5,7,6} });
+	for (int i = 0; i < 12; i++) {
+		Vector3r t0, t1, t2;
+		t0 = cb.vr[tids[i][0]];
+		t1 = cb.vr[tids[i][1]];
+		t2 = cb.vr[tids[i][2]];
+		if (segment_triangle_intersection(e0, e1, t0, t1, t2, false)>0 ){
+			return true;
+		}
+	}
+	return false;
+
+}
+
 // check if a 2d segment intersects 2d cube
 bool is_seg_intersect_cube_2d(
     const double eps, const Vector3r& e0, const Vector3r& e1, int axis)

@@ -42,13 +42,17 @@ bool vertexFaceCCD(
 
     // step 2. prism edges & prism bottom triangles check
     // prism edges test, segment degenerate cases already handled
+	//std::cout << "before seg- intersect cube in double" << std::endl;
     for (int i = 0; i < 9; i++) {
-        if (is_seg_intersect_cube(
-                eps, vfprism.p_vertices[vfprism.prism_edge_id[i][0]],
-                vfprism.p_vertices[vfprism.prism_edge_id[i][1]]))
-            return true;
+		if (is_seg_intersect_cube(
+			eps, vfprism.p_vertices[vfprism.prism_edge_id[i][0]],
+			vfprism.p_vertices[vfprism.prism_edge_id[i][1]])) {
+			//std::cout << "which seg intersect cube "<<i << std::endl;
+			return true;
+		}
+            
     }
-
+	//std::cout << "before cube edge intersect 2 triangles in double" << std::endl;
     // prism top/bottom triangle test
     cube cb(eps);
 	if (!vfprism.is_triangle_degenerated(0)) {
@@ -79,6 +83,7 @@ bool vertexFaceCCD(
         vfprism.p_vertices[3]);
 	std::array<bilinear, 3> bls = { {bl0,bl1,bl2} };
     bool cube_inter_tet[3];
+	//std::cout << "before cube - opposite faces in double" << std::endl;
 	if (is_cube_intersect_tet_opposite_faces(bl0, cb, v_tet[0], cube_inter_tet[0]))
 		return true;
 	if (is_cube_intersect_tet_opposite_faces(bl1, cb, v_tet[1], cube_inter_tet[1]))
@@ -89,6 +94,7 @@ bool vertexFaceCCD(
 	// if cube intersect any tet, need check if intersect bilinear;
 		// if cube not intersect any tet, shoot a ray
 	//TODO we can also have some information about the edge-face intersection above
+	//std::cout << "before cube inter bilinear in double" << std::endl;
 	if (cube_inter_tet[0]) {
 		if (is_cube_edge_intersect_bilinear(bl0, cb, v_tet[0]))
 			return true;
@@ -113,7 +119,7 @@ bool vertexFaceCCD(
             target = i;
         }
     }
-	
+	//std::cout << "shoot a ray in double" << std::endl;
     std::vector<bool> p_tet;
     p_tet.resize(3);
     p_tet[0] = v_tet[0][target];

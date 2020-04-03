@@ -29,6 +29,7 @@ bool box_box_intersection(
 
 bool is_seg_intersect_cube(
     const double& eps, const Vector3r& e0, const Vector3r& e1);
+bool seg_intersect_cube(const double eps, const Vector3r& e0, const Vector3r& e1);
 bool is_seg_intersect_cube_2d(
     const double eps, const Vector3r& e0, const Vector3r& e1, int axis);
 void projected_cube_edges(

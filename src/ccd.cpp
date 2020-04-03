@@ -42,10 +42,15 @@ bool vertexFaceCCD(
     // step 2. prism edges & prism bottom triangles check
     // prism edges test, segment degenerate cases already handled
     for (int i = 0; i < 9; i++) {
-        if (is_seg_intersect_cube(
+       /* if (is_seg_intersect_cube(
                 eps, vfprism.p_vertices[vfprism.prism_edge_id[i][0]],
                 vfprism.p_vertices[vfprism.prism_edge_id[i][1]]))
-            return true;
+            return true;*/
+		if (seg_intersect_cube(eps, vfprism.p_vertices[vfprism.prism_edge_id[i][0]],
+			vfprism.p_vertices[vfprism.prism_edge_id[i][1]])) {
+			/*std::cout << "here wrong in seg_cube intersection rational" << std::endl;*/
+			return true;
+		}
     }
 
     // prism top/bottom triangle test
@@ -107,7 +112,7 @@ bool vertexFaceCCD(
             target = i;
         }
     }
-
+	//std::cout << "shoot a ray in rational" << std::endl;
     std::vector<bool> p_tet;
     p_tet.resize(3);
     p_tet[0] = v_tet[0][target];

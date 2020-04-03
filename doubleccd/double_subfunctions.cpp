@@ -176,10 +176,16 @@ bool is_seg_intersect_cube(
     if (same_point(e0,e1))
         return false; // degenerate case: the segment is degenerated as a point
     // if intersected, must be coplanar with the edge, or intersect edge or face
-    if (is_seg_intersect_cube_2d(eps, e0, e1, 0)
-        && is_seg_intersect_cube_2d(eps, e0, e1, 1)
-        && is_seg_intersect_cube_2d(eps, e0, e1, 2))
-        return true;
+	if (is_seg_intersect_cube_2d(eps, e0, e1, 0)
+		&& is_seg_intersect_cube_2d(eps, e0, e1, 1)
+		&& is_seg_intersect_cube_2d(eps, e0, e1, 2)) {
+		//std::cout << "seg intersect 2d cube" << std::endl;
+		//std::cout << "e0 \n" << e0 << std::endl;
+		//std::cout << "e1 \n" << e1 << std::endl;
+		//std::cout << "eps " << eps << std::endl;
+		return true;
+	}
+        
     return false;
 }
 // check if a 2d segment intersects 2d cube
