@@ -228,24 +228,24 @@ void test_shifted_compare() {
 		//std::cout << "i " << std::endl;
 		results[i] = vertexFaceCCD(//double 
 			data[i].pts, data[i].v1s, data[i].v2s, data[i].v3s,
-			data[i].pte, data[i].v1e, data[i].v2e, data[i].v3e, 1e-3);
-		results1[i] = ccd::vertexFaceCCD(//rational
-			data[i].pts, data[i].v1s, data[i].v2s, data[i].v3s,
-			data[i].pte, data[i].v1e, data[i].v2e, data[i].v3e, 1e-3);
+			data[i].pte, data[i].v1e, data[i].v2e, data[i].v3e, 1e-8);
+		//results1[i] = ccd::vertexFaceCCD(//rational
+		//	data[i].pts, data[i].v1s, data[i].v2s, data[i].v3s,
+		//	data[i].pte, data[i].v1e, data[i].v2e, data[i].v3e, 1e-3);
 		//if (rst[i] == 1 && results[i] == 0) {//when old method says yes but we missed it
 		//	std::cout << "wrong! i= " << i << std::endl;
 		//}
 		//std::cout << "Rational vs double " << results1[i] << " " << results[i] << std::endl;
-		if (results1[i] != results[i]) {//when old method says yes but we missed it
-			std::cout << "double don't match rational! i= " << i << std::endl;
-			std::cout << "Rational vs double " << results1[i]<<" "<<results[i] << std::endl;
-		}
+		//if (results1[i] != results[i]) {//when old method says yes but we missed it
+		//	std::cout << "double don't match rational! i= " << i << std::endl;
+		//	std::cout << "Rational vs double " << results1[i]<<" "<<results[i] << std::endl;
+		//}
 		//std::cout << "result " << results[i] << std::endl;
 		if (results[i] == true) inside++;
 	}
 	cube cb(0.1);
 	std::cout << "inside number " << inside << std::endl;
-
+	test();
 }
 int main(int argc, char* argv[])
 {

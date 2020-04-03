@@ -1,6 +1,8 @@
 /// Our exact CCD method
 #include <doubleCCD/doubleccd.hpp>
-
+#include<igl/Timer.h>
+igl::Timer timer1, timer2;
+double time1 = 0, time2 = 0, time3 = 0;
 namespace doubleccd {
 
 // Detect collisions between a vertex and a triangular face.
@@ -96,15 +98,24 @@ bool vertexFaceCCD(
 	//TODO we can also have some information about the edge-face intersection above
 	//std::cout << "before cube inter bilinear in double" << std::endl;
 	if (cube_inter_tet[0]) {
-		if (is_cube_edge_intersect_bilinear(bl0, cb, v_tet[0]))
+		timer1.start();
+		bool cit0 = is_cube_edge_intersect_bilinear(bl0, cb, v_tet[0]);
+		time1 += timer1.getElapsedTimeInSec();
+		if (cit0)
 			return true;
 	}
 	if (cube_inter_tet[1]) {
-		if (is_cube_edge_intersect_bilinear(bl1, cb, v_tet[1]))
+		timer1.start();
+		bool cit1 = is_cube_edge_intersect_bilinear(bl1, cb, v_tet[1]);
+		time1 += timer1.getElapsedTimeInSec();
+		if (cit1)
 			return true;
 	}
 	if (cube_inter_tet[2]) {
-		if (is_cube_edge_intersect_bilinear(bl2, cb, v_tet[2]))
+		timer1.start();
+		bool cit2 = is_cube_edge_intersect_bilinear(bl2, cb, v_tet[2]);
+		time1 += timer1.getElapsedTimeInSec();
+		if (cit2)
 			return true;
 	}
 	//down here is the last part of the algorithm
@@ -125,8 +136,10 @@ bool vertexFaceCCD(
     p_tet[0] = v_tet[0][target];
     p_tet[1] = v_tet[1][target];
     p_tet[2] = v_tet[2][target];
-	return retrial_ccd(vfprism, bls, cb.vr[target], p_tet);
-	return 0;
+	timer2.start();
+	bool rtccd = retrial_ccd(vfprism, bls, cb.vr[target], p_tet);
+	time2 += timer2.getElapsedTimeInSec();
+	return rtccd;
 }
 
 // Detect collisions between two edges as they move.
@@ -142,5 +155,8 @@ bool edgeEdgeCCD(
 {
     throw "not implemented";
 }
-void test() { std::cout << "compiles correct " << std::endl; }
+void test() { 
+	std::cout << "time for cube edge - bilinear "<<time1 << std::endl; 
+	std::cout << "time for retrail ccd  " << time2 << std::endl;
+}
 } // namespace doubleccd

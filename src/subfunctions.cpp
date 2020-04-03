@@ -198,6 +198,12 @@ bool is_seg_intersect_cube(
     return false;
 }
 bool seg_intersect_cube(const double eps, const Vector3r& e0, const Vector3r& e1) {
+	if (is_point_intersect_cube(eps, e0))
+		return true;
+	if (is_point_intersect_cube(eps, e1))
+		return true;
+	if (same_point(e0, e1))
+		return false; // degenerate case: the segment is degenerated as a point
 	cube cb(eps);
 	std::vector<std::array<int, 3>> tids;
 	tids.push_back({ {0,1,3} });

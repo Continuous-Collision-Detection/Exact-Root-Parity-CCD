@@ -4,7 +4,7 @@
 #include <vector>
 #include <array>
 #include <Eigen/Core>
-
+#include <igl/Timer.h>
 namespace doubleccd {
 
 typedef Eigen::Matrix<Rational, 3, 1> Vector3r;
