@@ -1,5 +1,5 @@
 #include <CCD/ray_parity.h>
-
+#include <iomanip>
 namespace ccd {
 	int ray_degenerated_bilinear_parity(
 		const bilinear& bl,
@@ -212,7 +212,7 @@ namespace ccd {
 
 			int is_ray_patch = ray_bilinear_parity(
 				bls[patch], pt, dir, bls[patch].is_degenerated, is_pt_in_tet[patch]);
-			//std::cout << "is_ray_patch " << is_ray_patch << std::endl;
+			
 
 			if (is_ray_patch == 2)
 				return 1;
@@ -228,7 +228,7 @@ namespace ccd {
 		res = ray_triangle_parity(
 			pt, dir, psm.p_vertices[0], psm.p_vertices[1], psm.p_vertices[2],
 			psm.is_triangle_degenerated(0));
-
+		
 		if (res == 2)
 			return 1;// it should be impossible
 		if (res == -1)
@@ -239,7 +239,7 @@ namespace ccd {
 		res = ray_triangle_parity(
 			pt, dir, psm.p_vertices[3], psm.p_vertices[4], psm.p_vertices[5],
 			psm.is_triangle_degenerated(1));
-
+		
 		if (res == 2)
 			return 1; // it should be impossible
 		if (res == -1)
@@ -257,12 +257,14 @@ namespace ccd {
 		const std::vector<bool>& is_pt_in_tet)
 	{
 		static const int max_trials = 8;// TODO maybe dont need to set this
+		
+		
 		Vector3r dir(1, 0, 0);
-
+		
 		int res = -1;
 		int trials;
 		for (trials = 0; trials < max_trials; ++trials) {
-			std::cout << "shoot once in rational" << std::endl;
+	
 			res = point_inside_prism(psm, bls, pt, dir, is_pt_in_tet);
 
 			if (res >= 0)

@@ -1,5 +1,5 @@
 #include <doubleCCD/double_ray_parity.h>
-
+#include <iomanip>
 namespace doubleccd {
 	int ray_degenerated_bilinear_parity(
 		const bilinear& bl,
@@ -195,6 +195,7 @@ namespace doubleccd {
 		const bool is_triangle_degenerated)
 	{
 		if (!is_triangle_degenerated) {
+			//std::cout << "not degenerated in double " << std::endl;
 			return ray_triangle_intersection(pt, pt1, dir, t0, t1, t2, false);
 			// 0 not hit, 1 hit on open triangle, -1 parallel or hit on edge, need
 			// another shoot.
@@ -224,7 +225,7 @@ namespace doubleccd {
 
 			int is_ray_patch = ray_bilinear_parity(
 				bls[patch], pt, pt1, dir, bls[patch].is_degenerated, is_pt_in_tet[patch]);
-			//std::cout << "is_ray_patch " << is_ray_patch << std::endl;
+			
 
 			if (is_ray_patch == 2)
 				return 1;
@@ -240,7 +241,7 @@ namespace doubleccd {
 		res = ray_triangle_parity(
 			pt, pt1, dir, psm.p_vertices[0], psm.p_vertices[1], psm.p_vertices[2],
 			psm.is_triangle_degenerated(0));
-
+		
 		if (res == 2)
 			return 1;// it should be impossible
 		if (res == -1)
@@ -251,7 +252,7 @@ namespace doubleccd {
 		res = ray_triangle_parity(
 			pt, pt1, dir, psm.p_vertices[3], psm.p_vertices[4], psm.p_vertices[5],
 			psm.is_triangle_degenerated(1));
-
+		
 		if (res == 2)
 			return 1; // it should be impossible
 		if (res == -1)
@@ -260,7 +261,7 @@ namespace doubleccd {
 		if (res > 0)
 			S++;
 
-		//std::cout << "intersection nbrs " << S << std::endl;
+		
 		return ((S % 2) == 1) ? 1 : 0;
 	}
 
@@ -268,46 +269,56 @@ namespace doubleccd {
 	// to make a-b have no truncation
 	void get_correct_rand(const double b, double &a) {
 		double rd;
-		if (b == 0) a = 0; return;
+		if (b == 0) {
+			a = 1; return;
+		}
 		if (b > 0) {
 			rd = rand() / RAND_MAX;//random number from 0 to 1
 			a = b / 2 + 3 * rd * b / 4;// a random number from b/2 to 2b
-			while (b > 2 * a || b < a / 2) {
-				rd = rand() / RAND_MAX;//random number from 0 to 1
+			//while (Rational(b) >= Rational(2) *Rational(a) || Rational(b) <= Rational(a) / Rational(2)) {
+			while ((b) >= (2) *(a) ||(b) <=(a) / 2) {
+			rd = rand() / RAND_MAX;//random number from 0 to 1
 				a = b / 2 + 3 * rd * b / 4;
 			}
 		}
 		else {
 			rd = rand() / RAND_MAX;//random number from 0 to 1
 			a = b / 2 + 3 * rd * b / 4;// a random number from b/2 to 2b
-			while (b > a/2 || b < 2*a) {
+			while ((b) >= (a) / (2) || (b) <= (2)*(a)) {
 				rd = rand() / RAND_MAX;//random number from 0 to 1
 				a = b / 2 + 3 * rd * b / 4;
 			}
 		}
+		
 		return;
 
 	}
 	//this function can get a random direction and a random point np, so that np-pt=dir
 	void get_direction(const Vector3d&pt, Vector3d &np, Vector3d&dir) {
+		
 		get_correct_rand(pt[0], np[0]);
 		get_correct_rand(pt[1], np[1]);
 		get_correct_rand(pt[2], np[2]);
+
 		dir = np - pt;
+		//test
+		if (dir[0] == 0 && dir[1] == 0 && dir[2] == 0) std::cout << "need fix dir" << std::endl;
 		Rational r0, r1, r2;
-		r0 = np[0] - pt[0];
-		r1 = np[1] - pt[1];
-		r2 = np[2] - pt[2];
-		if (r0 != (Rational(np[0]) - Rational(pt[0]))
-			|| r1 != (Rational(np[1]) - Rational(pt[1])) ||
-			r2 != (Rational(np[2]) - Rational(pt[2])))
-			std::cout << "get point on ray wrong" << std::endl;
+		r0 = Rational(np[0]) - Rational(pt[0]);
+		r1 = Rational(np[1]) - Rational(pt[1]);
+		r2 = Rational(np[2]) - Rational(pt[2]);
+		
+		if (r0 > dir[0] || r0 < dir[0]) std::cout << "get direction wrong0" << std::endl;
+		if (r1 > dir[1] || r1 < dir[1]) std::cout << "get direction wrong1" << std::endl;
+		if (r2 > dir[2] || r2 < dir[2]) std::cout << "get direction wrong2" << std::endl;
+		
 	}
 	bool retrial_ccd(
 		prism& psm, std::array<bilinear, 3>& bls,
 		const Vector3d& pt,
 		const std::vector<bool>& is_pt_in_tet)
 	{
+
 		static const int max_trials = 8;// TODO maybe dont need to set this
 
 		// if a/2<=b<=2*a, then a-b is exact.
@@ -317,9 +328,10 @@ namespace doubleccd {
 
 		int res = -1;
 		int trials;
+		
 		for (trials = 0; trials < max_trials; ++trials) {
 			res = point_inside_prism(psm, bls, pt,pt2, dir, is_pt_in_tet);
-
+			
 			if (res >= 0)
 				break;
 

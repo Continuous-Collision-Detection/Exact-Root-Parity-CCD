@@ -512,16 +512,17 @@ namespace doubleccd {
 		return is_line_cut_triangle(e0, e1, t1, t2, t3, halfopen);
 	}
 	// pt is not on the plane
-	bool is_ray_intersect_plane(const Vector3d& pt,
-		const Vector3d& pt1,
+	bool is_ray_intersect_plane(
+		const Vector3d& pt,
 		const Vector3d& dir,
 		const Vector3d& t1,
 		const Vector3d& t2,
 		const Vector3d& t3) {
-		explicitPoint3D p(pt1[0], pt1[1], pt1[2]), d(dir[0], dir[1], dir[2]);
+		explicitPoint3D p(pt[0], pt[1], pt[2]), d(dir[0], dir[1], dir[2]);
 		explicitPoint3D T1(t1[0], t1[1], t1[2]), T2(t2[0], t2[1], t2[2]), T3(t3[0], t3[1], t3[2]);
 		return rayIntersectsPlane(p, d, T1, T2, T3);
 	}
+	
 
 	// 0 no intersection, 1 intersect, 2 point on triangle(including two edges), 3 point or ray shoot t2-t3 edge, -1 shoot on border
 	int ray_triangle_intersection(
@@ -578,8 +579,10 @@ namespace doubleccd {
 
 		// if point not on plane, and not point to plane, return 0
 		//explicitPoint3D pte()
-		if (!is_ray_intersect_plane(pt, pt1, dir, t1, t2, t3)) return 0;
-
+		
+		
+		if (!is_ray_intersect_plane(pt, dir, t1, t2, t3)) return 0;
+		
 		// if ray go across the plane, then get lpi and 3 orientations
 		int inter = is_line_cut_triangle(pt, pt1, t1, t2, t3, halfopen);
 		if (inter == 0)return 0;

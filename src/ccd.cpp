@@ -107,12 +107,13 @@ bool vertexFaceCCD(
             target = i;
         }
     }
-	std::cout << " we shoot ray in rational" << std::endl;
+
     std::vector<bool> p_tet;
     p_tet.resize(3);
     p_tet[0] = v_tet[0][target];
     p_tet[1] = v_tet[1][target];
     p_tet[2] = v_tet[2][target];
+
 	return retrial_ccd(vfprism, bls, cb.vr[target], p_tet);
 	return 0;
 }
