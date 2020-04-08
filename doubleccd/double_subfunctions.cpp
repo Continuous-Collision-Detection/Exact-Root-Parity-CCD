@@ -3,7 +3,7 @@
 #include<Eigen/Dense>
 #include <doubleCCD/doubleccd.hpp>
 #include <doubleCCD/exact_subtraction.hpp>
-
+int rootrue = 0, rootime = 0;
 //#include <ray_parity.h>
 namespace doubleccd {
 
@@ -297,7 +297,125 @@ bool is_cube_edges_intersect_triangle(
     return false;
 }
 // x0 is the point, x1, x2, x3 is the triangle
-void get_prism_vertices_double(
+struct vf_pair {
+	Vector3d x0;
+	Vector3d x1;
+	Vector3d x2;
+	Vector3d x3;
+	Vector3d x0b;
+	Vector3d x1b;
+	Vector3d x2b;
+	Vector3d x3b;
+};
+
+
+// convert a array of subtraction pair to vertices
+void convert_to_shifted_v(const std::array<std::pair<double, double>,18>& dt, vf_pair&vs) {
+	vs.x0[0] = dt[0].first;
+	vs.x0[1] = dt[1].first;
+	vs.x0[2] = dt[2].first;
+	
+	vs.x0b[0] = dt[15].first;
+	vs.x0b[1] = dt[16].first;
+	vs.x0b[2] = dt[17].first;
+
+	vs.x1[0] = dt[0].second;
+	vs.x1[1] = dt[1].second;
+	vs.x1[2] = dt[2].second;
+
+	vs.x3[0] = dt[3].second;
+	vs.x3[1] = dt[4].second;
+	vs.x3[2] = dt[5].second;
+
+	vs.x2[0] = dt[6].second;
+	vs.x2[1] = dt[7].second;
+	vs.x2[2] = dt[8].second;
+
+	vs.x1b[0] = dt[9].second;
+	vs.x1b[1] = dt[10].second;
+	vs.x1b[2] = dt[11].second;
+
+	vs.x3b[0] = dt[12].second;
+	vs.x3b[1] = dt[13].second;
+	vs.x3b[2] = dt[14].second;
+
+	vs.x2b[0] = dt[15].second;
+	vs.x2b[1] = dt[16].second;
+	vs.x2b[2] = dt[17].second;
+}
+// vs are shifted vertices, we shift back by vs.vertices-k
+void convert_to_shifted_back_v(const vf_pair&vs, const Vector3d& kvec, vf_pair&back) {
+	back.x0 = vs.x0 - kvec;
+	back.x1 = vs.x1 - kvec;
+	back.x2 = vs.x2 - kvec;
+	back.x3 = vs.x3 - kvec;
+	back.x0b = vs.x0b - kvec;
+	back.x1b = vs.x1b - kvec;
+	back.x2b = vs.x2b - kvec;
+	back.x3b = vs.x3b - kvec;
+}
+
+// x0 is the point, x1, x2, x3 is the triangle
+void get_whole_mesh_shifted(const std::vector<vf_pair>& data, std::vector<vf_pair>& shifted, std::vector<vf_pair>& shift_back,double &k) {
+	std::vector<std::pair<double, double>> sub;
+
+	sub.clear();
+	sub.reserve(18 * data.size());// each vf_pair has 6*3 subtractions
+	std::pair<double, double> temp;
+
+	for (int j = 0; j < data.size(); j++) {
+		for (int i = 0; i < 3; i++) {
+			temp.first = data[j].x0[i];
+			temp.second = data[j].x1[i];
+			sub.push_back(temp);
+		}
+		for (int i = 0; i < 3; i++) {
+			temp.first = data[j].x0[i];
+			temp.second = data[j].x3[i];
+			sub.push_back(temp);
+		}
+		for (int i = 0; i < 3; i++) {
+			temp.first = data[j].x0[i];
+			temp.second = data[j].x2[i];
+			sub.push_back(temp);
+		}
+		//
+		for (int i = 0; i < 3; i++) {
+			temp.first = data[j].x0b[i];
+			temp.second = data[j].x1b[i];
+			sub.push_back(temp);
+		}
+		for (int i = 0; i < 3; i++) {
+			temp.first = data[j].x0b[i];
+			temp.second = data[j].x3b[i];
+			sub.push_back(temp);
+		}
+		for (int i = 0; i < 3; i++) {
+			temp.first = data[j].x0b[i];
+			temp.second = data[j].x2b[i];
+			sub.push_back(temp);
+		}
+	}
+	k = displaceSubtractions_double(sub);
+	shifted.resize(data.size());
+	shift_back.resize(data.size());
+	int c = 0;
+	Vector3d kvec(k, k, k);
+	std::array<std::pair<double, double>, 18> dt;
+	for (int r = 0; r < data.size(); r++) {
+		for (int i = 0; i < 18; i++) {
+			dt[i] = sub[r * 18 + i];
+		}
+		convert_to_shifted_v(dt, shifted[r]);
+		convert_to_shifted_back_v(shifted[r], kvec, shift_back[r]);
+	}
+	return;
+}
+
+
+
+// x0 is the point, x1, x2, x3 is the triangle
+void get_prism_shifted_vertices_double(
 	const Vector3d& x0,
 	const Vector3d& x1,
 	const Vector3d& x2,
@@ -356,6 +474,24 @@ void get_prism_vertices_double(
 	}
 	
 }
+// x0 is the point, x1, x2, x3 is the triangle
+void get_prism_vertices(
+	const Vector3d& x0,
+	const Vector3d& x1,
+	const Vector3d& x2,
+	const Vector3d& x3,
+	const Vector3d& x0b,
+	const Vector3d& x1b,
+	const Vector3d& x2b,
+	const Vector3d& x3b,
+	std::array<Vector3d, 6> &p_vertices) {
+	p_vertices[0] = x0 - x1;
+	p_vertices[1] = x0 - x3;
+	p_vertices[2] = x0 - x2;
+	p_vertices[3] = x0b - x1b;
+	p_vertices[4] = x0b - x3b;
+	p_vertices[5] = x0b - x2b;
+}
 prism::prism(
     const Vector3d& vs,
     const Vector3d& fs0,
@@ -366,19 +502,11 @@ prism::prism(
     const Vector3d& fe1,
     const Vector3d& fe2)
 {
-    for (int i = 0; i < 3; i++) {
-        vsr[i] = vs[i];
-        ver[i] = ve[i];
-        fs0r[i] = fs0[i];
-        fs1r[i] = fs1[i];
-        fs2r[i] = fs2[i];
-        fe0r[i] = fe0[i];
-        fe1r[i] = fe1[i];
-        fe2r[i] = fe2[i];
-    }
+
 	double k;
 	// these are the 6 vertices of the prism,right hand law
-	get_prism_vertices_double(vs, fs0, fs1, fs2, ve, fe0, fe1, fe2, k, p_vertices);
+	get_prism_shifted_vertices_double(vs, fs0, fs1, fs2, ve, fe0, fe1, fe2, k, p_vertices);
+	//get_prism_vertices(vs, fs0, fs1, fs2, ve, fe0, fe1, fe2, p_vertices);// TODO before use this we need to shift all the vertices
     std::array<int, 2> eid;
 
     eid[0] = 0;
@@ -438,13 +566,7 @@ bool prism::is_triangle_degenerated(const int up_or_bottom)
 	}
 	return true;
 }
-Vector3d prism::get_prism_corner(int u, int v, int t)
-{
 
-    return (1 - t) * vsr + t * ver
-        - ((1 - t) * fs0r + t * fe0r) * (1 - u - v)
-        - ((1 - t) * fs1r + t * fe1r) * u - ((1 - t) * fs2r + t * fe2r) * v;
-}
 
 
 // the facets of the tet are all oriented to outside. check if p is inside of
@@ -696,7 +818,13 @@ bool get_function_find_root(
         Rational(p0[0]), Rational(p0[1]), Rational(p0[2]), Rational(dir[0]), Rational(dir[1]), Rational(dir[2])
 		, bl.v[0], bl.v[1], bl.v[2],
         bl.v[3], a, b, c);
-    return quadratic_function_rootfinder(a, b, c, t0, t1);
+    bool res= quadratic_function_rootfinder(a, b, c, t0, t1);
+	if (res) rootrue++;
+	return res;
+}
+void print_sub() {
+	std::cout << "root finder return true time " << rootrue << std::endl;
+	std::cout << "root finder total call time " << rootime << std::endl;
 }
 bool rootfinder(
     const bilinear& bl,
@@ -706,6 +834,7 @@ bool rootfinder(
     const bool p1in,
     const int pairid)
 {
+	rootime++;
 	Vector3r p0(p0d[0], p0d[1], p0d[2]), p1(p1d[0], p1d[1], p1d[2]);
 	//std::cout << "we use root finder here" << std::endl;
     if (p0in && p1in) {

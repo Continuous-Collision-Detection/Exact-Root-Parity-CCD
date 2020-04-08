@@ -14,7 +14,7 @@ public:
     Vector3d bmax;
     double epsilon;
 };
-
+void print_sub();
 
 template <typename T, typename Y>
 bool box_box_intersection(
@@ -103,19 +103,6 @@ public:
     bool is_triangle_degenerated(const int up_or_bottom);
     std::array<std::array<int, 2>, 9> prism_edge_id;
     std::array<Vector3d, 6> p_vertices;
-
-
-private:
-    Vector3d vsr;
-    Vector3d ver;
-    Vector3d fs0r;
-    Vector3d fs1r;
-    Vector3d fs2r;
-    Vector3d fe0r;
-    Vector3d fe1r;
-    Vector3d fe2r;
-
-    Vector3d get_prism_corner(int u, int v, int t);
 };
 bool is_cube_intersect_tet_opposite_faces(
     const bilinear& bl,

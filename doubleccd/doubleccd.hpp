@@ -83,5 +83,14 @@ bool edgeEdgeCCD(
     const Vector3d& edge0_vertex1_end,
     const Vector3d& edge1_vertex0_end,
     const Vector3d& edge1_vertex1_end);
+bool edgeEdgeCCD(
+	const Vector3d& edge0_vertex0_start,
+	const Vector3d& edge0_vertex1_start,
+	const Vector3d& edge1_vertex0_start,
+	const Vector3d& edge1_vertex1_start,
+	const Vector3d& edge0_vertex0_end,
+	const Vector3d& edge0_vertex1_end,
+	const Vector3d& edge1_vertex0_end,
+	const Vector3d& edge1_vertex1_end,const double eps);
 void test();
 } // namespace doubleccd
