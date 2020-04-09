@@ -307,7 +307,16 @@ struct vf_pair {
 	Vector3d x2b;
 	Vector3d x3b;
 };
-
+struct ee_pair {
+	Vector3d a0;
+	Vector3d a1;
+	Vector3d b0;
+	Vector3d b1;
+	Vector3d a0b;
+	Vector3d a1b;
+	Vector3d b0b;
+	Vector3d b1b;
+};
 
 // convert a array of subtraction pair to vertices
 void convert_to_shifted_v(const std::array<std::pair<double, double>,18>& dt, vf_pair&vs) {
@@ -343,71 +352,166 @@ void convert_to_shifted_v(const std::array<std::pair<double, double>,18>& dt, vf
 	vs.x2b[1] = dt[16].second;
 	vs.x2b[2] = dt[17].second;
 }
-// vs are shifted vertices, we shift back by vs.vertices-k
-void convert_to_shifted_back_v(const vf_pair&vs, const Vector3d& kvec, vf_pair&back) {
-	back.x0 = vs.x0 - kvec;
-	back.x1 = vs.x1 - kvec;
-	back.x2 = vs.x2 - kvec;
-	back.x3 = vs.x3 - kvec;
-	back.x0b = vs.x0b - kvec;
-	back.x1b = vs.x1b - kvec;
-	back.x2b = vs.x2b - kvec;
-	back.x3b = vs.x3b - kvec;
+void convert_to_shifted_v(const std::array<std::pair<double, double>, 24>& dt, ee_pair&vs) {
+	vs.a0[0] = dt[0].first;
+	vs.a0[1] = dt[1].first;
+	vs.a0[2] = dt[2].first;
+
+	vs.a1[0] = dt[3].first;
+	vs.a1[1] = dt[4].first;
+	vs.a1[2] = dt[5].first;
+	
+	vs.b0[0] = dt[0].second;
+	vs.b0[1] = dt[1].second;
+	vs.b0[2] = dt[2].second;
+	
+	vs.b1[0] = dt[6].second;
+	vs.b1[1] = dt[7].second;
+	vs.b1[2] = dt[8].second;
+	//////
+	vs.a0b[0] = dt[12].first;
+	vs.a0b[1] = dt[13].first;
+	vs.a0b[2] = dt[14].first;
+
+	vs.a1b[0] = dt[15].first;
+	vs.a1b[1] = dt[16].first;
+	vs.a1b[2] = dt[17].first;
+
+	vs.b0b[0] = dt[12].second;
+	vs.b0b[1] = dt[13].second;
+	vs.b0b[2] = dt[14].second;
+
+	vs.b1b[0] = dt[18].second;
+	vs.b1b[1] = dt[19].second;
+	vs.b1b[2] = dt[20].second;
+	
 }
-
-// x0 is the point, x1, x2, x3 is the triangle
-void get_whole_mesh_shifted(const std::vector<vf_pair>& data, std::vector<vf_pair>& shifted, std::vector<vf_pair>& shift_back,double &k) {
-	std::vector<std::pair<double, double>> sub;
-
+void push_vers_into_subtract_pair(
+	const std::vector<vf_pair>& data1, 
+	const std::vector<ee_pair>& data2,
+	std::vector<std::pair<double, double>> &sub) {
 	sub.clear();
-	sub.reserve(18 * data.size());// each vf_pair has 6*3 subtractions
+	sub.reserve(18 * data1.size() + 24 * data2.size());// each vf_pair has 6*3, ee_pair has 8*3 subtractions
 	std::pair<double, double> temp;
 
-	for (int j = 0; j < data.size(); j++) {
+	for (int j = 0; j < data1.size(); j++) {
 		for (int i = 0; i < 3; i++) {
-			temp.first = data[j].x0[i];
-			temp.second = data[j].x1[i];
+			temp.first = data1[j].x0[i];
+			temp.second = data1[j].x1[i];
 			sub.push_back(temp);
 		}
 		for (int i = 0; i < 3; i++) {
-			temp.first = data[j].x0[i];
-			temp.second = data[j].x3[i];
+			temp.first = data1[j].x0[i];
+			temp.second = data1[j].x3[i];
 			sub.push_back(temp);
 		}
 		for (int i = 0; i < 3; i++) {
-			temp.first = data[j].x0[i];
-			temp.second = data[j].x2[i];
+			temp.first = data1[j].x0[i];
+			temp.second = data1[j].x2[i];
 			sub.push_back(temp);
 		}
 		//
 		for (int i = 0; i < 3; i++) {
-			temp.first = data[j].x0b[i];
-			temp.second = data[j].x1b[i];
+			temp.first = data1[j].x0b[i];
+			temp.second = data1[j].x1b[i];
 			sub.push_back(temp);
 		}
 		for (int i = 0; i < 3; i++) {
-			temp.first = data[j].x0b[i];
-			temp.second = data[j].x3b[i];
+			temp.first = data1[j].x0b[i];
+			temp.second = data1[j].x3b[i];
 			sub.push_back(temp);
 		}
 		for (int i = 0; i < 3; i++) {
-			temp.first = data[j].x0b[i];
-			temp.second = data[j].x2b[i];
+			temp.first = data1[j].x0b[i];
+			temp.second = data1[j].x2b[i];
 			sub.push_back(temp);
 		}
 	}
-	k = displaceSubtractions_double(sub);
-	shifted.resize(data.size());
-	shift_back.resize(data.size());
-	int c = 0;
-	Vector3d kvec(k, k, k);
-	std::array<std::pair<double, double>, 18> dt;
-	for (int r = 0; r < data.size(); r++) {
-		for (int i = 0; i < 18; i++) {
-			dt[i] = sub[r * 18 + i];
+	//ee
+	for (int j = 0; j < data2.size(); j++) {
+		for (int i = 0; i < 3; i++) {
+			temp.first = data2[j].a0[i];
+			temp.second = data2[j].b0[i];
+			sub.push_back(temp);
 		}
-		convert_to_shifted_v(dt, shifted[r]);
-		convert_to_shifted_back_v(shifted[r], kvec, shift_back[r]);
+		for (int i = 0; i < 3; i++) {
+			temp.first = data2[j].a1[i];
+			temp.second = data2[j].b0[i];
+			sub.push_back(temp);
+		}
+		for (int i = 0; i < 3; i++) {
+			temp.first = data2[j].a1[i];
+			temp.second = data2[j].b1[i];
+			sub.push_back(temp);
+		}
+		for (int i = 0; i < 3; i++) {
+			temp.first = data2[j].a0[i];
+			temp.second = data2[j].b1[i];
+			sub.push_back(temp);
+		}
+		//
+		for (int i = 0; i < 3; i++) {
+			temp.first = data2[j].a0b[i];
+			temp.second = data2[j].b0b[i];
+			sub.push_back(temp);
+		}
+		for (int i = 0; i < 3; i++) {
+			temp.first = data2[j].a1b[i];
+			temp.second = data2[j].b0b[i];
+			sub.push_back(temp);
+		}
+		for (int i = 0; i < 3; i++) {
+			temp.first = data2[j].a1b[i];
+			temp.second = data2[j].b1b[i];
+			sub.push_back(temp);
+		}
+		for (int i = 0; i < 3; i++) {
+			temp.first = data2[j].a0b[i];
+			temp.second = data2[j].b1b[i];
+			sub.push_back(temp);
+		}
+		
+	}
+}
+
+
+
+// x0 is the point, x1, x2, x3 is the triangle
+void get_whole_mesh_shifted(const std::vector<vf_pair>& data1, const std::vector<ee_pair>& data2, std::vector<vf_pair>& shifted1, std::vector<vf_pair>& shift_back1, std::vector<ee_pair>& shifted2, std::vector<ee_pair>& shift_back2, double &k) {
+	std::vector<std::pair<double, double>> sub,suback;
+
+	push_vers_into_subtract_pair(data1, data2, sub);
+	suback = sub;// this is for shift back
+	k = displaceSubtractions_double(sub);
+	perturbSubtractions(suback);//get shifted back data
+	shifted1.resize(data1.size());
+	shift_back1.resize(data1.size());
+	shifted2.resize(data2.size());
+	shift_back2.resize(data2.size());
+	int c = 0;
+	//Vector3d kvec(k, k, k);
+	int d1size = data1.size();
+	int d2size = data2.size();
+	int datasize = d1size + d2size;
+	std::array<std::pair<double, double>, 18> dt1, dtback1;
+	std::array<std::pair<double, double>, 24> dt2, dtback2;
+	for (int r = 0; r < datasize; r++) {
+		if (r < d1size) {
+			for (int i = 0; i < 18; i++) {
+				dt1[i] = sub[r * 18 + i];
+				dtback1[i] = suback[r * 18 + i];
+			}
+			convert_to_shifted_v(dt1, shifted1[r]);
+			convert_to_shifted_v(dtback1, shift_back1[r]);
+		}//r is d1size-1, sub has been read to d1size*18-1
+		else {// r is from d1size to datasize-1, sub is from d1*18
+			for (int i = 0; i < 24; i++) {
+				dt2[i] = sub[d1size * 18 + (r - d1size) * 24 + i];
+				dtback2[i] = suback[d1size * 18 + (r - d1size) * 24 + i];
+			}
+			convert_to_shifted_v(dt2, shifted2[r - d1size]);
+			convert_to_shifted_v(dtback2, shift_back2[r - d1size]);
+		}
 	}
 	return;
 }
@@ -505,8 +609,8 @@ prism::prism(
 
 	double k;
 	// these are the 6 vertices of the prism,right hand law
-	get_prism_shifted_vertices_double(vs, fs0, fs1, fs2, ve, fe0, fe1, fe2, k, p_vertices);
-	//get_prism_vertices(vs, fs0, fs1, fs2, ve, fe0, fe1, fe2, p_vertices);// TODO before use this we need to shift all the vertices
+	//get_prism_shifted_vertices_double(vs, fs0, fs1, fs2, ve, fe0, fe1, fe2, k, p_vertices);
+	get_prism_vertices(vs, fs0, fs1, fs2, ve, fe0, fe1, fe2, p_vertices);// TODO before use this we need to shift all the vertices
     std::array<int, 2> eid;
 
     eid[0] = 0;
@@ -567,7 +671,82 @@ bool prism::is_triangle_degenerated(const int up_or_bottom)
 	return true;
 }
 
+void get_hex_vertices(
+	const Vector3d& a0,
+	const Vector3d& a1,
+	const Vector3d& b0,
+	const Vector3d& b1,
+	const Vector3d& a0b,
+	const Vector3d& a1b,
+	const Vector3d& b0b,
+	const Vector3d& b1b,
+	std::array<Vector3d, 8> &h_vertices) {
+	h_vertices[0] = a0 - b0;
+	h_vertices[1] = a1 - b0;
+	h_vertices[2] = a1 - b1;
+	h_vertices[3] = a0 - b1;
+	h_vertices[4] = a0b - b0b;
+	h_vertices[5] = a1b - b0b;
+	h_vertices[6] = a1b - b1b;
+	h_vertices[7] = a0b - b1b;
+	
+}
+//a0, a1 is one edge, b0, b1 is another  edge
+hex::hex(
+	const Vector3d& a0,
+	const Vector3d& a1,
+	const Vector3d& b0,
+	const Vector3d& b1,
+	const Vector3d& a0b,
+	const Vector3d& a1b,
+	const Vector3d& b0b,
+	const Vector3d& b1b) {
+	
+	// these are the 6 vertices of the prism,right hand law
+	//get_hex_shifted_vertices_double(vs, fs0, fs1, fs2, ve, fe0, fe1, fe2, k, p_vertices);
+	get_hex_vertices(a0,a1,b0,b1, a0b, a1b, b0b, b1b, h_vertices);// TODO before use this we need to shift all the vertices
+	std::array<int, 2> eid;
 
+	eid[0] = 0;
+	eid[1] = 1;
+	hex_edge_id[0] = eid;
+	eid[0] = 1;
+	eid[1] = 2;
+	hex_edge_id[1] = eid;
+	eid[0] = 2;
+	eid[1] = 3;
+	hex_edge_id[2] = eid;
+	eid[0] = 3;
+	eid[1] = 0;
+	hex_edge_id[3] = eid;
+
+	eid[0] = 4;
+	eid[1] = 5;
+	hex_edge_id[4] = eid;
+	eid[0] = 5;
+	eid[1] = 6;
+	hex_edge_id[5] = eid;
+	eid[0] = 6;
+	eid[1] = 7;
+	hex_edge_id[6] = eid;
+	eid[0] = 7;
+	eid[1] = 4;
+	hex_edge_id[7] = eid;
+
+	eid[0] = 0;
+	eid[1] = 4;
+	hex_edge_id[8] = eid;
+	eid[0] = 1;
+	eid[1] = 5;
+	hex_edge_id[9] = eid;
+	eid[0] = 2;
+	eid[1] = 6;
+	hex_edge_id[10] = eid;
+	eid[0] = 3;
+	eid[1] = 7;
+	hex_edge_id[11] = eid;
+
+}
 
 // the facets of the tet are all oriented to outside. check if p is inside of
 // OPEN tet

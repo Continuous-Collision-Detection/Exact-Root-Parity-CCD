@@ -55,6 +55,30 @@ static void displaceSubtractions(std::vector<std::pair<double, double>>& subtrac
 
 	_setFPUModeToRoundNEAR();
 }
+
+// This function takes a vector of pairs <x_i, y_i>, calculates a value z,
+// and adds z to all the values in the vector. Then, subtracts z from all
+// the values of the vector. This induces a loss of precision in the initial
+// values guaranteeing that x_i - y_i is error free for all the pairs.
+static void perturbSubtractions(std::vector<std::pair<double, double>>& subtractions)
+{
+	setFPUModeToRoundUP();
+
+	double z = maxCommonDisplacement(subtractions);
+	for (std::pair<double, double>& p : subtractions)
+	{
+		p.first += z;
+		p.second += z;
+	}
+
+	for (std::pair<double, double>& p : subtractions)
+	{
+		p.first -= z;
+		p.second -= z;
+	}
+
+	setFPUModeToRoundNEAR();
+}
 static double displaceSubtractions_double(std::vector<std::pair<double, double>>& subtractions)
 {
     _setFPUModeToRoundUP();
