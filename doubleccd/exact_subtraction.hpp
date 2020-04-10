@@ -62,7 +62,7 @@ static void displaceSubtractions(std::vector<std::pair<double, double>>& subtrac
 // values guaranteeing that x_i - y_i is error free for all the pairs.
 static void perturbSubtractions(std::vector<std::pair<double, double>>& subtractions)
 {
-	setFPUModeToRoundUP();
+	_setFPUModeToRoundUP();
 
 	double z = maxCommonDisplacement(subtractions);
 	for (std::pair<double, double>& p : subtractions)
@@ -77,7 +77,7 @@ static void perturbSubtractions(std::vector<std::pair<double, double>>& subtract
 		p.second -= z;
 	}
 
-	setFPUModeToRoundNEAR();
+	_setFPUModeToRoundNEAR();
 }
 static double displaceSubtractions_double(std::vector<std::pair<double, double>>& subtractions)
 {

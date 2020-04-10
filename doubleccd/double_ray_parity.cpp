@@ -220,7 +220,10 @@ namespace doubleccd {
 		const Vector3d& pt, const Vector3d& pt1, const Vector3d& dir, const std::vector<bool>& is_pt_in_tet)
 	{
 		int S = 0;
-
+		if (dir[0] == 0 && dir[1] == 0 && dir[2] == 0) {
+			std::cout << "random direction wrong" << std::endl;
+			return -1;
+		}
 		for (int patch = 0; patch < 3; ++patch) {
 
 			int is_ray_patch = ray_bilinear_parity(
@@ -264,7 +267,32 @@ namespace doubleccd {
 		
 		return ((S % 2) == 1) ? 1 : 0;
 	}
+	// dir = pt1 - pt
+	int point_inside_hex(std::array<bilinear, 6> &bls,
+		const Vector3d& pt, const Vector3d& pt1, const Vector3d& dir, const std::vector<bool>& is_pt_in_tet)
+	{
+		int S = 0;
+		if (dir[0] == 0 && dir[1] == 0 && dir[2] == 0) {
+			std::cout << "random direction wrong" << std::endl;
+			return -1;
+		}
+		for (int patch = 0; patch < 6; ++patch) {
 
+			int is_ray_patch = ray_bilinear_parity(
+				bls[patch], pt, pt1, dir, bls[patch].is_degenerated, is_pt_in_tet[patch]);
+
+
+			if (is_ray_patch == 2)
+				return 1;
+
+			if (is_ray_patch == -1)
+				return -1;
+
+			if (is_ray_patch == 1)
+				S++;
+		}
+		return ((S % 2) == 1) ? 1 : 0;
+	}
 	//this function can give a random double number between b/2 and 2*b
 	// to make a-b have no truncation
 	void get_correct_rand(const double b, double &a) {
@@ -332,6 +360,40 @@ namespace doubleccd {
 		for (trials = 0; trials < max_trials; ++trials) {
 			res = point_inside_prism(psm, bls, pt,pt2, dir, is_pt_in_tet);
 			
+			if (res >= 0)
+				break;
+
+			get_direction(pt, pt2, dir);
+		}
+
+		if (trials == max_trials) {
+
+			std::cout << "All rays are on edges, increase trials" << std::endl;
+			throw "All rays are on edges, increase trials";
+			return false;
+		}
+
+		return res >= 1; // >=1 means point inside of prism
+	}
+	bool retrial_ccd_hex(
+		 std::array<bilinear, 6>& bls,
+		const Vector3d& pt,
+		const std::vector<bool>& is_pt_in_tet)
+	{
+
+		static const int max_trials = 8;// TODO maybe dont need to set this
+
+		// if a/2<=b<=2*a, then a-b is exact.
+
+		Vector3d pt2, dir;
+		get_direction(pt, pt2, dir);
+
+		int res = -1;
+		int trials;
+
+		for (trials = 0; trials < max_trials; ++trials) {
+			res = point_inside_hex(bls, pt, pt2, dir, is_pt_in_tet);
+
 			if (res >= 0)
 				break;
 

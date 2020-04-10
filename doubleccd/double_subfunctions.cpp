@@ -296,27 +296,7 @@ bool is_cube_edges_intersect_triangle(
     }
     return false;
 }
-// x0 is the point, x1, x2, x3 is the triangle
-struct vf_pair {
-	Vector3d x0;
-	Vector3d x1;
-	Vector3d x2;
-	Vector3d x3;
-	Vector3d x0b;
-	Vector3d x1b;
-	Vector3d x2b;
-	Vector3d x3b;
-};
-struct ee_pair {
-	Vector3d a0;
-	Vector3d a1;
-	Vector3d b0;
-	Vector3d b1;
-	Vector3d a0b;
-	Vector3d a1b;
-	Vector3d b0b;
-	Vector3d b1b;
-};
+
 
 // convert a array of subtraction pair to vertices
 void convert_to_shifted_v(const std::array<std::pair<double, double>,18>& dt, vf_pair&vs) {
