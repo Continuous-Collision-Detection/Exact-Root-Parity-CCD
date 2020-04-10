@@ -148,6 +148,17 @@ namespace doubleccd {
 		bool is_triangle_degenerated(const int up_or_bottom);
 		std::array<std::array<int, 2>, 9> prism_edge_id;
 		std::array<Vector3d, 6> p_vertices;
+	private:
+		void get_prism_vertices(
+			const Vector3d& x0,
+			const Vector3d& x1,
+			const Vector3d& x2,
+			const Vector3d& x3,
+			const Vector3d& x0b,
+			const Vector3d& x1b,
+			const Vector3d& x2b,
+			const Vector3d& x3b,
+			std::array<Vector3d, 6> &p_vertices);
 	};
 
 	class hex {
@@ -173,6 +184,17 @@ namespace doubleccd {
 
 		std::array<std::array<int, 2>, 12> hex_edge_id;
 		std::array<Vector3d, 8> h_vertices;
+	private:
+		void get_hex_vertices(
+			const Vector3d& a0,
+			const Vector3d& a1,
+			const Vector3d& b0,
+			const Vector3d& b1,
+			const Vector3d& a0b,
+			const Vector3d& a1b,
+			const Vector3d& b0b,
+			const Vector3d& b1b,
+			std::array<Vector3d, 8> &h_vertices);
 	};
 	bool is_cube_intersect_tet_opposite_faces(
 		const bilinear& bl,

@@ -559,7 +559,7 @@ void get_prism_shifted_vertices_double(
 	
 }
 // x0 is the point, x1, x2, x3 is the triangle
-void get_prism_vertices(
+void prism::get_prism_vertices(
 	const Vector3d& x0,
 	const Vector3d& x1,
 	const Vector3d& x2,
@@ -651,7 +651,7 @@ bool prism::is_triangle_degenerated(const int up_or_bottom)
 	return true;
 }
 
-void get_hex_vertices(
+void hex::get_hex_vertices(
 	const Vector3d& a0,
 	const Vector3d& a1,
 	const Vector3d& b0,
