@@ -1,5 +1,6 @@
 #include <doubleCCD/double_ray_parity.h>
 #include <iomanip>
+double timed1 = 0, timed2 = 0, timed3 = 0, timed4 = 0, timed5 = 0;
 namespace doubleccd {
 	int ray_degenerated_bilinear_parity(
 		const bilinear& bl,
@@ -224,12 +225,14 @@ namespace doubleccd {
 			std::cout << "random direction wrong" << std::endl;
 			return -1;
 		}
+		igl::Timer timer;
+		
 		for (int patch = 0; patch < 3; ++patch) {
-
+			timer.start();
 			int is_ray_patch = ray_bilinear_parity(
 				bls[patch], pt, pt1, dir, bls[patch].is_degenerated, is_pt_in_tet[patch]);
 			
-
+			timed1 += timer.getElapsedTimeInSec();
 			if (is_ray_patch == 2)
 				return 1;
 
@@ -241,10 +244,11 @@ namespace doubleccd {
 		}
 
 		int res;
+		timer.start();
 		res = ray_triangle_parity(
 			pt, pt1, dir, psm.p_vertices[0], psm.p_vertices[1], psm.p_vertices[2],
 			psm.is_triangle_degenerated(0));
-		
+		timed2 += timer.getElapsedTimeInSec();
 		if (res == 2)
 			return 1;// it should be impossible
 		if (res == -1)
@@ -252,10 +256,11 @@ namespace doubleccd {
 
 		if (res > 0)
 			S++;
+		timer.start();
 		res = ray_triangle_parity(
 			pt, pt1, dir, psm.p_vertices[3], psm.p_vertices[4], psm.p_vertices[5],
 			psm.is_triangle_degenerated(1));
-		
+		timed2 += timer.getElapsedTimeInSec();
 		if (res == 2)
 			return 1; // it should be impossible
 		if (res == -1)
@@ -330,7 +335,7 @@ namespace doubleccd {
 
 		dir = np - pt;
 		//test
-		if (dir[0] == 0 && dir[1] == 0 && dir[2] == 0) std::cout << "need fix dir" << std::endl;
+		/*if (dir[0] == 0 && dir[1] == 0 && dir[2] == 0) std::cout << "need fix dir" << std::endl;
 		Rational r0, r1, r2;
 		r0 = Rational(np[0]) - Rational(pt[0]);
 		r1 = Rational(np[1]) - Rational(pt[1]);
@@ -338,7 +343,7 @@ namespace doubleccd {
 		
 		if (r0 > dir[0] || r0 < dir[0]) std::cout << "get direction wrong0" << std::endl;
 		if (r1 > dir[1] || r1 < dir[1]) std::cout << "get direction wrong1" << std::endl;
-		if (r2 > dir[2] || r2 < dir[2]) std::cout << "get direction wrong2" << std::endl;
+		if (r2 > dir[2] || r2 < dir[2]) std::cout << "get direction wrong2" << std::endl;*/
 		
 	}
 	bool retrial_ccd(
@@ -350,13 +355,15 @@ namespace doubleccd {
 		static const int max_trials = 8;// TODO maybe dont need to set this
 
 		// if a/2<=b<=2*a, then a-b is exact.
-
+		igl::Timer timer;
+		timer.start();
 		Vector3d pt2, dir;
 		get_direction(pt, pt2, dir);
-
+		timed4 += timer.getElapsedTimeInSec();
 		int res = -1;
 		int trials;
 		
+		timer.start();
 		for (trials = 0; trials < max_trials; ++trials) {
 			res = point_inside_prism(psm, bls, pt,pt2, dir, is_pt_in_tet);
 			
@@ -365,7 +372,7 @@ namespace doubleccd {
 
 			get_direction(pt, pt2, dir);
 		}
-
+		timed3 += timer.getElapsedTimeInSec();
 		if (trials == max_trials) {
 
 			std::cout << "All rays are on edges, increase trials" << std::endl;
@@ -408,5 +415,11 @@ namespace doubleccd {
 		}
 
 		return res >= 1; // >=1 means point inside of prism
+	}
+	void ray_time() {
+		std::cout << "get random direction time " << timed4 << std::endl;
+		std::cout << "point inside prism time " << timed3 << std::endl;
+		std::cout << "ray bilinear time " << timed1 << std::endl;
+		std::cout << "ray triangle time " << timed2 << std::endl;
 	}
 }

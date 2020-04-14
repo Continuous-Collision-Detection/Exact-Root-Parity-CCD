@@ -58,5 +58,6 @@ bool retrial_ccd_hex(
 	std::array<bilinear, 6>& bls,
 	const Vector3d& pt,
 	const std::vector<bool>& is_pt_in_tet);
+void ray_time();
 
 } // namespace doubleccd

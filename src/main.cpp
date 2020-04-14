@@ -233,15 +233,15 @@ void test_shifted_compare() {
 			data[i].pts, data[i].v1s, data[i].v2s, data[i].v3s,
 			data[i].pte, data[i].v1e, data[i].v2e, data[i].v3e, 1e-3);
 		time += timer.getElapsedTimeInSec();
-		results1[i] = ccd::vertexFaceCCD(//rational
-			data[i].pts, data[i].v1s, data[i].v2s, data[i].v3s,
-			data[i].pte, data[i].v1e, data[i].v2e, data[i].v3e, 1e-3);
+		//results1[i] = ccd::vertexFaceCCD(//rational
+		//	data[i].pts, data[i].v1s, data[i].v2s, data[i].v3s,
+		//	data[i].pte, data[i].v1e, data[i].v2e, data[i].v3e, 1e-3);
 		
 		//std::cout << "Rational vs double " << results1[i] << " " << results[i] << std::endl;
-		if (results1[i] != results[i]) {//when old method says yes but we missed it
-			std::cout << "double don't match rational! i= " << i << std::endl;
-			std::cout << "Rational vs double " << results1[i]<<" "<<results[i] << std::endl;
-		}
+		//if (results1[i] != results[i]) {//when old method says yes but we missed it
+		//	std::cout << "double don't match rational! i= " << i << std::endl;
+		//	std::cout << "Rational vs double " << results1[i]<<" "<<results[i] << std::endl;
+		//}
 		//std::cout << "result " << results[i] << std::endl;
 		if (results[i] == true) inside++;
 	}
@@ -249,12 +249,60 @@ void test_shifted_compare() {
 	std::cout << "total time " << time << std::endl;
 	std::cout << "inside number " << inside << std::endl;
 	test();
+
 	print_sub();
+	ray_time();
 }
+
+void test_rootfinder() {
+	Vector3d p0(0, 0, 1);
+	Vector3d p1(0, 1, 1);
+	Vector3d p2(0, 0, 0);
+	Vector3d p3(1, 1, 0);
+	bilinear bl(p0, p1, p2, p3);
+	if (bl.phi_f[0] == 2) {
+		std::cout << "calculate bilinear face signs" << std::endl;
+		get_tet_phi(bl);
+	}
+	
+
+	Vector3d s0(0.01, 0.02, 2);
+	Vector3d s1(0.01, 0.02, -1);
+	bool pin0 = false, pin1 = false, result;
+	if (line_shoot_same_pair_tet(s0, s1, 1, bl)) {
+		std::cout << "shoot first pair" << std::endl;
+		if (1 == bl.phi_f[0])
+			result = rootfinder(bl, s0, s1, pin0, pin1, 0);
+		else
+			result = rootfinder(bl, s0, s1, pin0, pin1, 1);
+	}
+
+	else if (line_shoot_same_pair_tet(s0, s1, -1, bl)) {
+		std::cout << "shoot second pair" << std::endl;
+		if (-1 == bl.phi_f[0])
+			result = rootfinder(bl, s0, s1, pin0, pin1, 0);
+		else
+			result = rootfinder(bl, s0, s1, pin0, pin1, 1);
+	}
+	std::cout << "result of rootfinder is shoot or not " << result << std::endl;
+
+	std::vector<std::array<Vector3r, 3>>tris;
+	tri_bilinear(bl, 10, tris);
+	ccd::Vector3r e0(0.01, 0.02, 2), e1(0.01, 0.02, -1);
+	/*for (int i = 0; i < tris.size(); i++) {
+		if (ccd::segment_triangle_intersection(Vector3r(0.01, 0.02, 2), Vector3r(0.01, 0.02, -1), tris[i][0], tris[i][1], tris[i][2], false)>0) {
+			std::cout << "here seg intersected bilinear" << std::endl;
+			break;
+		}
+	}*/
+	save_obj("D:\\vs\\collision\\test_rootfinder.obj", tris);
+}
+
 int main(int argc, char* argv[])
 {
     // TODO: Put something more relevant here
     //ccd::test();
-	test_shifted_compare();
-    return 1;
+	//test_shifted_compare();
+	test_rootfinder();
+	return 1;
 }

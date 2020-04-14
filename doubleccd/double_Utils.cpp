@@ -592,8 +592,55 @@ namespace doubleccd {
 
 		return 0;
 	}
+	Vector3r sum(const Vector3r& a, const Vector3r& b) {
+		Vector3r c;
+		c[0] = a[0] + b[0];
+		c[1] = a[1] + b[1];
+		c[2] = a[2] + b[2];
+		return c;
+	}
+	Vector3r para_p(const Vector3r&p1, const Vector3r&p2, int n, int i) {
+		return sum(p1, (p2 - p1)*double(i) / double(n));
+	};
+	void tri_bilinear(const bilinear &bl, int n, std::vector<std::array<Vector3r, 3>>& patch) {
+		patch.clear();
 
+		const auto get_p = [](const Vector3r&v0, const Vector3r&v1, const Vector3r&v2, const Vector3r&v3,
+			int n, int i, int j) {
+			Vector3r p1, p2, p;
+			p1 = para_p(v0, v1, n, i);
+			p2 = para_p(v3, v2, n, i);
+			p = para_p(p1, p2, n, j);
+			return p;
+		};
+		std::array<Vector3r, 3> tri;
+		Vector3r v0(bl.v[0][0], bl.v[0][1], bl.v[0][2]), v1(bl.v[1][0], bl.v[1][1], bl.v[1][2]), 
+			v2(bl.v[2][0], bl.v[2][1], bl.v[2][2]), v3(bl.v[3][0], bl.v[3][1], bl.v[3][2]);
 
-
+		for (int i = 0; i < n; i++) {
+			for (int j = 0; j < n; j++) {
+				tri[0] = get_p(v0, v1, v2, v3, n, i, j);
+				tri[1] = get_p(v0, v1, v2, v3, n, i, j + 1);
+				tri[2] = get_p(v0, v1, v2, v3, n, i + 1, j);
+				patch.emplace_back(tri);
+				tri[0] = get_p(v0, v1, v2, v3, n, i, j + 1);
+				tri[1] = get_p(v0, v1, v2, v3, n, i + 1, j + 1);
+				tri[2] = get_p(v0, v1, v2, v3, n, i + 1, j);
+				patch.emplace_back(tri);
+			}
+		}
+	}
+	void save_obj(const std::string &name, const std::vector<std::array<Vector3r, 3>>& tris) {
+		std::ofstream out(name);
+		for (int i = 0; i < tris.size(); i++) {
+			out << "v " << tris[i][0][0] << " " << tris[i][0][1] << " " << tris[i][0][2] << std::endl;
+			out << "v " << tris[i][1][0] << " " << tris[i][1][1] << " " << tris[i][1][2] << std::endl;
+			out << "v " << tris[i][2][0] << " " << tris[i][2][1] << " " << tris[i][2][2] << std::endl;
+		}
+		for (int i = 0; i < tris.size(); i++) {
+			out << "f " << i * 3 + 1 << " " << i * 3 + 2 << " " << i * 3 + 3 << std::endl;
+		}
+		out.close();
+	}
 
 } // namespace ccd

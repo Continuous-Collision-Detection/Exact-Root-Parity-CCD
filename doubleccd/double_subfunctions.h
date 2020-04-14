@@ -206,5 +206,14 @@ namespace doubleccd {
 	//    const Vector3r& t0, const Vector3r& t1, const Vector3r& t2);
 	bool is_cube_edge_intersect_bilinear(
 		bilinear& bl, const cube& cb, const std::array<bool, 8>& pin);
-
+	// phisign gives the pair we want to check
+	bool line_shoot_same_pair_tet(
+		const Vector3d& p0, const Vector3d& p1, const int phisign, bilinear& bl);
+	bool rootfinder(
+		const bilinear& bl,
+		const Vector3d& p0d,
+		const Vector3d& p1d,
+		const bool p0in,
+		const bool p1in,
+		const int pairid);
 } // namespace doubleccd

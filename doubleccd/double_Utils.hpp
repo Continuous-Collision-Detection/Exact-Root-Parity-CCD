@@ -198,4 +198,6 @@ int ray_triangle_intersection(
 	const Vector3d& t2,
 	const Vector3d& t3,
 	const bool halfopen);
+void tri_bilinear(const bilinear &bl, int n, std::vector<std::array<Vector3r, 3>>& patch);
+void save_obj(const std::string &name, const std::vector<std::array<Vector3r, 3>>& tris);
 } // namespace ccd
