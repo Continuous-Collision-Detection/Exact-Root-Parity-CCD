@@ -298,30 +298,37 @@ namespace doubleccd {
 		}
 		return ((S % 2) == 1) ? 1 : 0;
 	}
-	//this function can give a random double number between b/2 and 2*b
+	//this function can give a random double number between b/2 and 2*b, b~1.5b
 	// to make a-b have no truncation
 	void get_correct_rand(const double b, double &a) {
 		double rd;
 		if (b == 0) {
 			a = 1; return;
 		}
-		if (b > 0) {
-			rd = rand() / RAND_MAX;//random number from 0 to 1
-			a = b / 2 + 3 * rd * b / 4;// a random number from b/2 to 2b
-			//while (Rational(b) >= Rational(2) *Rational(a) || Rational(b) <= Rational(a) / Rational(2)) {
-			while ((b) >= (2) *(a) ||(b) <=(a) / 2) {
-			rd = rand() / RAND_MAX;//random number from 0 to 1
-				a = b / 2 + 3 * rd * b / 4;
-			}
-		}
-		else {
-			rd = rand() / RAND_MAX;//random number from 0 to 1
-			a = b / 2 + 3 * rd * b / 4;// a random number from b/2 to 2b
-			while ((b) >= (a) / (2) || (b) <= (2)*(a)) {
-				rd = rand() / RAND_MAX;//random number from 0 to 1
-				a = b / 2 + 3 * rd * b / 4;
-			}
-		}
+		//if (b > 0) {
+		rd = double(rand()) / RAND_MAX;//random number from 0 to 1
+		rd = 0.25 + rd / 2;
+		a = b / 2 + 3 * rd * b / 4;// a random number from b/2 to 2b
+		//while (Rational(b) >= Rational(2) *Rational(a) || Rational(b) <= Rational(a) / Rational(2)) {
+		//while ((b) >= (2) *(a) ||(b) <=(a) / 2) {
+		//	//throw "we have wrong direction";
+		//rd = double(rand()) / RAND_MAX;//random number from 0 to 1
+		//	a = b / 2 + 3 * rd * b / 4;
+		//}
+
+		assert((b>=0 && b < 2*a && b > a/2) || (b < 0 && b > 2 * a && b < a / 2));
+		//}
+		//else {
+		//	rd = double(rand()) / RAND_MAX;//random number from 0 to 1
+		//	//rd = 0.25 + rd / 2;
+		//	a = b / 2 + 3 * rd * b / 4;// a random number from b/2 to 2b
+		//	
+		//	while ((b) >= (a) / (2) || (b) <= (2)*(a)) {
+		//		//throw "we have wrong direction";
+		//		rd = double(rand()) / RAND_MAX;//random number from 0 to 1
+		//		a = b / 2 + 3 * rd * b / 4;
+		//	}
+		//}
 		
 		return;
 

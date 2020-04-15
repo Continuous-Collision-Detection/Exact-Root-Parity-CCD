@@ -25,7 +25,7 @@ namespace doubleccd {
 		Vector3d b1b;
 	};
 
-	void get_whole_mesh_shifted(const std::vector<vf_pair>& data1, const std::vector<ee_pair>& data2, std::vector<vf_pair>& shifted1, std::vector<vf_pair>& shift_back1, std::vector<ee_pair>& shifted2, std::vector<ee_pair>& shift_back2, double &k);
+	void get_whole_mesh_shifted(const std::vector<vf_pair>& data1, const std::vector<ee_pair>& data2, std::vector<vf_pair>& shift_back1, std::vector<ee_pair>& shift_back2, double &k);
 	class cube {
 	public:
 		cube(double eps);

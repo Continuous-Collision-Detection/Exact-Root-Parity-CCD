@@ -454,19 +454,63 @@ void push_vers_into_subtract_pair(
 	}
 }
 
+double vf_shift_error(const vf_pair& d1, const vf_pair& d2) {
+	double err = 0;
+	for (int i = 0; i < 3; i++) {
+		if (fabs(d1.x0[i] - d2.x0[i]) > err)
+			err = fabs(d1.x0[i] - d2.x0[i]);
+		if (fabs(d1.x1[i] - d2.x1[i]) > err)
+			err = fabs(d1.x1[i] - d2.x1[i]);
+		if (fabs(d1.x2[i] - d2.x2[i]) > err)
+			err = fabs(d1.x2[i] - d2.x2[i]);
+		if (fabs(d1.x3[i] - d2.x3[i]) > err)
+			err = fabs(d1.x3[i] - d2.x3[i]);
 
+		if (fabs(d1.x0b[i] - d2.x0b[i]) > err)
+			err = fabs(d1.x0b[i] - d2.x0b[i]);
+		if (fabs(d1.x1b[i] - d2.x1b[i]) > err)
+			err = fabs(d1.x1b[i] - d2.x1b[i]);
+		if (fabs(d1.x2b[i] - d2.x2b[i]) > err)
+			err = fabs(d1.x2b[i] - d2.x2b[i]);
+		if (fabs(d1.x3b[i] - d2.x3b[i]) > err)
+			err = fabs(d1.x3b[i] - d2.x3b[i]);
+	}
+	return err;
+}
+double ee_shift_error(const ee_pair& d1, const ee_pair& d2) {
+	double err = 0;
+	for (int i = 0; i < 3; i++) {
+		if (fabs(d1.a0[i] - d2.a0[i]) > err)
+			err = fabs(d1.a0[i] - d2.a0[i]);
+		if (fabs(d1.a1[i] - d2.a1[i]) > err)
+			err = fabs(d1.a1[i] - d2.a1[i]);
+		if (fabs(d1.b0[i] - d2.b0[i]) > err)
+			err = fabs(d1.b0[i] - d2.b0[i]);
+		if (fabs(d1.b1[i] - d2.b1[i]) > err)
+			err = fabs(d1.b1[i] - d2.b1[i]);
 
+		if (fabs(d1.a0b[i] - d2.a0b[i]) > err)
+			err = fabs(d1.a0b[i] - d2.a0b[i]);
+		if (fabs(d1.a1b[i] - d2.a1b[i]) > err)
+			err = fabs(d1.a1b[i] - d2.a1b[i]);
+		if (fabs(d1.b0b[i] - d2.b0b[i]) > err)
+			err = fabs(d1.b0b[i] - d2.b0b[i]);
+		if (fabs(d1.b1b[i] - d2.b1b[i]) > err)
+			err = fabs(d1.b1b[i] - d2.b1b[i]);
+	}
+	return err;
+}
 // x0 is the point, x1, x2, x3 is the triangle
-void get_whole_mesh_shifted(const std::vector<vf_pair>& data1, const std::vector<ee_pair>& data2, std::vector<vf_pair>& shifted1, std::vector<vf_pair>& shift_back1, std::vector<ee_pair>& shifted2, std::vector<ee_pair>& shift_back2, double &k) {
+void get_whole_mesh_shifted(const std::vector<vf_pair>& data1, const std::vector<ee_pair>& data2, std::vector<vf_pair>& shift_back1, std::vector<ee_pair>& shift_back2, double &k) {
 	std::vector<std::pair<double, double>> sub,suback;
 
 	push_vers_into_subtract_pair(data1, data2, sub);
 	suback = sub;// this is for shift back
 	k = displaceSubtractions_double(sub);
 	perturbSubtractions(suback);//get shifted back data
-	shifted1.resize(data1.size());
+	
 	shift_back1.resize(data1.size());
-	shifted2.resize(data2.size());
+	
 	shift_back2.resize(data2.size());
 	int c = 0;
 	//Vector3d kvec(k, k, k);
@@ -481,7 +525,7 @@ void get_whole_mesh_shifted(const std::vector<vf_pair>& data1, const std::vector
 				dt1[i] = sub[r * 18 + i];
 				dtback1[i] = suback[r * 18 + i];
 			}
-			convert_to_shifted_v(dt1, shifted1[r]);
+			
 			convert_to_shifted_v(dtback1, shift_back1[r]);
 		}//r is d1size-1, sub has been read to d1size*18-1
 		else {// r is from d1size to datasize-1, sub is from d1*18
@@ -489,10 +533,22 @@ void get_whole_mesh_shifted(const std::vector<vf_pair>& data1, const std::vector
 				dt2[i] = sub[d1size * 18 + (r - d1size) * 24 + i];
 				dtback2[i] = suback[d1size * 18 + (r - d1size) * 24 + i];
 			}
-			convert_to_shifted_v(dt2, shifted2[r - d1size]);
+			
 			convert_to_shifted_v(dtback2, shift_back2[r - d1size]);
 		}
 	}
+	double err = 0, temerr;
+	for (int i = 0; i < d1size; i++) {
+		temerr = vf_shift_error(data1[i], shift_back1[i]);
+		if (temerr > err)
+			err = temerr;
+	}
+	for (int i = 0; i < d2size; i++) {
+		temerr = ee_shift_error(data2[i], shift_back2[i]);
+		if (temerr > err)
+			err = temerr;
+	}
+	std::cout << "the shifted maximal error is " << err << std::endl;
 	return;
 }
 

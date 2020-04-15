@@ -297,12 +297,32 @@ void test_rootfinder() {
 	}*/
 	save_obj("D:\\vs\\collision\\test_rootfinder.obj", tris);
 }
+void test_shift_maxerror() {
+	std::vector<sccd> data;
+	read_CSV(root_path + path_sep + "cow-head-collisions.csv", data);
+	std::vector<vf_pair> vfs,shifted_vfs;
+	std::vector<ee_pair> ees, shifted_ees;
+	vfs.resize(data.size());
+	for (int i = 0; i < data.size(); i++) {
+		vfs[i].x0 = data[i].pts;
+		vfs[i].x1 = data[i].v1s;
+		vfs[i].x2 = data[i].v2s;
+		vfs[i].x3 = data[i].v3s;
 
+		vfs[i].x0b = data[i].pte;
+		vfs[i].x1b = data[i].v1e;
+		vfs[i].x2b = data[i].v2e;
+		vfs[i].x3b = data[i].v3e;
+	}
+	double k;
+	get_whole_mesh_shifted(vfs, ees, shifted_vfs, shifted_ees, k);
+}
 int main(int argc, char* argv[])
 {
     // TODO: Put something more relevant here
     //ccd::test();
 	//test_shifted_compare();
-	test_rootfinder();
+	//test_rootfinder();
+	test_shift_maxerror();
 	return 1;
 }
