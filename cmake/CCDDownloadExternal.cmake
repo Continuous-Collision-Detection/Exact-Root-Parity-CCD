@@ -52,11 +52,3 @@ function(ccd_download_catch2)
         GIT_TAG        v2.11.1
     )
 endfunction()
-
-# Comparisons
-function(ccd_download_comparisons)
-  ccd_download_project(comparisons
-    GIT_REPOSITORY https://github.com/zfergus/ccd.git
-    GIT_TAG        17922e86afef283f721e9929817210c433fb927c
-  )
-endfunction()

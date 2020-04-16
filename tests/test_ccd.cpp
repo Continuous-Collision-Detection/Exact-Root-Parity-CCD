@@ -1,11 +1,12 @@
 #include <catch2/catch.hpp>
 
 #include <ccd.hpp>
+#include <doubleccd.hpp>
 
 static const double EPSILON = std::numeric_limits<float>::epsilon();
-
+static const double MIN_DIST = 0.1 * EPSILON;
 TEST_CASE(
-    "Test Point-Triangle Continous Collision Detection",
+    "Test Point-Triangle Continuous Collision Detection",
     "[ccd][point-triangle]")
 {
     // point
@@ -32,13 +33,19 @@ TEST_CASE(
     SECTION("Counter-clockwise triangle") { std::swap(v1, v2); }
 
     bool hit = ccd::vertexFaceCCD(
-        v0, v1, v2, v3, v0 + u0, v1 + u1, v2 + u1, v3 + u1);
+        v0, v1, v2, v3, v0 + u0, v1 + u1, v2 + u1, v3 + u1, MIN_DIST);
+
+    CAPTURE(v0z, u0y, u1y, u0z, EPSILON);
+    CHECK(hit == ((-u0y + u1y >= 1) && (v0z + u0z >= v3.z())));
+
+    hit = doubleccd::vertexFaceCCD(
+        v0, v1, v2, v3, v0 + u0, v1 + u1, v2 + u1, v3 + u1, MIN_DIST);
 
     CAPTURE(v0z, u0y, u1y, u0z, EPSILON);
     CHECK(hit == ((-u0y + u1y >= 1) && (v0z + u0z >= v3.z())));
 }
 
-TEST_CASE("Test Edge-Edge Continous Collision Detection", "[ccd][edge-edge]")
+TEST_CASE("Test Edge-Edge Continuous Collision Detection", "[ccd][edge-edge]")
 {
     // e0 = (v0, v1)
     Eigen::Vector3d v0(-1, -1, 0);
@@ -56,14 +63,21 @@ TEST_CASE("Test Edge-Edge Continous Collision Detection", "[ccd][edge-edge]")
     Eigen::Vector3d u0(0, y_displacement, 0);
     Eigen::Vector3d u1(0, -y_displacement, 0);
 
-    bool hit
-        = ccd::edgeEdgeCCD(v0, v1, v2, v3, v0 + u0, v1 + u0, v2 + u1, v3 + u1);
+    try {
+        bool hit = ccd::edgeEdgeCCD(
+            v0, v1, v2, v3, v0 + u0, v1 + u0, v2 + u1, v3 + u1, MIN_DIST);
+        CAPTURE(y_displacement, e1x);
+        CHECK(hit == (y_displacement >= 1.0 && e1x >= -1 && e1x <= 1));
+    } catch (...) {
+    }
 
+    bool hit = doubleccd::edgeEdgeCCD(
+        v0, v1, v2, v3, v0 + u0, v1 + u0, v2 + u1, v3 + u1, MIN_DIST);
     CAPTURE(y_displacement, e1x);
     CHECK(hit == (y_displacement >= 1.0 && e1x >= -1 && e1x <= 1));
 }
 
-TEST_CASE("Zhongshi test case", "[ccd][point-triangle][!mayfail]")
+TEST_CASE("Zhongshi test case", "[ccd][point-triangle]")
 {
     double qy = GENERATE(-EPSILON, 0, EPSILON);
 
@@ -87,8 +101,11 @@ TEST_CASE("Zhongshi test case", "[ccd][point-triangle][!mayfail]")
     Eigen::Vector3d q1;
     q1 << 0, qy, 0;
 
-    bool hit = ccd::vertexFaceCCD(q, b0, b1, b2, q1, t0, t1, t2);
+    bool hit = ccd::vertexFaceCCD(q, b0, b1, b2, q1, t0, t1, t2, MIN_DIST);
+    CAPTURE(qy);
+    CHECK(hit == q.y() >= 0);
 
+    hit = ccd::vertexFaceCCD(q, b0, b1, b2, q1, t0, t1, t2, MIN_DIST);
     CAPTURE(qy);
     CHECK(hit == q.y() >= 0);
 }

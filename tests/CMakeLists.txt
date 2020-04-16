@@ -10,7 +10,7 @@ add_executable(${PROJECT_NAME}_tests
 # Required Libraries
 ################################################################################
 
-target_link_libraries(${PROJECT_NAME}_tests PUBLIC ${PROJECT_NAME})
+target_link_libraries(${PROJECT_NAME}_tests PUBLIC ${PROJECT_NAME}_rational ${PROJECT_NAME}_double)
 target_link_libraries(${PROJECT_NAME}_tests PUBLIC Catch2::Catch2 warnings::all)
 
 ################################################################################

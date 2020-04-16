@@ -27,7 +27,7 @@ if(NOT TARGET indirect_predicates)
 	if(WIN32)
 	#target_compile_definitions(${PROJECT_NAME}_bin PUBLIC NOMINMAX)
 	else()
-	ccd_download_indirect_predicates()
+	# ccd_download_indirect_predicates()
 	endif()
   set(INDIRECTPREDICATES_SOURCES
   ${CCD_EXTERNAL}/indirect_predicates/implicit_point.cpp
@@ -48,11 +48,4 @@ if(NOT TARGET spdlog::spdlog)
     add_library(spdlog INTERFACE)
     add_library(spdlog::spdlog ALIAS spdlog)
     target_include_directories(spdlog SYSTEM INTERFACE ${CCD_EXTERNAL}/spdlog/include)
-endif()
-
-if(CCD_WITH_COMPARISONS AND NOT TARGET CCDWrapper)
-  ccd_download_comparisons()
-  # Force CCD Wrapper to not download Catch2
-  set(CCD_WRAPPER_WITH_UNIT_TESTS OFF CACHE BOOL "" FORCE)
-  add_subdirectory(${CCD_EXTERNAL}/comparisons EXCLUDE_FROM_ALL)
 endif()

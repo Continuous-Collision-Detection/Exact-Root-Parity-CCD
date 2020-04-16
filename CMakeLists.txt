@@ -5,7 +5,6 @@ project(CCD)
 
 # project-options
 option(CCD_WITH_UNIT_TESTS   "Build unit tests using Catch2"  ON)
-option(CCD_WITH_COMPARISONS  "Build tests for comparisons"    ON)
 
 # libigl
 option(LIBIGL_USE_STATIC_LIBRARY     "Use libigl as static library" OFF)
@@ -48,21 +47,21 @@ prepend_current_path(SOURCES)
 CCD_copy_headers(${SOURCES})
 CCD_set_source_group(${SOURCES})
 
-add_library(${PROJECT_NAME} ${SOURCES})
-target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_BINARY_DIR}/include)
+add_library(${PROJECT_NAME}_rational ${SOURCES})
+target_include_directories(${PROJECT_NAME}_rational PUBLIC ${PROJECT_BINARY_DIR}/include)
 
 # libigl
-target_link_libraries(${PROJECT_NAME} PUBLIC igl::core)
+target_link_libraries(${PROJECT_NAME}_rational PUBLIC igl::core)
 
 # Logger
-target_link_libraries(${PROJECT_NAME} PUBLIC spdlog::spdlog)
+target_link_libraries(${PROJECT_NAME}_rational PUBLIC spdlog::spdlog)
 
 # Extra warnings
-target_link_libraries(${PROJECT_NAME} PRIVATE warnings::all)
+target_link_libraries(${PROJECT_NAME}_rational PRIVATE warnings::all)
 #GMP
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${GMP_INCLUDE_DIRS} src)
-target_link_libraries(${PROJECT_NAME} PUBLIC ${GMP_LIBRARIES})
+target_include_directories(${PROJECT_NAME}_rational PUBLIC ${GMP_INCLUDE_DIRS} src)
+target_link_libraries(${PROJECT_NAME}_rational PUBLIC ${GMP_LIBRARIES})
 
 
 ################################################################################
@@ -74,26 +73,27 @@ prepend_current_path(DOUBLECCD_SOURCES)
 doubleCCD_copy_headers(${DOUBLECCD_SOURCES})
 CCD_set_source_group(${DOUBLECCD_SOURCES})
 
-add_library(doubleCCD  ${DOUBLECCD_SOURCES})
-target_include_directories(doubleCCD PUBLIC ${PROJECT_BINARY_DIR}/include)
-target_link_libraries(doubleCCD PUBLIC indirect_predicates)
+add_library(${PROJECT_NAME}_double  ${DOUBLECCD_SOURCES})
+target_include_directories(${PROJECT_NAME}_double PUBLIC ${PROJECT_BINARY_DIR}/include)
+target_link_libraries(${PROJECT_NAME}_double PUBLIC indirect_predicates)
 
 # libigl
-target_link_libraries(doubleCCD PUBLIC igl::core)
+target_link_libraries(${PROJECT_NAME}_double PUBLIC igl::core)
 
 # Logger
-target_link_libraries(doubleCCD PUBLIC spdlog::spdlog)
+target_link_libraries(${PROJECT_NAME}_double PUBLIC spdlog::spdlog)
 
 # Extra warnings
-target_link_libraries(doubleCCD PRIVATE warnings::all)
+target_link_libraries(${PROJECT_NAME}_double PRIVATE warnings::all)
 #GMP
 find_package(GMPECCD)
 
 IF(NOT ${GMP_FOUND})
         MESSAGE(FATAL_ERROR "Cannot find GMP")
 ENDIF()
-target_include_directories(doubleCCD PUBLIC ${GMP_INCLUDE_DIRS})
-target_link_libraries(doubleCCD PUBLIC ${GMP_LIBRARIES})
+target_include_directories(${PROJECT_NAME}_double PUBLIC doubleccd)
+target_include_directories(${PROJECT_NAME}_double PUBLIC ${GMP_INCLUDE_DIRS})
+target_link_libraries(${PROJECT_NAME}_double PUBLIC ${GMP_LIBRARIES})
 
 
 ################################################################################
@@ -105,8 +105,8 @@ add_executable(${PROJECT_NAME}_bin
   src/main.cpp
 )
 
-target_link_libraries(${PROJECT_NAME}_bin PUBLIC ${PROJECT_NAME})
-target_link_libraries(${PROJECT_NAME}_bin PUBLIC doubleCCD)
+target_link_libraries(${PROJECT_NAME}_bin PUBLIC ${PROJECT_NAME}_rational)
+target_link_libraries(${PROJECT_NAME}_bin PUBLIC ${PROJECT_NAME}_double)
 set(DATA_PATH "${CMAKE_CURRENT_SOURCE_DIR}/data/")
 target_compile_definitions(${PROJECT_NAME}_bin PUBLIC -DCCD_DATA_PATH=\"${DATA_PATH}\")
 
