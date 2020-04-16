@@ -52,3 +52,11 @@ function(ccd_download_catch2)
         GIT_TAG        v2.11.1
     )
 endfunction()
+
+# HighFive - Header-only C++ HDF5 interface
+function(ccd_download_high_five)
+  ccd_download_project(HighFive
+    GIT_REPOSITORY https://github.com/BlueBrain/HighFive.git
+    GIT_TAG        v2.1.1
+  )
+endfunction()

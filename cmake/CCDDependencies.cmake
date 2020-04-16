@@ -49,3 +49,11 @@ if(NOT TARGET spdlog::spdlog)
     add_library(spdlog::spdlog ALIAS spdlog)
     target_include_directories(spdlog SYSTEM INTERFACE ${CCD_EXTERNAL}/spdlog/include)
 endif()
+
+# HDF5 Reader
+if(NOT TARGET HighFive::HighFive)
+  set(USE_EIGEN TRUE CACHE BOOL "Enable Eigen testing" FORCE)
+  ccd_download_high_five()
+  add_subdirectory(${CCD_EXTERNAL}/HighFive EXCLUDE_FROM_ALL)
+  add_library(HighFive::HighFive ALIAS HighFive)
+endif()

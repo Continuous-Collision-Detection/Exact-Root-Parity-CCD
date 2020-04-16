@@ -9,6 +9,7 @@ set(SOURCES
        src/exact_subtraction.hpp
        src/ray_parity.h
        src/ray_parity.cpp
+       src/read_collision_data.cpp
 #src/AABB.h
 #src/AABB.cpp
 PARENT_SCOPE

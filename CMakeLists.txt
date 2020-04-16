@@ -41,7 +41,6 @@ include(CCDUtils)
 # Library
 ################################################################################
 
-
 add_subdirectory(src)
 prepend_current_path(SOURCES)
 CCD_copy_headers(${SOURCES})
@@ -63,6 +62,12 @@ target_link_libraries(${PROJECT_NAME}_rational PRIVATE warnings::all)
 target_include_directories(${PROJECT_NAME}_rational PUBLIC ${GMP_INCLUDE_DIRS} src)
 target_link_libraries(${PROJECT_NAME}_rational PUBLIC ${GMP_LIBRARIES})
 
+target_link_libraries(${PROJECT_NAME}_rational PUBLIC HighFive::HighFive)
+
+# Boost
+set(Boost_USE_MULTITHREADED TRUE)
+find_package(Boost COMPONENTS filesystem REQUIRED)
+target_link_libraries(${PROJECT_NAME}_rational PUBLIC Boost::filesystem)
 
 ################################################################################
 ################################################################################
