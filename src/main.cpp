@@ -299,6 +299,7 @@ void test_rootfinder() {
 }
 void test_shift_maxerror() {
 	std::vector<sccd> data;
+	std::vector<Vector3d> vertices, vertices1, vertices2;
 	read_CSV(root_path + path_sep + "cow-head-collisions.csv", data);
 	std::vector<vf_pair> vfs,shifted_vfs;
 	std::vector<ee_pair> ees, shifted_ees;
@@ -313,9 +314,21 @@ void test_shift_maxerror() {
 		vfs[i].x1b = data[i].v1e;
 		vfs[i].x2b = data[i].v2e;
 		vfs[i].x3b = data[i].v3e;
+		vertices.push_back(data[i].pts);
+		vertices.push_back(data[i].pte);
+		vertices.push_back(data[i].v1s);
+		vertices.push_back(data[i].v1e);
+		vertices.push_back(data[i].v2s);
+		vertices.push_back(data[i].v2e);
+		vertices.push_back(data[i].v3s);
+		vertices.push_back(data[i].v3e);
+
 	}
+	vertices1 = vertices;
+	vertices2 = vertices;
 	double k;
-	get_whole_mesh_shifted(vfs, ees, shifted_vfs, shifted_ees, k);
+	get_whole_mesh_shifted(vfs, ees, shifted_vfs, shifted_ees, vertices1);
+	get_whole_mesh_shifted(vfs, ees, vertices2);
 }
 int main(int argc, char* argv[])
 {

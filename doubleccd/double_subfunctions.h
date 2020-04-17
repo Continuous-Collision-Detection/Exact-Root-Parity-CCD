@@ -25,7 +25,10 @@ namespace doubleccd {
 		Vector3d b1b;
 	};
 
-	void get_whole_mesh_shifted(const std::vector<vf_pair>& data1, const std::vector<ee_pair>& data2, std::vector<vf_pair>& shift_back1, std::vector<ee_pair>& shift_back2, double &k);
+	void get_whole_mesh_shifted(const std::vector<vf_pair>& data1, const std::vector<ee_pair>& data2, std::vector<vf_pair>& shift_back1, std::vector<ee_pair>& shift_back2, std::vector<Vector3d>& vertices);
+	// x0 is the point, x1, x2, x3 is the triangle
+	void get_whole_mesh_shifted(const std::vector<vf_pair>& data1, const std::vector<ee_pair>& data2, std::vector<Vector3d>& vertices);
+	
 	class cube {
 	public:
 		cube(double eps);

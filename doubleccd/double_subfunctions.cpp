@@ -500,13 +500,37 @@ double ee_shift_error(const ee_pair& d1, const ee_pair& d2) {
 	}
 	return err;
 }
-// x0 is the point, x1, x2, x3 is the triangle
-void get_whole_mesh_shifted(const std::vector<vf_pair>& data1, const std::vector<ee_pair>& data2, std::vector<vf_pair>& shift_back1, std::vector<ee_pair>& shift_back2, double &k) {
-	std::vector<std::pair<double, double>> sub,suback;
 
-	push_vers_into_subtract_pair(data1, data2, sub);
-	suback = sub;// this is for shift back
-	k = displaceSubtractions_double(sub);
+void push_mesh_vers_into_sub_pair(const std::vector<Vector3d>& vers,
+	std::vector<std::pair<double, double>> &sub) {
+	sub.resize(vers.size() * 3);
+	for (int i = 0; i < vers.size(); i++) {
+		for (int j = 0; j < 3; j++) {
+			sub[i * 3 + j].first = vers[i][j];
+			sub[i * 3 + j].second = 0;
+		}
+	}
+}
+
+void convert_sub_pairs_to_mesh_vers(const std::vector<std::pair<double, double>> &sub, std::vector<Vector3d>& vers) {
+	assert(sub.size() % 3 == 0&&vers.size()== sub.size() / 3);
+	vers.resize(sub.size() / 3);
+	for (int i = 0; i < vers.size(); i++) {
+		for (int j = 0; j < 3; j++) {
+			vers[i][j] = sub[i * 3 + j].first;
+		}
+	}
+}
+// x0 is the point, x1, x2, x3 is the triangle
+void get_whole_mesh_shifted(const std::vector<vf_pair>& data1, const std::vector<ee_pair>& data2, std::vector<vf_pair>& shift_back1, std::vector<ee_pair>& shift_back2, std::vector<Vector3d>& vertices) {
+	std::vector<std::pair<double, double>> whole,suback;
+
+	push_vers_into_subtract_pair(data1, data2, suback);
+	int subsize = suback.size();
+	push_mesh_vers_into_sub_pair(vertices, whole);
+	//suback = sub;// this is for shift back
+	//k = displaceSubtractions_double(sub);
+	suback.insert(suback.end(), whole.begin(), whole.end());
 	perturbSubtractions(suback);//get shifted back data
 	
 	shift_back1.resize(data1.size());
@@ -517,12 +541,12 @@ void get_whole_mesh_shifted(const std::vector<vf_pair>& data1, const std::vector
 	int d1size = data1.size();
 	int d2size = data2.size();
 	int datasize = d1size + d2size;
-	std::array<std::pair<double, double>, 18> dt1, dtback1;
-	std::array<std::pair<double, double>, 24> dt2, dtback2;
+	std::array<std::pair<double, double>, 18>  dtback1;
+	std::array<std::pair<double, double>, 24> dtback2;
 	for (int r = 0; r < datasize; r++) {
 		if (r < d1size) {
 			for (int i = 0; i < 18; i++) {
-				dt1[i] = sub[r * 18 + i];
+				//dt1[i] = sub[r * 18 + i];
 				dtback1[i] = suback[r * 18 + i];
 			}
 			
@@ -530,13 +554,21 @@ void get_whole_mesh_shifted(const std::vector<vf_pair>& data1, const std::vector
 		}//r is d1size-1, sub has been read to d1size*18-1
 		else {// r is from d1size to datasize-1, sub is from d1*18
 			for (int i = 0; i < 24; i++) {
-				dt2[i] = sub[d1size * 18 + (r - d1size) * 24 + i];
+				//dt2[i] = sub[d1size * 18 + (r - d1size) * 24 + i];
 				dtback2[i] = suback[d1size * 18 + (r - d1size) * 24 + i];
 			}
 			
 			convert_to_shifted_v(dtback2, shift_back2[r - d1size]);
 		}
 	}
+	std::vector<std::pair<double, double>> vernew;
+	vernew.resize(vertices.size() * 3);
+	int c1 = 0;
+	for (int i = subsize; i < suback.size(); i++) {
+		vernew[c1] = suback[i];
+		c1++;
+	}
+	convert_sub_pairs_to_mesh_vers(vernew, vertices);
 	double err = 0, temerr;
 	for (int i = 0; i < d1size; i++) {
 		temerr = vf_shift_error(data1[i], shift_back1[i]);
@@ -548,6 +580,40 @@ void get_whole_mesh_shifted(const std::vector<vf_pair>& data1, const std::vector
 		if (temerr > err)
 			err = temerr;
 	}
+	std::cout << "the shifted maximal error is " << err << std::endl;
+	return;
+}
+
+// x0 is the point, x1, x2, x3 is the triangle
+void get_whole_mesh_shifted(const std::vector<vf_pair>& data1, const std::vector<ee_pair>& data2,  std::vector<Vector3d>& vertices) {
+	std::vector<std::pair<double, double>> whole, suback;
+
+	push_vers_into_subtract_pair(data1, data2, suback);
+	int subsize = suback.size();
+	push_mesh_vers_into_sub_pair(vertices, whole);
+	//suback = sub;// this is for shift back
+	//k = displaceSubtractions_double(sub);
+	suback.insert(suback.end(), whole.begin(), whole.end());
+	perturbSubtractions(suback);//get shifted back data
+
+	
+	std::vector<std::pair<double, double>> vernew;
+	vernew.resize(vertices.size() * 3);
+	int c = 0;
+	for (int i = subsize; i < suback.size(); i++) {
+		vernew[c] = suback[i];
+		c++;
+	}
+	assert(whole.size() == vernew.size());
+	double err = 0;
+	for (int i = 0; i < whole.size(); i++) {
+		if (fabs(whole[i].first - vernew[i].first) > err) {
+			err = fabs(whole[i].first - vernew[i].first);
+		}
+	}
+
+	convert_sub_pairs_to_mesh_vers(vernew, vertices);
+
 	std::cout << "the shifted maximal error is " << err << std::endl;
 	return;
 }
