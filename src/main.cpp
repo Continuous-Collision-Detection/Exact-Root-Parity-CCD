@@ -4,10 +4,10 @@
 #include <vector>
 //#include<Utils.hpp>
 //#include<subfunctions.h>
+#include <CCD/ccd.hpp>
+#include <CCD/exact_subtraction.hpp>
 #include <array>
 #include <doubleCCD/doubleccd.hpp>
-#include <CCD/exact_subtraction.hpp>
-#include <CCD/ccd.hpp>
 #include <fstream>
 //#include <exact_subtraction.hpp>
 //#include<subfunctions.h>
@@ -21,7 +21,6 @@ std::string path_sep = "\\";
 std::string path_sep = "/";
 #endif
 
-
 struct sccd {
     Vector3d pts;
     Vector3d pte;
@@ -32,10 +31,7 @@ struct sccd {
     Vector3d v2e;
     Vector3d v3e;
 };
-Vector3d construct1(double a, double b, double c)
-{
-    return Vector3d(a, b, c);
-}
+Vector3d construct1(double a, double b, double c) { return Vector3d(a, b, c); }
 //
 bool read_CSV(const string inputFileName, vector<sccd>& data)
 {
@@ -134,8 +130,8 @@ bool read_result(const string inputFileName, vector<bool>& data)
     return true;
 }
 
-
-void test1() {
+void test1()
+{
     std::vector<sccd> data;
     read_CSV(root_path + path_sep + "cow-head-collisions.csv", data);
     std::vector<bool> results;
@@ -171,171 +167,181 @@ void test1() {
 
     // std::cout << "Exact CCD" << std::endl;
 }
-void test_compare() {
-	std::vector<sccd> data;
-	read_CSV(root_path + path_sep+ "cow-head-collisions.csv", data);
-	vector<bool> rst;
-	read_result(root_path + path_sep+ "result_all.csv", rst);
-	int rst_true = 0;
-	for (int i = 0; i < rst.size(); i++) {
-		if (rst[i])
-			rst_true++;
-	}
-	std::cout << "original collision nbr, " << rst_true << std::endl;
-	std::vector<bool> results;
-	int fn = data.size(); // 50000;
-	results.resize(fn);
-	int inside = 0;
-	for (int i = 244; i < 245; i++) {
-		if (i % 200 == 0)std::cout << "i " << i << std::endl;
-		//std::cout << "i " << std::endl;
-		/*results[i] = vertexFaceCCD(
-			data[i].pts, data[i].v1s, data[i].v2s, data[i].v3s,
-			data[i].pte, data[i].v1e, data[i].v2e, data[i].v3e, 1e-8);*/
-		results[i] = ccd:: vertexFaceCCD(
-			data[i].pts, data[i].v1s, data[i].v2s, data[i].v3s,
-			data[i].pte, data[i].v1e, data[i].v2e, data[i].v3e, 1e-8); 
-		if (rst[i] == 1 && results[i] == 0) {//when old method says yes but we missed it
-			std::cout << "wrong! i= " << i << std::endl;
-		}
-		//std::cout << "result " << results[i] << std::endl;
-		if (results[i] == true) inside++;
-	}
-	std::cout << int_seg_XOR(1, 0) << std::endl;
-	cube cb(0.1);
-	std::cout << "inside number " << inside << std::endl;
-
+void test_compare()
+{
+    std::vector<sccd> data;
+    read_CSV(root_path + path_sep + "cow-head-collisions.csv", data);
+    vector<bool> rst;
+    read_result(root_path + path_sep + "result_all.csv", rst);
+    int rst_true = 0;
+    for (int i = 0; i < rst.size(); i++) {
+        if (rst[i])
+            rst_true++;
+    }
+    std::cout << "original collision nbr, " << rst_true << std::endl;
+    std::vector<bool> results;
+    int fn = data.size(); // 50000;
+    results.resize(fn);
+    int inside = 0;
+    for (int i = 244; i < 245; i++) {
+        if (i % 200 == 0)
+            std::cout << "i " << i << std::endl;
+        // std::cout << "i " << std::endl;
+        /*results[i] = vertexFaceCCD(
+                data[i].pts, data[i].v1s, data[i].v2s, data[i].v3s,
+                data[i].pte, data[i].v1e, data[i].v2e, data[i].v3e, 1e-8);*/
+        results[i] = ccd::vertexFaceCCD(
+            data[i].pts, data[i].v1s, data[i].v2s, data[i].v3s, data[i].pte,
+            data[i].v1e, data[i].v2e, data[i].v3e, 1e-8);
+        if (rst[i] == 1
+            && results[i] == 0) { // when old method says yes but we missed it
+            std::cout << "wrong! i= " << i << std::endl;
+        }
+        // std::cout << "result " << results[i] << std::endl;
+        if (results[i] == true)
+            inside++;
+    }
+    std::cout << int_seg_XOR(1, 0) << std::endl;
+    cube cb(0.1);
+    std::cout << "inside number " << inside << std::endl;
 }
 
-void test_shifted_compare() {
-	std::vector<sccd> data;
-	read_CSV(root_path + path_sep + "cow-head-collisions.csv", data);
-	vector<bool> rst;
-	read_result(root_path + path_sep + "result_all.csv", rst);
-	int rst_true = 0;
-	for (int i = 0; i < rst.size(); i++) {
-		if (rst[i])
-			rst_true++;
-	}
-	std::cout << "original collision nbr, " << rst_true << std::endl;
-	std::vector<bool> results,results1;
-	int fn = data.size(); // 50000;
-	results.resize(fn);
-	results1.resize(fn);
-	int inside = 0;
-	igl::Timer timer;
-	double time = 0;
-	for (int i = 0; i < fn; i++) {
-		if (i % 200 == 0)std::cout << "i " << i << std::endl;
-		//std::cout << "i " << std::endl;
-		timer.start();
-		results[i] = vertexFaceCCD(//double 
-			data[i].pts, data[i].v1s, data[i].v2s, data[i].v3s,
-			data[i].pte, data[i].v1e, data[i].v2e, data[i].v3e, 1e-3);
-		time += timer.getElapsedTimeInSec();
-		//results1[i] = ccd::vertexFaceCCD(//rational
-		//	data[i].pts, data[i].v1s, data[i].v2s, data[i].v3s,
-		//	data[i].pte, data[i].v1e, data[i].v2e, data[i].v3e, 1e-3);
-		
-		//std::cout << "Rational vs double " << results1[i] << " " << results[i] << std::endl;
-		//if (results1[i] != results[i]) {//when old method says yes but we missed it
-		//	std::cout << "double don't match rational! i= " << i << std::endl;
-		//	std::cout << "Rational vs double " << results1[i]<<" "<<results[i] << std::endl;
-		//}
-		//std::cout << "result " << results[i] << std::endl;
-		if (results[i] == true) inside++;
-	}
-	
-	std::cout << "total time " << time << std::endl;
-	std::cout << "inside number " << inside << std::endl;
-	test();
+void test_shifted_compare()
+{
+    std::vector<sccd> data;
+    read_CSV(root_path + path_sep + "cow-head-collisions.csv", data);
+    vector<bool> rst;
+    read_result(root_path + path_sep + "result_all.csv", rst);
+    int rst_true = 0;
+    for (int i = 0; i < rst.size(); i++) {
+        if (rst[i])
+            rst_true++;
+    }
+    std::cout << "original collision nbr, " << rst_true << std::endl;
+    std::vector<bool> results, results1;
+    int fn = data.size(); // 50000;
+    results.resize(fn);
+    results1.resize(fn);
+    int inside = 0;
+    igl::Timer timer;
+    double time = 0;
+    for (int i = 0; i < fn; i++) {
+        if (i % 200 == 0)
+            std::cout << "i " << i << std::endl;
+        // std::cout << "i " << std::endl;
+        timer.start();
+        results[i] = vertexFaceCCD( // double
+            data[i].pts, data[i].v1s, data[i].v2s, data[i].v3s, data[i].pte,
+            data[i].v1e, data[i].v2e, data[i].v3e, 1e-3);
+        time += timer.getElapsedTimeInSec();
+        // results1[i] = ccd::vertexFaceCCD(//rational
+        //	data[i].pts, data[i].v1s, data[i].v2s, data[i].v3s,
+        //	data[i].pte, data[i].v1e, data[i].v2e, data[i].v3e, 1e-3);
 
-	print_sub();
-	ray_time();
+        // std::cout << "Rational vs double " << results1[i] << " " <<
+        // results[i] << std::endl; if (results1[i] != results[i]) {//when old
+        // method says yes but we missed it 	std::cout << "double don't match
+        // rational! i= " << i << std::endl; 	std::cout << "Rational vs double
+        // "
+        //<< results1[i]<<" "<<results[i] << std::endl;
+        //}
+        // std::cout << "result " << results[i] << std::endl;
+        if (results[i] == true)
+            inside++;
+    }
+
+    std::cout << "total time " << time << std::endl;
+    std::cout << "inside number " << inside << std::endl;
+    test();
+
+    print_sub();
+    ray_time();
 }
 
-void test_rootfinder() {
-	Vector3d p0(0, 0, 1);
-	Vector3d p1(0, 1, 1);
-	Vector3d p2(0, 0, 0);
-	Vector3d p3(1, 1, 0);
-	bilinear bl(p0, p1, p2, p3);
-	if (bl.phi_f[0] == 2) {
-		std::cout << "calculate bilinear face signs" << std::endl;
-		get_tet_phi(bl);
-	}
-	
+void test_rootfinder()
+{
+    Vector3d p0(0, 0, 1);
+    Vector3d p1(0, 1, 1);
+    Vector3d p2(0, 0, 0);
+    Vector3d p3(1, 1, 0);
+    bilinear bl(p0, p1, p2, p3);
+    if (bl.phi_f[0] == 2) {
+        std::cout << "calculate bilinear face signs" << std::endl;
+        get_tet_phi(bl);
+    }
 
-	Vector3d s0(0.01, 0.02, 2);
-	Vector3d s1(0.01, 0.02, -1);
-	bool pin0 = false, pin1 = false, result;
-	if (line_shoot_same_pair_tet(s0, s1, 1, bl)) {
-		std::cout << "shoot first pair" << std::endl;
-		if (1 == bl.phi_f[0])
-			result = rootfinder(bl, s0, s1, pin0, pin1, 0);
-		else
-			result = rootfinder(bl, s0, s1, pin0, pin1, 1);
-	}
+    Vector3d s0(0.01, 0.02, 2);
+    Vector3d s1(0.01, 0.02, -1);
+    bool pin0 = false, pin1 = false, result;
+    if (line_shoot_same_pair_tet(s0, s1, 1, bl)) {
+        std::cout << "shoot first pair" << std::endl;
+        if (1 == bl.phi_f[0])
+            result = rootfinder(bl, s0, s1, pin0, pin1, 0);
+        else
+            result = rootfinder(bl, s0, s1, pin0, pin1, 1);
+    }
 
-	else if (line_shoot_same_pair_tet(s0, s1, -1, bl)) {
-		std::cout << "shoot second pair" << std::endl;
-		if (-1 == bl.phi_f[0])
-			result = rootfinder(bl, s0, s1, pin0, pin1, 0);
-		else
-			result = rootfinder(bl, s0, s1, pin0, pin1, 1);
-	}
-	std::cout << "result of rootfinder is shoot or not " << result << std::endl;
+    else if (line_shoot_same_pair_tet(s0, s1, -1, bl)) {
+        std::cout << "shoot second pair" << std::endl;
+        if (-1 == bl.phi_f[0])
+            result = rootfinder(bl, s0, s1, pin0, pin1, 0);
+        else
+            result = rootfinder(bl, s0, s1, pin0, pin1, 1);
+    }
+    std::cout << "result of rootfinder is shoot or not " << result << std::endl;
 
-	std::vector<std::array<Vector3r, 3>>tris;
-	tri_bilinear(bl, 10, tris);
-	ccd::Vector3r e0(0.01, 0.02, 2), e1(0.01, 0.02, -1);
-	/*for (int i = 0; i < tris.size(); i++) {
-		if (ccd::segment_triangle_intersection(Vector3r(0.01, 0.02, 2), Vector3r(0.01, 0.02, -1), tris[i][0], tris[i][1], tris[i][2], false)>0) {
-			std::cout << "here seg intersected bilinear" << std::endl;
-			break;
-		}
-	}*/
-	save_obj("D:\\vs\\collision\\test_rootfinder.obj", tris);
+    std::vector<std::array<Vector3r, 3>> tris;
+    tri_bilinear(bl, 10, tris);
+    ccd::Vector3r e0(0.01, 0.02, 2), e1(0.01, 0.02, -1);
+    /*for (int i = 0; i < tris.size(); i++) {
+            if (ccd::segment_triangle_intersection(Vector3r(0.01, 0.02, 2),
+    Vector3r(0.01, 0.02, -1), tris[i][0], tris[i][1], tris[i][2], false)>0) {
+                    std::cout << "here seg intersected bilinear" << std::endl;
+                    break;
+            }
+    }*/
+    save_obj("D:\\vs\\collision\\test_rootfinder.obj", tris);
 }
-void test_shift_maxerror() {
-	std::vector<sccd> data;
-	std::vector<Vector3d> vertices, vertices1, vertices2;
-	read_CSV(root_path + path_sep + "cow-head-collisions.csv", data);
-	std::vector<vf_pair> vfs,shifted_vfs;
-	std::vector<ee_pair> ees, shifted_ees;
-	vfs.resize(data.size());
-	for (int i = 0; i < data.size(); i++) {
-		vfs[i].x0 = data[i].pts;
-		vfs[i].x1 = data[i].v1s;
-		vfs[i].x2 = data[i].v2s;
-		vfs[i].x3 = data[i].v3s;
+void test_shift_maxerror()
+{
+    std::vector<sccd> data;
+    Eigen::MatrixX3d vertices, vertices1, vertices2;
+    read_CSV(root_path + path_sep + "cow-head-collisions.csv", data);
+    std::vector<vf_pair> vfs, shifted_vfs;
+    std::vector<ee_pair> ees, shifted_ees;
+    vfs.resize(data.size());
+    vertices.resize(8 * data.size(), 3);
+    for (int i = 0; i < data.size(); i++) {
+        vfs[i].x0 = data[i].pts;
+        vfs[i].x1 = data[i].v1s;
+        vfs[i].x2 = data[i].v2s;
+        vfs[i].x3 = data[i].v3s;
 
-		vfs[i].x0b = data[i].pte;
-		vfs[i].x1b = data[i].v1e;
-		vfs[i].x2b = data[i].v2e;
-		vfs[i].x3b = data[i].v3e;
-		vertices.push_back(data[i].pts);
-		vertices.push_back(data[i].pte);
-		vertices.push_back(data[i].v1s);
-		vertices.push_back(data[i].v1e);
-		vertices.push_back(data[i].v2s);
-		vertices.push_back(data[i].v2e);
-		vertices.push_back(data[i].v3s);
-		vertices.push_back(data[i].v3e);
-
-	}
-	vertices1 = vertices;
-	vertices2 = vertices;
-	double k;
-	get_whole_mesh_shifted(vfs, ees, shifted_vfs, shifted_ees, vertices1);
-	get_whole_mesh_shifted(vfs, ees, vertices2);
+        vfs[i].x0b = data[i].pte;
+        vfs[i].x1b = data[i].v1e;
+        vfs[i].x2b = data[i].v2e;
+        vfs[i].x3b = data[i].v3e;
+        vertices.row(8 * i + 0) = data[i].pts;
+        vertices.row(8 * i + 1) = data[i].pte;
+        vertices.row(8 * i + 2) = data[i].v1s;
+        vertices.row(8 * i + 3) = data[i].v1e;
+        vertices.row(8 * i + 4) = data[i].v2s;
+        vertices.row(8 * i + 5) = data[i].v2e;
+        vertices.row(8 * i + 6) = data[i].v3s;
+        vertices.row(8 * i + 7) = data[i].v3e;
+    }
+    vertices1 = vertices;
+    vertices2 = vertices;
+    double k;
+    get_whole_mesh_shifted(vfs, ees, shifted_vfs, shifted_ees, vertices1);
+    get_whole_mesh_shifted(vfs, ees, vertices2);
 }
 int main(int argc, char* argv[])
 {
     // TODO: Put something more relevant here
-    //ccd::test();
-	//test_shifted_compare();
-	//test_rootfinder();
-	test_shift_maxerror();
-	return 1;
+    // ccd::test();
+    // test_shifted_compare();
+    // test_rootfinder();
+    test_shift_maxerror();
+    return 1;
 }

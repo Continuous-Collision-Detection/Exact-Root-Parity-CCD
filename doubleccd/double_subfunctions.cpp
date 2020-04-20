@@ -1,8 +1,8 @@
-#include <predicates/indirect_predicates.h>
+#include <Eigen/Dense>
 #include <doubleCCD/double_subfunctions.h>
-#include<Eigen/Dense>
 #include <doubleCCD/doubleccd.hpp>
 #include <doubleCCD/exact_subtraction.hpp>
+#include <predicates/indirect_predicates.h>
 int rootrue = 0, rootime = 0;
 //#include <ray_parity.h>
 namespace doubleccd {
@@ -38,26 +38,12 @@ cube::cube(double eps)
 }
 
 // get aabb corners
-void get__corners(const std::vector<Vector3d>& p, Vector3d& min, Vector3d& max)
+void get_corners(const Eigen::MatrixX3d& p, Vector3d& min, Vector3d& max)
 {
-    min = p[0];
-    max = p[0];
-    for (int i = 0; i < p.size(); i++) {
-        if (min[0] > p[i][0])
-            min[0] = p[i][0];
-        if (min[1] > p[i][1])
-            min[1] = p[i][1];
-        if (min[2] > p[i][2])
-            min[2] = p[i][2];
-
-        if (max[0] < p[i][0])
-            max[0] = p[i][0];
-        if (max[1] < p[i][1])
-            max[1] = p[i][1];
-        if (max[2] < p[i][2])
-            max[2] = p[i][2];
-    }
+    min = p.colwise().minCoeff();
+    max = p.colwise().maxCoeff();
 }
+
 /*
 std::array<Vector3d, 6> get_prism_vertices_double(
     const Vector3d& x0,
@@ -134,6 +120,7 @@ std::array<Vector3d, 6> get_prism_vertices_double(
     return result;
 }
 */
+
 Vector3d get_prism_corner_double(
     const Vector3d& vertex_start,       // x0
     const Vector3d& face_vertex0_start, // x1
@@ -173,28 +160,27 @@ bool is_seg_intersect_cube(
         return true;
     if (is_point_intersect_cube(eps, e1))
         return true;
-    if (same_point(e0,e1))
+    if (same_point(e0, e1))
         return false; // degenerate case: the segment is degenerated as a point
     // if intersected, must be coplanar with the edge, or intersect edge or face
-	if (is_seg_intersect_cube_2d(eps, e0, e1, 0)
-		&& is_seg_intersect_cube_2d(eps, e0, e1, 1)
-		&& is_seg_intersect_cube_2d(eps, e0, e1, 2)) {
-		//std::cout << "seg intersect 2d cube" << std::endl;
-		//std::cout << "e0 \n" << e0 << std::endl;
-		//std::cout << "e1 \n" << e1 << std::endl;
-		//std::cout << "eps " << eps << std::endl;
-		return true;
-	}
-        
+    if (is_seg_intersect_cube_2d(eps, e0, e1, 0)
+        && is_seg_intersect_cube_2d(eps, e0, e1, 1)
+        && is_seg_intersect_cube_2d(eps, e0, e1, 2)) {
+        // std::cout << "seg intersect 2d cube" << std::endl;
+        // std::cout << "e0 \n" << e0 << std::endl;
+        // std::cout << "e1 \n" << e1 << std::endl;
+        // std::cout << "eps " << eps << std::endl;
+        return true;
+    }
+
     return false;
 }
 // check if a 2d segment intersects 2d cube
 bool is_seg_intersect_cube_2d(
     const double eps, const Vector3d& e0, const Vector3d& e1, int axis)
 {
-	Vector2d p0, p1, p2, p3,
-		e0p, e1p;// e0 and e1 projected to 2d
-    projected_cube_edges(eps, p0, p1, p2, p3);// TODO move this out
+    Vector2d p0, p1, p2, p3, e0p, e1p;         // e0 and e1 projected to 2d
+    projected_cube_edges(eps, p0, p1, p2, p3); // TODO move this out
 
     const int i1 = (axis + 1) % 3;
     const int i2 = (axis + 2) % 3;
@@ -203,8 +189,8 @@ bool is_seg_intersect_cube_2d(
         return true;
     if (e1[i1] <= eps && e1[i1] >= -eps && e1[i2] <= eps && e1[i2] >= -eps)
         return true;
-	e0p = Vector2d(e0[i1], e0[i2]);
-	e1p = Vector2d(e1[i1], e1[i2]);
+    e0p = Vector2d(e0[i1], e0[i2]);
+    e1p = Vector2d(e1[i1], e1[i2]);
     if (segment_segment_intersection_2d(e0p, e1p, p0, p1))
         return true; // check if segments has intersection, or if cube points
                      // p0, p1 on e0-e1
@@ -218,14 +204,10 @@ bool is_seg_intersect_cube_2d(
     return false;
 }
 void projected_cube_edges(
-    const double eps,
-    Vector2d& e0,
-    Vector2d& e1,
-    Vector2d& e2,
-    Vector2d& e3)
+    const double eps, Vector2d& e0, Vector2d& e1, Vector2d& e2, Vector2d& e3)
 {
-	const int i1 = 0;
-	const int i2 = 1;
+    const int i1 = 0;
+    const int i2 = 1;
 
     e0[i1] = -eps;
     e0[i2] = eps;
@@ -251,7 +233,7 @@ bool is_point_intersect_cube(const double eps, const Vector3d& p)
     return false;
 }
 
-//int get_triangle_project_axis(
+// int get_triangle_project_axis(
 //    const Vector3r& t0, const Vector3r& t1, const Vector3r& t2)
 //{
 //    Vector3r normal = cross(t0 - t1, t0 - t2);
@@ -274,429 +256,445 @@ bool is_point_intersect_cube(const double eps, const Vector3d& p)
 //            return 2;
 //}
 bool is_cube_edges_intersect_triangle(
-    const cube& cb,
-    const Vector3d& t0,
-    const Vector3d& t1,
-    const Vector3d& t2)
+    const cube& cb, const Vector3d& t0, const Vector3d& t1, const Vector3d& t2)
 {
     // the vertices of triangle are checked before going here, the edges are
     // also checked. so, only need to check if cube edge has intersection with
     // the open triangle.
 
-    //int axis = get_triangle_project_axis(t0, t1, t2);
-    //if (axis == 3)
-    //    return false; // if triangle degenerated as a segment or point, then no
-    //                  // intersection, because before here we already check that
+    // int axis = get_triangle_project_axis(t0, t1, t2);
+    // if (axis == 3)
+    //    return false; // if triangle degenerated as a segment or point, then
+    //    no
+    //                  // intersection, because before here we already check
+    //                  that
     Vector3d s0, s1;
     for (int i = 0; i < 12; i++) {
         s0 = cb.vr[cb.edgeid[i][0]];
         s1 = cb.vr[cb.edgeid[i][1]];
-		if (segment_triangle_intersection(s0, s1, t0, t1, t2, false) > 0)// return 0,1,2
+        if (segment_triangle_intersection(s0, s1, t0, t1, t2, false)
+            > 0) // return 0,1,2
             return true;
     }
     return false;
 }
 
-
 // convert a array of subtraction pair to vertices
-void convert_to_shifted_v(const std::array<std::pair<double, double>,18>& dt, vf_pair&vs) {
-	vs.x0[0] = dt[0].first;
-	vs.x0[1] = dt[1].first;
-	vs.x0[2] = dt[2].first;
-	
-	vs.x0b[0] = dt[15].first;
-	vs.x0b[1] = dt[16].first;
-	vs.x0b[2] = dt[17].first;
+void convert_to_shifted_v(
+    const std::array<std::pair<double, double>, 18>& dt, vf_pair& vs)
+{
+    vs.x0[0] = dt[0].first;
+    vs.x0[1] = dt[1].first;
+    vs.x0[2] = dt[2].first;
 
-	vs.x1[0] = dt[0].second;
-	vs.x1[1] = dt[1].second;
-	vs.x1[2] = dt[2].second;
+    vs.x0b[0] = dt[15].first;
+    vs.x0b[1] = dt[16].first;
+    vs.x0b[2] = dt[17].first;
 
-	vs.x3[0] = dt[3].second;
-	vs.x3[1] = dt[4].second;
-	vs.x3[2] = dt[5].second;
+    vs.x1[0] = dt[0].second;
+    vs.x1[1] = dt[1].second;
+    vs.x1[2] = dt[2].second;
 
-	vs.x2[0] = dt[6].second;
-	vs.x2[1] = dt[7].second;
-	vs.x2[2] = dt[8].second;
+    vs.x3[0] = dt[3].second;
+    vs.x3[1] = dt[4].second;
+    vs.x3[2] = dt[5].second;
 
-	vs.x1b[0] = dt[9].second;
-	vs.x1b[1] = dt[10].second;
-	vs.x1b[2] = dt[11].second;
+    vs.x2[0] = dt[6].second;
+    vs.x2[1] = dt[7].second;
+    vs.x2[2] = dt[8].second;
 
-	vs.x3b[0] = dt[12].second;
-	vs.x3b[1] = dt[13].second;
-	vs.x3b[2] = dt[14].second;
+    vs.x1b[0] = dt[9].second;
+    vs.x1b[1] = dt[10].second;
+    vs.x1b[2] = dt[11].second;
 
-	vs.x2b[0] = dt[15].second;
-	vs.x2b[1] = dt[16].second;
-	vs.x2b[2] = dt[17].second;
+    vs.x3b[0] = dt[12].second;
+    vs.x3b[1] = dt[13].second;
+    vs.x3b[2] = dt[14].second;
+
+    vs.x2b[0] = dt[15].second;
+    vs.x2b[1] = dt[16].second;
+    vs.x2b[2] = dt[17].second;
 }
-void convert_to_shifted_v(const std::array<std::pair<double, double>, 24>& dt, ee_pair&vs) {
-	vs.a0[0] = dt[0].first;
-	vs.a0[1] = dt[1].first;
-	vs.a0[2] = dt[2].first;
+void convert_to_shifted_v(
+    const std::array<std::pair<double, double>, 24>& dt, ee_pair& vs)
+{
+    vs.a0[0] = dt[0].first;
+    vs.a0[1] = dt[1].first;
+    vs.a0[2] = dt[2].first;
 
-	vs.a1[0] = dt[3].first;
-	vs.a1[1] = dt[4].first;
-	vs.a1[2] = dt[5].first;
-	
-	vs.b0[0] = dt[0].second;
-	vs.b0[1] = dt[1].second;
-	vs.b0[2] = dt[2].second;
-	
-	vs.b1[0] = dt[6].second;
-	vs.b1[1] = dt[7].second;
-	vs.b1[2] = dt[8].second;
-	//////
-	vs.a0b[0] = dt[12].first;
-	vs.a0b[1] = dt[13].first;
-	vs.a0b[2] = dt[14].first;
+    vs.a1[0] = dt[3].first;
+    vs.a1[1] = dt[4].first;
+    vs.a1[2] = dt[5].first;
 
-	vs.a1b[0] = dt[15].first;
-	vs.a1b[1] = dt[16].first;
-	vs.a1b[2] = dt[17].first;
+    vs.b0[0] = dt[0].second;
+    vs.b0[1] = dt[1].second;
+    vs.b0[2] = dt[2].second;
 
-	vs.b0b[0] = dt[12].second;
-	vs.b0b[1] = dt[13].second;
-	vs.b0b[2] = dt[14].second;
+    vs.b1[0] = dt[6].second;
+    vs.b1[1] = dt[7].second;
+    vs.b1[2] = dt[8].second;
+    //////
+    vs.a0b[0] = dt[12].first;
+    vs.a0b[1] = dt[13].first;
+    vs.a0b[2] = dt[14].first;
 
-	vs.b1b[0] = dt[18].second;
-	vs.b1b[1] = dt[19].second;
-	vs.b1b[2] = dt[20].second;
-	
+    vs.a1b[0] = dt[15].first;
+    vs.a1b[1] = dt[16].first;
+    vs.a1b[2] = dt[17].first;
+
+    vs.b0b[0] = dt[12].second;
+    vs.b0b[1] = dt[13].second;
+    vs.b0b[2] = dt[14].second;
+
+    vs.b1b[0] = dt[18].second;
+    vs.b1b[1] = dt[19].second;
+    vs.b1b[2] = dt[20].second;
 }
 void push_vers_into_subtract_pair(
-	const std::vector<vf_pair>& data1, 
-	const std::vector<ee_pair>& data2,
-	std::vector<std::pair<double, double>> &sub) {
-	sub.clear();
-	sub.reserve(18 * data1.size() + 24 * data2.size());// each vf_pair has 6*3, ee_pair has 8*3 subtractions
-	std::pair<double, double> temp;
+    const std::vector<vf_pair>& data1,
+    const std::vector<ee_pair>& data2,
+    std::vector<std::pair<double, double>>& sub)
+{
+    sub.clear();
+    sub.reserve(
+        18 * data1.size() + 24 * data2.size()); // each vf_pair has 6*3, ee_pair
+                                                // has 8*3 subtractions
+    std::pair<double, double> temp;
 
-	for (int j = 0; j < data1.size(); j++) {
-		for (int i = 0; i < 3; i++) {
-			temp.first = data1[j].x0[i];
-			temp.second = data1[j].x1[i];
-			sub.push_back(temp);
-		}
-		for (int i = 0; i < 3; i++) {
-			temp.first = data1[j].x0[i];
-			temp.second = data1[j].x3[i];
-			sub.push_back(temp);
-		}
-		for (int i = 0; i < 3; i++) {
-			temp.first = data1[j].x0[i];
-			temp.second = data1[j].x2[i];
-			sub.push_back(temp);
-		}
-		//
-		for (int i = 0; i < 3; i++) {
-			temp.first = data1[j].x0b[i];
-			temp.second = data1[j].x1b[i];
-			sub.push_back(temp);
-		}
-		for (int i = 0; i < 3; i++) {
-			temp.first = data1[j].x0b[i];
-			temp.second = data1[j].x3b[i];
-			sub.push_back(temp);
-		}
-		for (int i = 0; i < 3; i++) {
-			temp.first = data1[j].x0b[i];
-			temp.second = data1[j].x2b[i];
-			sub.push_back(temp);
-		}
-	}
-	//ee
-	for (int j = 0; j < data2.size(); j++) {
-		for (int i = 0; i < 3; i++) {
-			temp.first = data2[j].a0[i];
-			temp.second = data2[j].b0[i];
-			sub.push_back(temp);
-		}
-		for (int i = 0; i < 3; i++) {
-			temp.first = data2[j].a1[i];
-			temp.second = data2[j].b0[i];
-			sub.push_back(temp);
-		}
-		for (int i = 0; i < 3; i++) {
-			temp.first = data2[j].a1[i];
-			temp.second = data2[j].b1[i];
-			sub.push_back(temp);
-		}
-		for (int i = 0; i < 3; i++) {
-			temp.first = data2[j].a0[i];
-			temp.second = data2[j].b1[i];
-			sub.push_back(temp);
-		}
-		//
-		for (int i = 0; i < 3; i++) {
-			temp.first = data2[j].a0b[i];
-			temp.second = data2[j].b0b[i];
-			sub.push_back(temp);
-		}
-		for (int i = 0; i < 3; i++) {
-			temp.first = data2[j].a1b[i];
-			temp.second = data2[j].b0b[i];
-			sub.push_back(temp);
-		}
-		for (int i = 0; i < 3; i++) {
-			temp.first = data2[j].a1b[i];
-			temp.second = data2[j].b1b[i];
-			sub.push_back(temp);
-		}
-		for (int i = 0; i < 3; i++) {
-			temp.first = data2[j].a0b[i];
-			temp.second = data2[j].b1b[i];
-			sub.push_back(temp);
-		}
-		
-	}
+    for (int j = 0; j < data1.size(); j++) {
+        for (int i = 0; i < 3; i++) {
+            temp.first = data1[j].x0[i];
+            temp.second = data1[j].x1[i];
+            sub.push_back(temp);
+        }
+        for (int i = 0; i < 3; i++) {
+            temp.first = data1[j].x0[i];
+            temp.second = data1[j].x3[i];
+            sub.push_back(temp);
+        }
+        for (int i = 0; i < 3; i++) {
+            temp.first = data1[j].x0[i];
+            temp.second = data1[j].x2[i];
+            sub.push_back(temp);
+        }
+        //
+        for (int i = 0; i < 3; i++) {
+            temp.first = data1[j].x0b[i];
+            temp.second = data1[j].x1b[i];
+            sub.push_back(temp);
+        }
+        for (int i = 0; i < 3; i++) {
+            temp.first = data1[j].x0b[i];
+            temp.second = data1[j].x3b[i];
+            sub.push_back(temp);
+        }
+        for (int i = 0; i < 3; i++) {
+            temp.first = data1[j].x0b[i];
+            temp.second = data1[j].x2b[i];
+            sub.push_back(temp);
+        }
+    }
+    // ee
+    for (int j = 0; j < data2.size(); j++) {
+        for (int i = 0; i < 3; i++) {
+            temp.first = data2[j].a0[i];
+            temp.second = data2[j].b0[i];
+            sub.push_back(temp);
+        }
+        for (int i = 0; i < 3; i++) {
+            temp.first = data2[j].a1[i];
+            temp.second = data2[j].b0[i];
+            sub.push_back(temp);
+        }
+        for (int i = 0; i < 3; i++) {
+            temp.first = data2[j].a1[i];
+            temp.second = data2[j].b1[i];
+            sub.push_back(temp);
+        }
+        for (int i = 0; i < 3; i++) {
+            temp.first = data2[j].a0[i];
+            temp.second = data2[j].b1[i];
+            sub.push_back(temp);
+        }
+        //
+        for (int i = 0; i < 3; i++) {
+            temp.first = data2[j].a0b[i];
+            temp.second = data2[j].b0b[i];
+            sub.push_back(temp);
+        }
+        for (int i = 0; i < 3; i++) {
+            temp.first = data2[j].a1b[i];
+            temp.second = data2[j].b0b[i];
+            sub.push_back(temp);
+        }
+        for (int i = 0; i < 3; i++) {
+            temp.first = data2[j].a1b[i];
+            temp.second = data2[j].b1b[i];
+            sub.push_back(temp);
+        }
+        for (int i = 0; i < 3; i++) {
+            temp.first = data2[j].a0b[i];
+            temp.second = data2[j].b1b[i];
+            sub.push_back(temp);
+        }
+    }
 }
 
-double vf_shift_error(const vf_pair& d1, const vf_pair& d2) {
-	double err = 0;
-	for (int i = 0; i < 3; i++) {
-		if (fabs(d1.x0[i] - d2.x0[i]) > err)
-			err = fabs(d1.x0[i] - d2.x0[i]);
-		if (fabs(d1.x1[i] - d2.x1[i]) > err)
-			err = fabs(d1.x1[i] - d2.x1[i]);
-		if (fabs(d1.x2[i] - d2.x2[i]) > err)
-			err = fabs(d1.x2[i] - d2.x2[i]);
-		if (fabs(d1.x3[i] - d2.x3[i]) > err)
-			err = fabs(d1.x3[i] - d2.x3[i]);
+double vf_shift_error(const vf_pair& d1, const vf_pair& d2)
+{
+    double err = 0;
+    for (int i = 0; i < 3; i++) {
+        if (fabs(d1.x0[i] - d2.x0[i]) > err)
+            err = fabs(d1.x0[i] - d2.x0[i]);
+        if (fabs(d1.x1[i] - d2.x1[i]) > err)
+            err = fabs(d1.x1[i] - d2.x1[i]);
+        if (fabs(d1.x2[i] - d2.x2[i]) > err)
+            err = fabs(d1.x2[i] - d2.x2[i]);
+        if (fabs(d1.x3[i] - d2.x3[i]) > err)
+            err = fabs(d1.x3[i] - d2.x3[i]);
 
-		if (fabs(d1.x0b[i] - d2.x0b[i]) > err)
-			err = fabs(d1.x0b[i] - d2.x0b[i]);
-		if (fabs(d1.x1b[i] - d2.x1b[i]) > err)
-			err = fabs(d1.x1b[i] - d2.x1b[i]);
-		if (fabs(d1.x2b[i] - d2.x2b[i]) > err)
-			err = fabs(d1.x2b[i] - d2.x2b[i]);
-		if (fabs(d1.x3b[i] - d2.x3b[i]) > err)
-			err = fabs(d1.x3b[i] - d2.x3b[i]);
-	}
-	return err;
+        if (fabs(d1.x0b[i] - d2.x0b[i]) > err)
+            err = fabs(d1.x0b[i] - d2.x0b[i]);
+        if (fabs(d1.x1b[i] - d2.x1b[i]) > err)
+            err = fabs(d1.x1b[i] - d2.x1b[i]);
+        if (fabs(d1.x2b[i] - d2.x2b[i]) > err)
+            err = fabs(d1.x2b[i] - d2.x2b[i]);
+        if (fabs(d1.x3b[i] - d2.x3b[i]) > err)
+            err = fabs(d1.x3b[i] - d2.x3b[i]);
+    }
+    return err;
 }
-double ee_shift_error(const ee_pair& d1, const ee_pair& d2) {
-	double err = 0;
-	for (int i = 0; i < 3; i++) {
-		if (fabs(d1.a0[i] - d2.a0[i]) > err)
-			err = fabs(d1.a0[i] - d2.a0[i]);
-		if (fabs(d1.a1[i] - d2.a1[i]) > err)
-			err = fabs(d1.a1[i] - d2.a1[i]);
-		if (fabs(d1.b0[i] - d2.b0[i]) > err)
-			err = fabs(d1.b0[i] - d2.b0[i]);
-		if (fabs(d1.b1[i] - d2.b1[i]) > err)
-			err = fabs(d1.b1[i] - d2.b1[i]);
+double ee_shift_error(const ee_pair& d1, const ee_pair& d2)
+{
+    double err = 0;
+    for (int i = 0; i < 3; i++) {
+        if (fabs(d1.a0[i] - d2.a0[i]) > err)
+            err = fabs(d1.a0[i] - d2.a0[i]);
+        if (fabs(d1.a1[i] - d2.a1[i]) > err)
+            err = fabs(d1.a1[i] - d2.a1[i]);
+        if (fabs(d1.b0[i] - d2.b0[i]) > err)
+            err = fabs(d1.b0[i] - d2.b0[i]);
+        if (fabs(d1.b1[i] - d2.b1[i]) > err)
+            err = fabs(d1.b1[i] - d2.b1[i]);
 
-		if (fabs(d1.a0b[i] - d2.a0b[i]) > err)
-			err = fabs(d1.a0b[i] - d2.a0b[i]);
-		if (fabs(d1.a1b[i] - d2.a1b[i]) > err)
-			err = fabs(d1.a1b[i] - d2.a1b[i]);
-		if (fabs(d1.b0b[i] - d2.b0b[i]) > err)
-			err = fabs(d1.b0b[i] - d2.b0b[i]);
-		if (fabs(d1.b1b[i] - d2.b1b[i]) > err)
-			err = fabs(d1.b1b[i] - d2.b1b[i]);
-	}
-	return err;
-}
-
-void push_mesh_vers_into_sub_pair(const std::vector<Vector3d>& vers,
-	std::vector<std::pair<double, double>> &sub) {
-	sub.resize(vers.size() * 3);
-	for (int i = 0; i < vers.size(); i++) {
-		for (int j = 0; j < 3; j++) {
-			sub[i * 3 + j].first = vers[i][j];
-			sub[i * 3 + j].second = 0;
-		}
-	}
+        if (fabs(d1.a0b[i] - d2.a0b[i]) > err)
+            err = fabs(d1.a0b[i] - d2.a0b[i]);
+        if (fabs(d1.a1b[i] - d2.a1b[i]) > err)
+            err = fabs(d1.a1b[i] - d2.a1b[i]);
+        if (fabs(d1.b0b[i] - d2.b0b[i]) > err)
+            err = fabs(d1.b0b[i] - d2.b0b[i]);
+        if (fabs(d1.b1b[i] - d2.b1b[i]) > err)
+            err = fabs(d1.b1b[i] - d2.b1b[i]);
+    }
+    return err;
 }
 
-void convert_sub_pairs_to_mesh_vers(const std::vector<std::pair<double, double>> &sub, std::vector<Vector3d>& vers) {
-	assert(sub.size() % 3 == 0&&vers.size()== sub.size() / 3);
-	vers.resize(sub.size() / 3);
-	for (int i = 0; i < vers.size(); i++) {
-		for (int j = 0; j < 3; j++) {
-			vers[i][j] = sub[i * 3 + j].first;
-		}
-	}
+void push_mesh_vers_into_sub_pair(
+    const Eigen::MatrixX3d& V, std::vector<std::pair<double, double>>& sub)
+{
+    sub.resize(V.size());
+    for (int i = 0; i < V.rows(); i++) {
+        for (int j = 0; j < V.cols(); j++) {
+            sub[i * 3 + j].first = V(i, j);
+            sub[i * 3 + j].second = 0;
+        }
+    }
+}
+
+void convert_sub_pairs_to_mesh_vers(
+    const std::vector<std::pair<double, double>>& sub, Eigen::MatrixX3d& V)
+{
+    assert(sub.size() % 3 == 0 && V.size() == sub.size());
+    V.resize(sub.size() / 3, 3);
+    for (int i = 0; i < V.rows(); i++) {
+        for (int j = 0; j < 3; j++) {
+            V(i, j) = sub[i * 3 + j].first;
+        }
+    }
 }
 // x0 is the point, x1, x2, x3 is the triangle
-void get_whole_mesh_shifted(const std::vector<vf_pair>& data1, const std::vector<ee_pair>& data2, std::vector<vf_pair>& shift_back1, std::vector<ee_pair>& shift_back2, std::vector<Vector3d>& vertices) {
-	std::vector<std::pair<double, double>> whole,suback;
+void get_whole_mesh_shifted(
+    const std::vector<vf_pair>& data1,
+    const std::vector<ee_pair>& data2,
+    std::vector<vf_pair>& shift_back1,
+    std::vector<ee_pair>& shift_back2,
+    Eigen::MatrixX3d& vertices)
+{
+    std::vector<std::pair<double, double>> whole, suback;
 
-	push_vers_into_subtract_pair(data1, data2, suback);
-	int subsize = suback.size();
-	push_mesh_vers_into_sub_pair(vertices, whole);
-	//suback = sub;// this is for shift back
-	//k = displaceSubtractions_double(sub);
-	suback.insert(suback.end(), whole.begin(), whole.end());
-	perturbSubtractions(suback);//get shifted back data
-	
-	shift_back1.resize(data1.size());
-	
-	shift_back2.resize(data2.size());
-	int c = 0;
-	//Vector3d kvec(k, k, k);
-	int d1size = data1.size();
-	int d2size = data2.size();
-	int datasize = d1size + d2size;
-	std::array<std::pair<double, double>, 18>  dtback1;
-	std::array<std::pair<double, double>, 24> dtback2;
-	for (int r = 0; r < datasize; r++) {
-		if (r < d1size) {
-			for (int i = 0; i < 18; i++) {
-				//dt1[i] = sub[r * 18 + i];
-				dtback1[i] = suback[r * 18 + i];
-			}
-			
-			convert_to_shifted_v(dtback1, shift_back1[r]);
-		}//r is d1size-1, sub has been read to d1size*18-1
-		else {// r is from d1size to datasize-1, sub is from d1*18
-			for (int i = 0; i < 24; i++) {
-				//dt2[i] = sub[d1size * 18 + (r - d1size) * 24 + i];
-				dtback2[i] = suback[d1size * 18 + (r - d1size) * 24 + i];
-			}
-			
-			convert_to_shifted_v(dtback2, shift_back2[r - d1size]);
-		}
-	}
-	std::vector<std::pair<double, double>> vernew;
-	vernew.resize(vertices.size() * 3);
-	int c1 = 0;
-	for (int i = subsize; i < suback.size(); i++) {
-		vernew[c1] = suback[i];
-		c1++;
-	}
-	convert_sub_pairs_to_mesh_vers(vernew, vertices);
-	double err = 0, temerr;
-	for (int i = 0; i < d1size; i++) {
-		temerr = vf_shift_error(data1[i], shift_back1[i]);
-		if (temerr > err)
-			err = temerr;
-	}
-	for (int i = 0; i < d2size; i++) {
-		temerr = ee_shift_error(data2[i], shift_back2[i]);
-		if (temerr > err)
-			err = temerr;
-	}
-	std::cout << "the shifted maximal error is " << err << std::endl;
-	return;
+    push_vers_into_subtract_pair(data1, data2, suback);
+    int subsize = suback.size();
+    push_mesh_vers_into_sub_pair(vertices, whole);
+    // suback = sub;// this is for shift back
+    // k = displaceSubtractions_double(sub);
+    suback.insert(suback.end(), whole.begin(), whole.end());
+    perturbSubtractions(suback); // get shifted back data
+
+    shift_back1.resize(data1.size());
+
+    shift_back2.resize(data2.size());
+    int c = 0;
+    // Vector3d kvec(k, k, k);
+    int d1size = data1.size();
+    int d2size = data2.size();
+    int datasize = d1size + d2size;
+    std::array<std::pair<double, double>, 18> dtback1;
+    std::array<std::pair<double, double>, 24> dtback2;
+    for (int r = 0; r < datasize; r++) {
+        if (r < d1size) {
+            for (int i = 0; i < 18; i++) {
+                // dt1[i] = sub[r * 18 + i];
+                dtback1[i] = suback[r * 18 + i];
+            }
+
+            convert_to_shifted_v(dtback1, shift_back1[r]);
+        }      // r is d1size-1, sub has been read to d1size*18-1
+        else { // r is from d1size to datasize-1, sub is from d1*18
+            for (int i = 0; i < 24; i++) {
+                // dt2[i] = sub[d1size * 18 + (r - d1size) * 24 + i];
+                dtback2[i] = suback[d1size * 18 + (r - d1size) * 24 + i];
+            }
+
+            convert_to_shifted_v(dtback2, shift_back2[r - d1size]);
+        }
+    }
+    std::vector<std::pair<double, double>> vernew;
+    vernew.resize(vertices.size());
+    int c1 = 0;
+    for (int i = subsize; i < suback.size(); i++) {
+        vernew[c1] = suback[i];
+        c1++;
+    }
+    convert_sub_pairs_to_mesh_vers(vernew, vertices);
+    double err = 0, temerr;
+    for (int i = 0; i < d1size; i++) {
+        temerr = vf_shift_error(data1[i], shift_back1[i]);
+        if (temerr > err)
+            err = temerr;
+    }
+    for (int i = 0; i < d2size; i++) {
+        temerr = ee_shift_error(data2[i], shift_back2[i]);
+        if (temerr > err)
+            err = temerr;
+    }
+    std::cout << "the shifted maximal error is " << err << std::endl;
+    return;
 }
 
 // x0 is the point, x1, x2, x3 is the triangle
-void get_whole_mesh_shifted(const std::vector<vf_pair>& data1, const std::vector<ee_pair>& data2,  std::vector<Vector3d>& vertices) {
-	std::vector<std::pair<double, double>> whole, suback;
+void get_whole_mesh_shifted(
+    const std::vector<vf_pair>& data1,
+    const std::vector<ee_pair>& data2,
+    Eigen::MatrixX3d& vertices)
+{
+    std::vector<std::pair<double, double>> whole, suback;
 
-	push_vers_into_subtract_pair(data1, data2, suback);
-	int subsize = suback.size();
-	push_mesh_vers_into_sub_pair(vertices, whole);
-	//suback = sub;// this is for shift back
-	//k = displaceSubtractions_double(sub);
-	suback.insert(suback.end(), whole.begin(), whole.end());
-	perturbSubtractions(suback);//get shifted back data
+    push_vers_into_subtract_pair(data1, data2, suback);
+    int subsize = suback.size();
+    push_mesh_vers_into_sub_pair(vertices, whole);
+    // suback = sub;// this is for shift back
+    // k = displaceSubtractions_double(sub);
+    suback.insert(suback.end(), whole.begin(), whole.end());
+    perturbSubtractions(suback); // get shifted back data
 
-	
-	std::vector<std::pair<double, double>> vernew;
-	vernew.resize(vertices.size() * 3);
-	int c = 0;
-	for (int i = subsize; i < suback.size(); i++) {
-		vernew[c] = suback[i];
-		c++;
-	}
-	assert(whole.size() == vernew.size());
-	double err = 0;
-	for (int i = 0; i < whole.size(); i++) {
-		if (fabs(whole[i].first - vernew[i].first) > err) {
-			err = fabs(whole[i].first - vernew[i].first);
-		}
-	}
+    std::vector<std::pair<double, double>> vernew;
+    vernew.resize(vertices.size());
+    int c = 0;
+    for (int i = subsize; i < suback.size(); i++) {
+        vernew[c] = suback[i];
+        c++;
+    }
+    assert(whole.size() == vernew.size());
+    double err = 0;
+    for (int i = 0; i < whole.size(); i++) {
+        if (fabs(whole[i].first - vernew[i].first) > err) {
+            err = fabs(whole[i].first - vernew[i].first);
+        }
+    }
 
-	convert_sub_pairs_to_mesh_vers(vernew, vertices);
+    convert_sub_pairs_to_mesh_vers(vernew, vertices);
 
-	std::cout << "the shifted maximal error is " << err << std::endl;
-	return;
+    std::cout << "the shifted maximal error is " << err << std::endl;
+    return;
 }
-
-
 
 // x0 is the point, x1, x2, x3 is the triangle
 void get_prism_shifted_vertices_double(
-	const Vector3d& x0,
-	const Vector3d& x1,
-	const Vector3d& x2,
-	const Vector3d& x3,
-	const Vector3d& x0b,
-	const Vector3d& x1b,
-	const Vector3d& x2b,
-	const Vector3d& x3b,
-	double& k,
-	std::array<Vector3d, 6> &p_vertices)
+    const Vector3d& x0,
+    const Vector3d& x1,
+    const Vector3d& x2,
+    const Vector3d& x3,
+    const Vector3d& x0b,
+    const Vector3d& x1b,
+    const Vector3d& x2b,
+    const Vector3d& x3b,
+    double& k,
+    std::array<Vector3d, 6>& p_vertices)
 {
-	std::vector<std::pair<double, double>> sub;
-	
-	sub.clear();
-	sub.reserve(18);
-	std::pair<double, double> temp;
-	for (int i = 0; i < 3; i++) {
-		temp.first = x0[i];
-		temp.second = x1[i];
-		sub.push_back(temp);
-	}
-	for (int i = 0; i < 3; i++) {
-		temp.first = x0[i];
-		temp.second = x3[i];
-		sub.push_back(temp);
-	}
-	for (int i = 0; i < 3; i++) {
-		temp.first = x0[i];
-		temp.second = x2[i];
-		sub.push_back(temp);
-	}
-	//
-	for (int i = 0; i < 3; i++) {
-		temp.first = x0b[i];
-		temp.second = x1b[i];
-		sub.push_back(temp);
-	}
-	for (int i = 0; i < 3; i++) {
-		temp.first = x0b[i];
-		temp.second = x3b[i];
-		sub.push_back(temp);
-	}
-	for (int i = 0; i < 3; i++) {
-		temp.first = x0b[i];
-		temp.second = x2b[i];
-		sub.push_back(temp);
-	}
+    std::vector<std::pair<double, double>> sub;
 
-	k = displaceSubtractions_double(sub);
-	int c = 0;
-	for (int i = 0; i < 6; i++) {
-		for (int j = 0; j < 3; j++) {
-			p_vertices[i][j] = sub[c].first - sub[c].second;
-			c++;
-		}
-	}
-	
+    sub.clear();
+    sub.reserve(18);
+    std::pair<double, double> temp;
+    for (int i = 0; i < 3; i++) {
+        temp.first = x0[i];
+        temp.second = x1[i];
+        sub.push_back(temp);
+    }
+    for (int i = 0; i < 3; i++) {
+        temp.first = x0[i];
+        temp.second = x3[i];
+        sub.push_back(temp);
+    }
+    for (int i = 0; i < 3; i++) {
+        temp.first = x0[i];
+        temp.second = x2[i];
+        sub.push_back(temp);
+    }
+    //
+    for (int i = 0; i < 3; i++) {
+        temp.first = x0b[i];
+        temp.second = x1b[i];
+        sub.push_back(temp);
+    }
+    for (int i = 0; i < 3; i++) {
+        temp.first = x0b[i];
+        temp.second = x3b[i];
+        sub.push_back(temp);
+    }
+    for (int i = 0; i < 3; i++) {
+        temp.first = x0b[i];
+        temp.second = x2b[i];
+        sub.push_back(temp);
+    }
+
+    k = displaceSubtractions_double(sub);
+    int c = 0;
+    for (int i = 0; i < 6; i++) {
+        for (int j = 0; j < 3; j++) {
+            p_vertices[i][j] = sub[c].first - sub[c].second;
+            c++;
+        }
+    }
 }
 // x0 is the point, x1, x2, x3 is the triangle
 void prism::get_prism_vertices(
-	const Vector3d& x0,
-	const Vector3d& x1,
-	const Vector3d& x2,
-	const Vector3d& x3,
-	const Vector3d& x0b,
-	const Vector3d& x1b,
-	const Vector3d& x2b,
-	const Vector3d& x3b,
-	std::array<Vector3d, 6> &p_vertices) {
-	p_vertices[0] = x0 - x1;
-	p_vertices[1] = x0 - x3;
-	p_vertices[2] = x0 - x2;
-	p_vertices[3] = x0b - x1b;
-	p_vertices[4] = x0b - x3b;
-	p_vertices[5] = x0b - x2b;
+    const Vector3d& x0,
+    const Vector3d& x1,
+    const Vector3d& x2,
+    const Vector3d& x3,
+    const Vector3d& x0b,
+    const Vector3d& x1b,
+    const Vector3d& x2b,
+    const Vector3d& x3b,
+    std::array<Vector3d, 6>& p_vertices)
+{
+    p_vertices[0] = x0 - x1;
+    p_vertices[1] = x0 - x3;
+    p_vertices[2] = x0 - x2;
+    p_vertices[3] = x0b - x1b;
+    p_vertices[4] = x0b - x3b;
+    p_vertices[5] = x0b - x2b;
 }
 prism::prism(
     const Vector3d& vs,
@@ -709,10 +707,13 @@ prism::prism(
     const Vector3d& fe2)
 {
 
-	double k;
-	// these are the 6 vertices of the prism,right hand law
-	//get_prism_shifted_vertices_double(vs, fs0, fs1, fs2, ve, fe0, fe1, fe2, k, p_vertices);
-	get_prism_vertices(vs, fs0, fs1, fs2, ve, fe0, fe1, fe2, p_vertices);// TODO before use this we need to shift all the vertices
+    double k;
+    // these are the 6 vertices of the prism,right hand law
+    // get_prism_shifted_vertices_double(vs, fs0, fs1, fs2, ve, fe0, fe1, fe2,
+    // k, p_vertices);
+    get_prism_vertices(
+        vs, fs0, fs1, fs2, ve, fe0, fe1, fe2,
+        p_vertices); // TODO before use this we need to shift all the vertices
     std::array<int, 2> eid;
 
     eid[0] = 0;
@@ -744,110 +745,112 @@ prism::prism(
     eid[0] = 2;
     eid[1] = 5;
     prism_edge_id[8] = eid;
-
 }
 bool prism::is_triangle_degenerated(const int up_or_bottom)
 {
-	int pid = up_or_bottom == 0 ? 0 : 3;
-	const auto to_2d = [](const Vector3d &p, int t)
-	{
-		return Vector2d(p[(t + 1) % 3], p[(t + 2) % 3]);
-	};
-	double r = ((p_vertices[pid] - p_vertices[pid + 1]).cross(p_vertices[pid] - p_vertices[pid + 2])).norm();
-	if (fabs(r) > 1e-8) return false;
-	int ori;
-	std::array<Vector2d, 3> p;
-	for (int j = 0; j < 3; j++)
-	{
+    int pid = up_or_bottom == 0 ? 0 : 3;
+    const auto to_2d = [](const Vector3d& p, int t) {
+        return Vector2d(p[(t + 1) % 3], p[(t + 2) % 3]);
+    };
+    double r = ((p_vertices[pid] - p_vertices[pid + 1])
+                    .cross(p_vertices[pid] - p_vertices[pid + 2]))
+                   .norm();
+    if (fabs(r) > 1e-8)
+        return false;
+    int ori;
+    std::array<Vector2d, 3> p;
+    for (int j = 0; j < 3; j++) {
 
-		p[0] = to_2d(p_vertices[pid], j);
-		p[1] = to_2d(p_vertices[pid+1], j);
-		p[2] = to_2d(p_vertices[pid+2], j);
+        p[0] = to_2d(p_vertices[pid], j);
+        p[1] = to_2d(p_vertices[pid + 1], j);
+        p[2] = to_2d(p_vertices[pid + 2], j);
 
-		ori = orient2d(p[0][0], p[0][1], p[1][0], p[1][1], p[2][0], p[2][1]);
-		if (ori != 0)
-		{
-			return false;
-		}
-	}
-	return true;
+        ori = orient2d(p[0][0], p[0][1], p[1][0], p[1][1], p[2][0], p[2][1]);
+        if (ori != 0) {
+            return false;
+        }
+    }
+    return true;
 }
 
 void hex::get_hex_vertices(
-	const Vector3d& a0,
-	const Vector3d& a1,
-	const Vector3d& b0,
-	const Vector3d& b1,
-	const Vector3d& a0b,
-	const Vector3d& a1b,
-	const Vector3d& b0b,
-	const Vector3d& b1b,
-	std::array<Vector3d, 8> &h_vertices) {
-	h_vertices[0] = a0 - b0;
-	h_vertices[1] = a1 - b0;
-	h_vertices[2] = a1 - b1;
-	h_vertices[3] = a0 - b1;
-	h_vertices[4] = a0b - b0b;
-	h_vertices[5] = a1b - b0b;
-	h_vertices[6] = a1b - b1b;
-	h_vertices[7] = a0b - b1b;
-	
+    const Vector3d& a0,
+    const Vector3d& a1,
+    const Vector3d& b0,
+    const Vector3d& b1,
+    const Vector3d& a0b,
+    const Vector3d& a1b,
+    const Vector3d& b0b,
+    const Vector3d& b1b,
+    std::array<Vector3d, 8>& h_vertices)
+{
+    h_vertices[0] = a0 - b0;
+    h_vertices[1] = a1 - b0;
+    h_vertices[2] = a1 - b1;
+    h_vertices[3] = a0 - b1;
+    h_vertices[4] = a0b - b0b;
+    h_vertices[5] = a1b - b0b;
+    h_vertices[6] = a1b - b1b;
+    h_vertices[7] = a0b - b1b;
 }
-//a0, a1 is one edge, b0, b1 is another  edge
+// a0, a1 is one edge, b0, b1 is another  edge
 hex::hex(
-	const Vector3d& a0,
-	const Vector3d& a1,
-	const Vector3d& b0,
-	const Vector3d& b1,
-	const Vector3d& a0b,
-	const Vector3d& a1b,
-	const Vector3d& b0b,
-	const Vector3d& b1b) {
-	
-	// these are the 6 vertices of the prism,right hand law
-	//get_hex_shifted_vertices_double(vs, fs0, fs1, fs2, ve, fe0, fe1, fe2, k, p_vertices);
-	get_hex_vertices(a0,a1,b0,b1, a0b, a1b, b0b, b1b, h_vertices);// TODO before use this we need to shift all the vertices
-	std::array<int, 2> eid;
+    const Vector3d& a0,
+    const Vector3d& a1,
+    const Vector3d& b0,
+    const Vector3d& b1,
+    const Vector3d& a0b,
+    const Vector3d& a1b,
+    const Vector3d& b0b,
+    const Vector3d& b1b)
+{
 
-	eid[0] = 0;
-	eid[1] = 1;
-	hex_edge_id[0] = eid;
-	eid[0] = 1;
-	eid[1] = 2;
-	hex_edge_id[1] = eid;
-	eid[0] = 2;
-	eid[1] = 3;
-	hex_edge_id[2] = eid;
-	eid[0] = 3;
-	eid[1] = 0;
-	hex_edge_id[3] = eid;
+    // these are the 6 vertices of the prism,right hand law
+    // get_hex_shifted_vertices_double(vs, fs0, fs1, fs2, ve, fe0, fe1, fe2, k,
+    // p_vertices);
+    get_hex_vertices(
+        a0, a1, b0, b1, a0b, a1b, b0b, b1b,
+        h_vertices); // TODO before use this we need to shift all the vertices
+    std::array<int, 2> eid;
 
-	eid[0] = 4;
-	eid[1] = 5;
-	hex_edge_id[4] = eid;
-	eid[0] = 5;
-	eid[1] = 6;
-	hex_edge_id[5] = eid;
-	eid[0] = 6;
-	eid[1] = 7;
-	hex_edge_id[6] = eid;
-	eid[0] = 7;
-	eid[1] = 4;
-	hex_edge_id[7] = eid;
+    eid[0] = 0;
+    eid[1] = 1;
+    hex_edge_id[0] = eid;
+    eid[0] = 1;
+    eid[1] = 2;
+    hex_edge_id[1] = eid;
+    eid[0] = 2;
+    eid[1] = 3;
+    hex_edge_id[2] = eid;
+    eid[0] = 3;
+    eid[1] = 0;
+    hex_edge_id[3] = eid;
 
-	eid[0] = 0;
-	eid[1] = 4;
-	hex_edge_id[8] = eid;
-	eid[0] = 1;
-	eid[1] = 5;
-	hex_edge_id[9] = eid;
-	eid[0] = 2;
-	eid[1] = 6;
-	hex_edge_id[10] = eid;
-	eid[0] = 3;
-	eid[1] = 7;
-	hex_edge_id[11] = eid;
+    eid[0] = 4;
+    eid[1] = 5;
+    hex_edge_id[4] = eid;
+    eid[0] = 5;
+    eid[1] = 6;
+    hex_edge_id[5] = eid;
+    eid[0] = 6;
+    eid[1] = 7;
+    hex_edge_id[6] = eid;
+    eid[0] = 7;
+    eid[1] = 4;
+    hex_edge_id[7] = eid;
 
+    eid[0] = 0;
+    eid[1] = 4;
+    hex_edge_id[8] = eid;
+    eid[0] = 1;
+    eid[1] = 5;
+    hex_edge_id[9] = eid;
+    eid[0] = 2;
+    eid[1] = 6;
+    hex_edge_id[10] = eid;
+    eid[0] = 3;
+    eid[1] = 7;
+    hex_edge_id[11] = eid;
 }
 
 // the facets of the tet are all oriented to outside. check if p is inside of
@@ -856,34 +859,36 @@ bool is_point_inside_tet(const bilinear& bl, const Vector3d& p)
 {
 
     for (int i = 0; i < 4; i++) { // facets.size()==4
-		Vector3d pt1= bl.v[bl.facets[i][0]], pt2= bl.v[bl.facets[i][1]], pt3= bl.v[bl.facets[i][2]];
-		if (orient_3d(
-			p, pt1, pt2, pt3) >= 0) {
+        Vector3d pt1 = bl.v[bl.facets[i][0]], pt2 = bl.v[bl.facets[i][1]],
+                 pt3 = bl.v[bl.facets[i][2]];
+        if (orient_3d(p, pt1, pt2, pt3) >= 0) {
             return false;
         }
     }
     return true; // all the orientations are -1, then point inside
 }
 
-
 // we already know the bilinear is degenerated, next check which kind
 int bilinear_degeneration(const bilinear& bl)
 {
-	bool dege1 = is_triangle_degenerated(bl.v[0], bl.v[1], bl.v[2]);
-	if (dege1) return BI_DEGE_PLANE;
-	bool dege2 = is_triangle_degenerated(bl.v[0], bl.v[2], bl.v[3]);
-	if (dege2) return BI_DEGE_PLANE;
-	Vector3d np = Vector3d::Random();
-	int ori = orient_3d(np, bl.v[0], bl.v[1], bl.v[2]);
-	while (ori == 0) {// if coplanar, random
-		np = Vector3d::Random();
-		ori = orient_3d(np, bl.v[0], bl.v[1], bl.v[2]);
-	}
-	int ori1= orient_3d(np, bl.v[0], bl.v[2], bl.v[3]);
-	if (ori*ori1 < 0) {
-		return BI_DEGE_XOR_02;
-	}
-    // CAUTION: no need BI_DEGE_XOR_13 anymore, because it is the same with BI_DEGE_XOR_02
+    bool dege1 = is_triangle_degenerated(bl.v[0], bl.v[1], bl.v[2]);
+    if (dege1)
+        return BI_DEGE_PLANE;
+    bool dege2 = is_triangle_degenerated(bl.v[0], bl.v[2], bl.v[3]);
+    if (dege2)
+        return BI_DEGE_PLANE;
+    Vector3d np = Vector3d::Random();
+    int ori = orient_3d(np, bl.v[0], bl.v[1], bl.v[2]);
+    while (ori == 0) { // if coplanar, random
+        np = Vector3d::Random();
+        ori = orient_3d(np, bl.v[0], bl.v[1], bl.v[2]);
+    }
+    int ori1 = orient_3d(np, bl.v[0], bl.v[2], bl.v[3]);
+    if (ori * ori1 < 0) {
+        return BI_DEGE_XOR_02;
+    }
+    // CAUTION: no need BI_DEGE_XOR_13 anymore, because it is the same with
+    // BI_DEGE_XOR_02
     return BI_DEGE_PLANE;
 }
 
@@ -891,7 +896,7 @@ bool is_cube_intersect_degenerated_bilinear(
     const bilinear& bl, const cube& cube)
 {
     int dege = bilinear_degeneration(bl);
-    //int axis;
+    // int axis;
     bool res;
     if (dege == BI_DEGE_PLANE) {
 
@@ -901,18 +906,20 @@ bool is_cube_intersect_degenerated_bilinear(
             return true;
         return false;
     } else {
-		//int  axis = get_triangle_project_axis(bl.v[0], bl.v[1], bl.v[3]);
-  //      if (axis == 3)
-  //          axis = get_triangle_project_axis(bl.v[3], bl.v[1], bl.v[2]);
-  //      if (axis == 3)
-  //          return false; // both 2 triangles are all degenerated as a segment
+        // int  axis = get_triangle_project_axis(bl.v[0], bl.v[1], bl.v[3]);
+        //      if (axis == 3)
+        //          axis = get_triangle_project_axis(bl.v[3], bl.v[1], bl.v[2]);
+        //      if (axis == 3)
+        //          return false; // both 2 triangles are all degenerated as a
+        //          segment
         if (dege == BI_DEGE_XOR_02) { // triangle 0-1-2 and 0-2-3
             for (int i = 0; i < 12; i++) {
                 res = int_seg_XOR(
-					segment_triangle_intersection(
+                    segment_triangle_intersection(
                         cube.vr[cube.edgeid[i][0]], cube.vr[cube.edgeid[i][1]],
-                        bl.v[1], bl.v[2], bl.v[0], true),// CAUTION: need to be careful for the order here
-					segment_triangle_intersection(
+                        bl.v[1], bl.v[2], bl.v[0],
+                        true), // CAUTION: need to be careful for the order here
+                    segment_triangle_intersection(
                         cube.vr[cube.edgeid[i][0]], cube.vr[cube.edgeid[i][1]],
                         bl.v[3], bl.v[2], bl.v[0], true));
                 if (res == true)
@@ -921,20 +928,22 @@ bool is_cube_intersect_degenerated_bilinear(
             return false;
         }
 
-     //   if (dege == BI_DEGE_XOR_13) { // triangle 0-1-3 and 3-1-2
-     //       for (int i = 0; i < 12; i++) {
-     //           res = int_seg_XOR(
-					//segment_triangle_intersection(
-     //                   cube.vr[cube.edgeid[i][0]], cube.vr[cube.edgeid[i][1]],
-     //                   bl.v[0], bl.v[1], bl.v[3], true),
-					//segment_triangle_intersection(
-     //                   cube.vr[cube.edgeid[i][0]], cube.vr[cube.edgeid[i][1]],
-     //                   bl.v[2], bl.v[1], bl.v[3], true));
-     //           if (res == true)
-     //               return true;
-     //       }
-     //       return false;
-     //   }
+        //   if (dege == BI_DEGE_XOR_13) { // triangle 0-1-3 and 3-1-2
+        //       for (int i = 0; i < 12; i++) {
+        //           res = int_seg_XOR(
+        // segment_triangle_intersection(
+        //                   cube.vr[cube.edgeid[i][0]],
+        //                   cube.vr[cube.edgeid[i][1]], bl.v[0], bl.v[1],
+        //                   bl.v[3], true),
+        // segment_triangle_intersection(
+        //                   cube.vr[cube.edgeid[i][0]],
+        //                   cube.vr[cube.edgeid[i][1]], bl.v[2], bl.v[1],
+        //                   bl.v[3], true));
+        //           if (res == true)
+        //               return true;
+        //       }
+        //       return false;
+        //   }
     }
     std::cout << "!! THIS CANNOT HAPPEN" << std::endl;
     return false;
@@ -957,15 +966,17 @@ bool line_shoot_same_pair_tet(
             fid = 0;
         else
             fid = 2;
-    }// get which pair of facets to check
-	//if line is parallel to the triangle, return false
-	int inter0 = is_line_cut_triangle(p0, p1, bl.v[bl.facets[fid][0]], bl.v[bl.facets[fid][1]],
-		bl.v[bl.facets[fid][2]], false);
+    } // get which pair of facets to check
+    // if line is parallel to the triangle, return false
+    int inter0 = is_line_cut_triangle(
+        p0, p1, bl.v[bl.facets[fid][0]], bl.v[bl.facets[fid][1]],
+        bl.v[bl.facets[fid][2]], false);
 
-	int inter1 = is_line_cut_triangle(p0, p1, bl.v[bl.facets[fid + 1][0]], bl.v[bl.facets[fid + 1][1]],
-		bl.v[bl.facets[fid + 1][2]], false);
+    int inter1 = is_line_cut_triangle(
+        p0, p1, bl.v[bl.facets[fid + 1][0]], bl.v[bl.facets[fid + 1][1]],
+        bl.v[bl.facets[fid + 1][2]], false);
 
-	if (inter0 == 1 && inter1 == 1)
+    if (inter0 == 1 && inter1 == 1)
         return true;
     return false;
 }
@@ -986,7 +997,7 @@ bool quadratic_function_rootfinder(
     const Rational& b,
     const Rational& c,
     const Rational t0,
-    const Rational t1)// t0 t1 no matter which is bigger
+    const Rational t1) // t0 t1 no matter which is bigger
 {
     Rational ft0, ft1;
     ft0 = quadratic_function_value(a, b, c, t0);
@@ -1026,8 +1037,8 @@ void get_quadratic_function(
     Rational& b,
     Rational& c)
 {
-	Vector3r x0(x0d[0], x0d[1], x0d[2]), x1(x1d[0], x1d[1], x1d[2]), x2(x2d[0], x2d[1], x2d[2]),
-		x3(x3d[0], x3d[1], x3d[2]);
+    Vector3r x0(x0d[0], x0d[1], x0d[2]), x1(x1d[0], x1d[1], x1d[2]),
+        x2(x2d[0], x2d[1], x2d[2]), x3(x3d[0], x3d[1], x3d[2]);
     Rational x00 = x0[0], x01 = x0[1], x02 = x0[2];
     Rational x10 = x1[0], x11 = x1[1], x12 = x1[2];
     Rational x20 = x2[0], x21 = x2[1], x22 = x2[2];
@@ -1088,24 +1099,32 @@ void get_quadratic_function(
                + (v02 - x02) * (x100 * x301 - x101 * x300));
 }
 bool get_function_find_root(
-    const bilinear& bl, const Vector3r& p0, const Vector3r& p1, const Rational &t0, const Rational &t1)
+    const bilinear& bl,
+    const Vector3r& p0,
+    const Vector3r& p1,
+    const Rational& t0,
+    const Rational& t1)
 {
-	if (t0 > 1 || t0 < 0) std::cout << "t is not right: exceed the limit" << std::endl;
-	if (t1 > 1 || t1 < 0) std::cout << "t is not right: exceed the limit" << std::endl;
+    if (t0 > 1 || t0 < 0)
+        std::cout << "t is not right: exceed the limit" << std::endl;
+    if (t1 > 1 || t1 < 0)
+        std::cout << "t is not right: exceed the limit" << std::endl;
     Rational a, b, c;
-	//Vector3r p0(p0d[0], p0d[1], p0d[2]), p1(p1d[0], p1d[1], p1d[2]);
+    // Vector3r p0(p0d[0], p0d[1], p0d[2]), p1(p1d[0], p1d[1], p1d[2]);
     Vector3r dir = p1 - p0;
     get_quadratic_function(
-        Rational(p0[0]), Rational(p0[1]), Rational(p0[2]), Rational(dir[0]), Rational(dir[1]), Rational(dir[2])
-		, bl.v[0], bl.v[1], bl.v[2],
-        bl.v[3], a, b, c);
-    bool res= quadratic_function_rootfinder(a, b, c, t0, t1);
-	if (res) rootrue++;
-	return res;
+        Rational(p0[0]), Rational(p0[1]), Rational(p0[2]), Rational(dir[0]),
+        Rational(dir[1]), Rational(dir[2]), bl.v[0], bl.v[1], bl.v[2], bl.v[3],
+        a, b, c);
+    bool res = quadratic_function_rootfinder(a, b, c, t0, t1);
+    if (res)
+        rootrue++;
+    return res;
 }
-void print_sub() {
-	std::cout << "root finder return true time " << rootrue << std::endl;
-	std::cout << "root finder total call time " << rootime << std::endl;
+void print_sub()
+{
+    std::cout << "root finder return true time " << rootrue << std::endl;
+    std::cout << "root finder total call time " << rootime << std::endl;
 }
 bool rootfinder(
     const bilinear& bl,
@@ -1115,56 +1134,56 @@ bool rootfinder(
     const bool p1in,
     const int pairid)
 {
-	rootime++;
-	Vector3r p0(p0d[0], p0d[1], p0d[2]), p1(p1d[0], p1d[1], p1d[2]);
-	//std::cout << "we use root finder here" << std::endl;
+    rootime++;
+    Vector3r p0(p0d[0], p0d[1], p0d[2]), p1(p1d[0], p1d[1], p1d[2]);
+    // std::cout << "we use root finder here" << std::endl;
     if (p0in && p1in) {
-		// t0=0, t1=1
+        // t0=0, t1=1
         return get_function_find_root(bl, p0, p1, Rational(0), Rational(1));
     }
-    int fid = 2 * pairid;// it should be 0 or 2
+    int fid = 2 * pairid; // it should be 0 or 2
     Rational t;
     if (p0in) {
-        bool res1=seg_triangle_inter_return_t(
+        bool res1 = seg_triangle_inter_return_t(
             p0d, p1d, bl.v[bl.facets[fid][0]], bl.v[bl.facets[fid][1]],
             bl.v[bl.facets[fid][2]], t);
         if (!res1) {
-            res1=seg_triangle_inter_return_t(
-                p0d, p1d, bl.v[bl.facets[fid+1][0]], bl.v[bl.facets[fid+1][1]],
-                bl.v[bl.facets[fid+1][2]], t);
+            res1 = seg_triangle_inter_return_t(
+                p0d, p1d, bl.v[bl.facets[fid + 1][0]],
+                bl.v[bl.facets[fid + 1][1]], bl.v[bl.facets[fid + 1][2]], t);
         }
-		if (!res1)
-			return false; // means not really intersected
+        if (!res1)
+            return false; // means not really intersected
         // we got t
         return get_function_find_root(bl, p0, p1, 0, t);
     }
     if (p1in) { // change the order of input to get t just because we want
                 // domain to be [0, t]
-        bool res1 = seg_triangle_inter_return_t(//TODO here get n1, d1, n2, d2
+        bool res1 = seg_triangle_inter_return_t( // TODO here get n1, d1, n2, d2
             p1d, p0d, bl.v[bl.facets[fid][0]], bl.v[bl.facets[fid][1]],
             bl.v[bl.facets[fid][2]], t);
         if (!res1) {
-			res1 = seg_triangle_inter_return_t(
+            res1 = seg_triangle_inter_return_t(
                 p1d, p0d, bl.v[bl.facets[fid + 1][0]],
                 bl.v[bl.facets[fid + 1][1]], bl.v[bl.facets[fid + 1][2]], t);
         }
-		if (!res1)
-			return false; // means not really intersected
+        if (!res1)
+            return false; // means not really intersected
         // we got t
         return get_function_find_root(bl, p1, p0, 0, t);
     }
 
     Rational t1;
-	bool res1 = seg_triangle_inter_return_t(
+    bool res1 = seg_triangle_inter_return_t(
         p0d, p1d, bl.v[bl.facets[fid][0]], bl.v[bl.facets[fid][1]],
         bl.v[bl.facets[fid][2]], t);
-	if (!res1)
-		return false; // means not really intersected
-	bool res2 = seg_triangle_inter_return_t(
+    if (!res1)
+        return false; // means not really intersected
+    bool res2 = seg_triangle_inter_return_t(
         p0d, p1d, bl.v[bl.facets[fid + 1][0]], bl.v[bl.facets[fid + 1][1]],
         bl.v[bl.facets[fid + 1][2]], t1);
-	if (!res2)
-		return false; // means not really intersected
+    if (!res2)
+        return false; // means not really intersected
     // we got t, t1
     return get_function_find_root(bl, p0, p1, t, t1);
 }
@@ -1177,21 +1196,21 @@ bool is_seg_intersect_not_degenerated_bilinear(
     const bool pin0,
     const bool pin1)
 {
-	//first compare phi, if phis are different, intersected;
-	//then check if the line intersect two opposite facets of bilinear, if so, use
-	//rootfinder, else, not intersected
+    // first compare phi, if phis are different, intersected;
+    // then check if the line intersect two opposite facets of bilinear, if so,
+    // use rootfinder, else, not intersected
     if (pin0 && pin1) { // two points are all inside
 
         Rational phi0 = phi(p0, bl.v);
         Rational phi1 = phi(p1, bl.v);
-		if (phi0 == 0 || phi1 == 0 || phi0.get_sign() != phi1.get_sign())
+        if (phi0 == 0 || phi1 == 0 || phi0.get_sign() != phi1.get_sign())
             return true;
         if (line_shoot_same_pair_tet(p0, p1, phi1.get_sign(), bl)) {
             if (phi1.get_sign() == bl.phi_f[0])
                 return rootfinder(bl, p0, p1, pin0, pin1, 0);
             else
                 return rootfinder(bl, p0, p1, pin0, pin1, 1);
-		}
+        }
 
         else
             return false; // if the phis are the same, and shoot same pair, need
@@ -1204,9 +1223,10 @@ bool is_seg_intersect_not_degenerated_bilinear(
         int hitpair = -1;
 
         for (int i = 0; i < 4; i++) {
-            if (segment_triangle_intersection(// 0,1,2,3. 1,2,3 are all intersected
+            if (segment_triangle_intersection( // 0,1,2,3. 1,2,3 are all
+                                               // intersected
                     p0, p1, bl.v[bl.facets[i][0]], bl.v[bl.facets[i][1]],
-				bl.v[bl.facets[i][2]], false)
+                    bl.v[bl.facets[i][2]], false)
                 > 0) {
                 if (i < 2)
                     hitpair = 0;
@@ -1232,7 +1252,7 @@ bool is_seg_intersect_not_degenerated_bilinear(
                     return rootfinder(bl, p0, p1, pin0, pin1, 0);
                 else
                     return rootfinder(bl, p0, p1, pin0, pin1, 1);
-			}
+            }
 
             else
                 return false; // if the phis are the same, and shoot same pair,
@@ -1245,9 +1265,10 @@ bool is_seg_intersect_not_degenerated_bilinear(
             return true;
         int hitpair = -1;
         for (int i = 0; i < 4; i++) {
-            if (segment_triangle_intersection(// 0,1,2,3. 1,2,3 are all intersected
+            if (segment_triangle_intersection( // 0,1,2,3. 1,2,3 are all
+                                               // intersected
                     p0, p1, bl.v[bl.facets[i][0]], bl.v[bl.facets[i][1]],
-				bl.v[bl.facets[i][2]], false)
+                    bl.v[bl.facets[i][2]], false)
                 > 0) {
                 if (i < 2)
                     hitpair = 0;
@@ -1270,8 +1291,7 @@ bool is_seg_intersect_not_degenerated_bilinear(
                     return rootfinder(bl, p0, p1, pin0, pin1, 0);
                 else
                     return rootfinder(bl, p0, p1, pin0, pin1, 1);
-            }
-            else
+            } else
                 return false; // if the phis are the same, and shoot same pair,
                               // need to use rootfinder
         }
@@ -1285,14 +1305,14 @@ bool is_seg_intersect_not_degenerated_bilinear(
                 return rootfinder(bl, p0, p1, pin0, pin1, 0);
             else
                 return rootfinder(bl, p0, p1, pin0, pin1, 1);
-		}
+        }
 
         else if (line_shoot_same_pair_tet(p0, p1, -1, bl)) {
             if (-1 == bl.phi_f[0])
                 return rootfinder(bl, p0, p1, pin0, pin1, 0);
             else
                 return rootfinder(bl, p0, p1, pin0, pin1, 1);
-			}
+        }
         return false; // if the phis are the same, and shoot same pair,
                       // need to use rootfinder
     }
@@ -1303,31 +1323,32 @@ bool is_seg_intersect_not_degenerated_bilinear(
 }
 
 bool is_cube_edge_intersect_bilinear(
-    bilinear& bl, const cube& cb, const std::array<bool, 8>&pin)
+    bilinear& bl, const cube& cb, const std::array<bool, 8>& pin)
 {
-	if (bl.is_degenerated) return false;// we already checked degenerated cases
+    if (bl.is_degenerated)
+        return false; // we already checked degenerated cases
     for (int i = 0; i < 12; i++) {
         if (is_seg_intersect_not_degenerated_bilinear(
                 bl, cb.vr[cb.edgeid[i][0]], cb.vr[cb.edgeid[i][1]],
                 pin[cb.edgeid[i][0]], pin[cb.edgeid[i][1]]))
             return true;
-	}
+    }
     return false;
 }
-    // vin is true, this vertex has intersection with open tet
+// vin is true, this vertex has intersection with open tet
 // if tet is degenerated, just tell us if cube is intersected with the shape
 bool is_cube_intersect_tet_opposite_faces(
     const bilinear& bl,
     const cube& cube,
     std::array<bool, 8>& vin,
-    bool &cube_inter_tet)
+    bool& cube_inter_tet)
 {
-	cube_inter_tet = false;
+    cube_inter_tet = false;
     if (!bl.is_degenerated) {
         for (int i = 0; i < 8; i++) {
-			vin[i] = false;
+            vin[i] = false;
             if (is_point_inside_tet(bl, cube.vr[i])) {
-				cube_inter_tet = true;
+                cube_inter_tet = true;
                 vin[i] = true;
             }
         }
@@ -1341,17 +1362,18 @@ bool is_cube_intersect_tet_opposite_faces(
 
     for (int i = 0; i < 12; i++) {
         if (vin[cube.edgeid[i][0]]
-            && vin[cube.edgeid[i][1]]) { // if two vertices are all inside, it can not cut any edge
-			cube_inter_tet = true;
+            && vin[cube.edgeid[i][1]]) { // if two vertices are all inside, it
+                                         // can not cut any edge
+            cube_inter_tet = true;
             continue;
         }
         for (int j = 0; j < 4; j++) {
             if (segment_triangle_intersection(
                     cube.vr[cube.edgeid[i][0]], cube.vr[cube.edgeid[i][1]],
                     bl.v[bl.facets[j][0]], bl.v[bl.facets[j][1]],
-				bl.v[bl.facets[j][2]], false)
+                    bl.v[bl.facets[j][2]], false)
                 > 0) {
-				cube_inter_tet = true;
+                cube_inter_tet = true;
                 if (j == 0 || j == 1)
                     side1 = true;
                 if (j == 2 || j == 3)
@@ -1366,4 +1388,4 @@ bool is_cube_intersect_tet_opposite_faces(
     return false;
 }
 
-} // namespace ccd
+} // namespace doubleccd
