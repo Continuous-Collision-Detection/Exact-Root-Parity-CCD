@@ -9,6 +9,7 @@
 #include <array>
 #include <doubleCCD/doubleccd.hpp>
 #include <fstream>
+#include<read_collision_data.hpp>
 //#include <exact_subtraction.hpp>
 //#include<subfunctions.h>
 using namespace doubleccd;
@@ -336,6 +337,49 @@ void test_shift_maxerror()
     get_whole_mesh_shifted(vfs, ees, shifted_vfs, shifted_ees, vertices1);
     get_whole_mesh_shifted(vfs, ees, vertices2);
 }
+void read_vf_data(const string file, std::vector<vf_pair>& vfdata) {
+	std::vector<Eigen::Matrix<double, 8, 3>> vertex_face_data;
+	read_vertex_face_data(file, vertex_face_data);
+	vfdata.resize(vertex_face_data.size());
+	for (int i = 0; i < vertex_face_data.size(); i++) {
+		for (int j = 0; j < 3; j++) {
+			vfdata[i].x0[j] = vertex_face_data[i](0, j);
+			vfdata[i].x1[j] = vertex_face_data[i](1, j);
+			vfdata[i].x2[j] = vertex_face_data[i](2, j);
+			vfdata[i].x3[j] = vertex_face_data[i](3, j);
+
+			vfdata[i].x0b[j] = vertex_face_data[i](4, j);
+			vfdata[i].x1b[j] = vertex_face_data[i](5, j);
+			vfdata[i].x2b[j] = vertex_face_data[i](6, j);
+			vfdata[i].x3b[j] = vertex_face_data[i](7, j);
+		}
+		
+	}
+}
+
+void read_ee_data(const string file, std::vector<ee_pair>& eedata) {
+	std::vector<Eigen::Matrix<double, 8, 3>> edge_edge_data;
+	read_edge_edge_data(file, edge_edge_data);
+	eedata.resize(edge_edge_data.size());
+	for (int i = 0; i < edge_edge_data.size(); i++) {
+		for (int j = 0; j < 3; j++) {
+			eedata[i].a0[j] = edge_edge_data[i](0, j);
+			eedata[i].a1[j] = edge_edge_data[i](1, j);
+			eedata[i].b0[j] = edge_edge_data[i](2, j);
+			eedata[i].b1[j] = edge_edge_data[i](3, j);
+
+			eedata[i].a0b[j] = edge_edge_data[i](4, j);
+			eedata[i].a1b[j] = edge_edge_data[i](5, j);
+			eedata[i].b0b[j] = edge_edge_data[i](6, j);
+			eedata[i].b1b[j] = edge_edge_data[i](7, j);
+		}
+
+	}
+}
+void test_more() {
+	std::vector<Eigen::Matrix<double, 8, 3>> vertex_face_data;
+	
+}
 int main(int argc, char* argv[])
 {
     // TODO: Put something more relevant here
@@ -343,5 +387,6 @@ int main(int argc, char* argv[])
     // test_shifted_compare();
     // test_rootfinder();
     test_shift_maxerror();
+	
     return 1;
 }
