@@ -24,7 +24,7 @@ namespace doubleccd {
  *                                 face.
  * @param[in]  face_vertex2_end    End position of the third vertex of the
  *                                 face.
- * @param[in]  method              Method of exact CCD.
+ * @param[in]  minimum_distance    Minmum distance for collision.
  *
  * @returns  True if the vertex and face collide.
  */
@@ -36,17 +36,8 @@ bool vertexFaceCCD(
     const Vector3d& vertex_end,
     const Vector3d& face_vertex0_end,
     const Vector3d& face_vertex1_end,
-    const Vector3d& face_vertex2_end,const double eps);
-bool vertexFaceCCD(
-    const Vector3d& vertex_start,
-    const Vector3d& face_vertex0_start,
-    const Vector3d& face_vertex1_start,
-    const Vector3d& face_vertex2_start,
-    const Vector3d& vertex_end,
-    const Vector3d& face_vertex0_end,
-    const Vector3d& face_vertex1_end,
-    const Vector3d& face_vertex2_end);
-
+    const Vector3d& face_vertex2_end,
+    const double minimum_distance);
 
 /**
  * @brief Detect collisions between two edges as they move.
@@ -70,7 +61,7 @@ bool vertexFaceCCD(
  *                                  vertex.
  * @param[in]  edge1_vertex1_end    End position of the second edge's second
  *                                  vertex.
- * @param[in]  method               Method of exact CCD.
+ * @param[in]  minimum_distance    Minmum distance for collision.
  *
  * @returns True if the edges collide.
  */
@@ -82,15 +73,9 @@ bool edgeEdgeCCD(
     const Vector3d& edge0_vertex0_end,
     const Vector3d& edge0_vertex1_end,
     const Vector3d& edge1_vertex0_end,
-    const Vector3d& edge1_vertex1_end);
-bool edgeEdgeCCD(
-	const Vector3d& edge0_vertex0_start,
-	const Vector3d& edge0_vertex1_start,
-	const Vector3d& edge1_vertex0_start,
-	const Vector3d& edge1_vertex1_start,
-	const Vector3d& edge0_vertex0_end,
-	const Vector3d& edge0_vertex1_end,
-	const Vector3d& edge1_vertex0_end,
-	const Vector3d& edge1_vertex1_end,const double eps);
+    const Vector3d& edge1_vertex1_end,
+    const double minimum_distance);
+
 void test();
+
 } // namespace doubleccd

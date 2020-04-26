@@ -267,9 +267,11 @@ bool edgeEdgeCCD(
     return rtccd;
     return false;
 }
+
 void test()
 {
     std::cout << "time for cube edge - bilinear " << time1 << std::endl;
     std::cout << "time for retrail ccd  " << time2 << std::endl;
 }
+
 } // namespace doubleccd
