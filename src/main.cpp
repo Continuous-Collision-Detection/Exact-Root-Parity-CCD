@@ -377,16 +377,62 @@ void read_ee_data(const string file, std::vector<ee_pair>& eedata) {
 	}
 }
 void test_more() {
-	std::vector<Eigen::Matrix<double, 8, 3>> vertex_face_data;
 	
 }
+void test_edge_edge(){
+    string filename="/home/bw1760/scratch/cow-head/edge-edge/edge-edge-collisions-part001.hdf5";
+    std::vector<ee_pair> eedata;
+	read_ee_data(filename,eedata);
+
+    std::vector<bool> results, results1;
+    int fn = eedata.size(); // 50000;
+    std::cout<<"fn "<<fn<<std::endl;
+    results.resize(fn);
+    results1.resize(fn);
+    int inside = 0;
+    igl::Timer timer;
+    double time = 0;
+    for (int i = 0; i < fn; i++) {
+        if (i % 200 == 0)
+            std::cout << "i " << i << std::endl;
+        // std::cout << "i " << std::endl;
+        timer.start();
+        results[i] = edgeEdgeCCD( // double
+            eedata[i].a0, eedata[i].a1, eedata[i].b0, eedata[i].b1, 
+            eedata[i].a0b, eedata[i].a1b, eedata[i].b0b, eedata[i].b1b, 1e-3);
+        time += timer.getElapsedTimeInSec();
+        // results1[i] = ccd::vertexFaceCCD(//rational
+        //	data[i].pts, data[i].v1s, data[i].v2s, data[i].v3s,
+        //	data[i].pte, data[i].v1e, data[i].v2e, data[i].v3e, 1e-3);
+
+        // std::cout << "Rational vs double " << results1[i] << " " <<
+        // results[i] << std::endl; if (results1[i] != results[i]) {//when old
+        // method says yes but we missed it 	std::cout << "double don't match
+        // rational! i= " << i << std::endl; 	std::cout << "Rational vs double
+        // "
+        //<< results1[i]<<" "<<results[i] << std::endl;
+        //}
+        // std::cout << "result " << results[i] << std::endl;
+        if (results[i] == true)
+            inside++;
+    }
+    std::cout<<"edge edge total time "<<time<<std::endl;
+    std::cout<<"collision number "<<inside<<" out of total number "<<fn<<std::endl;
+    test();
+    print_sub();
+}
+
 int main(int argc, char* argv[])
 {
     // TODO: Put something more relevant here
     // ccd::test();
     // test_shifted_compare();
     // test_rootfinder();
-    test_shift_maxerror();
-	
+    //test_shift_maxerror();
+	test_edge_edge();
+    // const string filename="/home/bw1760/scratch/cow-head/edge-edge/edge-edge-collisions-part004.hdf5";
+    // std::vector<Eigen::Matrix<double, 8, 3>> edge_edge_data;
+	// read_edge_edge_data(filename, edge_edge_data);
+    std::cout<<"done"<<std::endl;
     return 1;
 }

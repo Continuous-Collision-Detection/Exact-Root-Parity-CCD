@@ -4,6 +4,7 @@
 #include <doubleCCD/exact_subtraction.hpp>
 #include <predicates/indirect_predicates.h>
 int rootrue = 0, rootime = 0;
+double time00=0,time11=0,time22=0;
 //#include <ray_parity.h>
 namespace doubleccd {
 
@@ -1125,7 +1126,11 @@ void print_sub()
 {
     std::cout << "root finder return true time " << rootrue << std::endl;
     std::cout << "root finder total call time " << rootime << std::endl;
+    std::cout<<"if point inside tet time "<<time00<<std::endl;
+    std::cout<<"intersect degenerate bilinear time "<<time11<<std::endl;
+    std::cout<<"seg intersect bilinear triangles "<<time22<<std::endl;
 }
+
 bool rootfinder(
     const bilinear& bl,
     const Vector3d& p0d,
@@ -1343,18 +1348,23 @@ bool is_cube_intersect_tet_opposite_faces(
     std::array<bool, 8>& vin,
     bool& cube_inter_tet)
 {
+    igl::Timer timer;
     cube_inter_tet = false;
     if (!bl.is_degenerated) {
         for (int i = 0; i < 8; i++) {
             vin[i] = false;
+            timer.start();
             if (is_point_inside_tet(bl, cube.vr[i])) {
                 cube_inter_tet = true;
                 vin[i] = true;
             }
+            time00+=timer.getElapsedTimeInSec();
         }
     } else {
-
-        return is_cube_intersect_degenerated_bilinear(bl, cube);
+        timer.start();
+        bool rst=is_cube_intersect_degenerated_bilinear(bl, cube);
+        time11+=timer.getElapsedTimeInSec();
+        return rst;
     }
 
     bool side1 = false;
@@ -1368,11 +1378,13 @@ bool is_cube_intersect_tet_opposite_faces(
             continue;
         }
         for (int j = 0; j < 4; j++) {
-            if (segment_triangle_intersection(
+            timer.start();
+            int inter=segment_triangle_intersection(
                     cube.vr[cube.edgeid[i][0]], cube.vr[cube.edgeid[i][1]],
                     bl.v[bl.facets[j][0]], bl.v[bl.facets[j][1]],
-                    bl.v[bl.facets[j][2]], false)
-                > 0) {
+                    bl.v[bl.facets[j][2]], false);
+                    time22+=timer.getElapsedTimeInSec();
+            if (inter > 0) {
                 cube_inter_tet = true;
                 if (j == 0 || j == 1)
                     side1 = true;

@@ -642,5 +642,128 @@ namespace doubleccd {
 		}
 		out.close();
 	}
+	int orient3d(
+    const Vector3r& a, const Vector3r& b, const Vector3r& c, const Vector3r& d){
+		const Rational det = (a - d).dot(cross(b - d, c - d));
+    return det.get_sign();
+	}
+	int is_line_cut_triangle(
+	const Vector3r& e0,
+	const Vector3r& e1,
+	const Vector3r& t1,
+	const Vector3r& t2,
+	const Vector3r& t3,
+	const bool halfopen, const Vector3r &norm) {
 
+	////if (orient3d(n, t1, t2, t3) == 0) {
+	//	//std::cout << "Degeneration happens" << std::endl;
+	//	n = Vector3r(rand(), rand(), rand());
+	//}
+
+	Vector3r n = norm + t1;
+	Rational a11, a12, a13, d,nr;
+
+
+	bool premulti = orient3D_LPI_prefilter_multiprecision(
+		e0[0], e0[1], e0[2], e1[0], e1[1], e1[2],
+		t1[0], t1[1], t1[2], t2[0], t2[1], t2[2], t3[0], t3[1], t3[2], a11, a12, a13, d, nr,check_rational);
+	if (premulti == false) return 0;
+
+	int o1 = orient3D_LPI_postfilter_multiprecision(
+		a11, a12, a13, d,
+		e0[0], e0[1], e0[2],
+		n[0], n[1], n[2],
+		t1[0], t1[1], t1[2],
+		t2[0], t2[1], t2[2],
+		check_rational);
+	int o2 = orient3D_LPI_postfilter_multiprecision(
+		a11, a12, a13, d,
+		e0[0], e0[1], e0[2],
+		n[0], n[1], n[2],
+		t2[0], t2[1], t2[2],
+		t3[0], t3[1], t3[2],
+		check_rational);// this edge
+	int o3 = orient3D_LPI_postfilter_multiprecision(
+		a11, a12, a13, d,
+		e0[0], e0[1], e0[2],
+		n[0], n[1], n[2],
+		t3[0], t3[1], t3[2],
+		t1[0], t1[1], t1[2],
+		check_rational);// this edge
+
+	if (halfopen) {
+		if (o2 == 0 && o1 == o3)
+			return 3;// on open edge t2-t3
+	}
+
+	if (o1 == o2 && o1 == o3)
+		return 1;
+	if (o1 == 0 && o2 * o3 >= 0)
+		return 2;
+	if (o2 == 0 && o1 * o3 >= 0)
+		return 2;
+	if (o3 == 0 && o2* o1 >= 0)
+		return 2;
+
+	return 0;
+}
+	int segment_triangle_intersection(
+	const Vector3r& e0,
+	const Vector3r& e1,
+	const Vector3r& t1,
+	const Vector3r& t2,
+	const Vector3r& t3,
+	const bool halfopen) {
+
+	Vector3r norm = cross(t2 - t1, t3 - t2);
+	if (norm[0]==0&&norm[1]==0&&norm[2]==0)// triangle degeneration
+	{
+		return 0;//we already checked triangle (at least two edges)edge against cube
+		//TODO need to make it a general one?
+	}
+
+	int o1 = orient3d(e0, t1, t2, t3);
+	int o2 = orient3d(e1, t1, t2, t3);
+	if (o1 > 0 && o2 > 0)
+		return 0;
+	if (o1 < 0 && o2 < 0)
+		return 0;
+
+	if (o1 == 0 && o2 != 0)// e0 on the plane
+		return is_line_cut_triangle(e0, e1, t1, t2, t3, halfopen, norm);
+	if (o2 == 0 && o1 != 0)
+		return is_line_cut_triangle(e0, e1, t1, t2, t3, halfopen, norm);
+	if (o1 == 0 && o2 == 0)// two points are all on the plane. we already checked seg-two edges before
+	{
+		std::cout<<"seg and face parallel, we don't consider"<<std::endl;
+		return 0;
+		// if (same_point(e0,e1))
+		// 	return point_inter_triangle(e0, t1, t2, t3, false, norm, halfopen);
+		// else {
+		// 	int pinter0 = point_inter_triangle(e0, t1, t2, t3, false, norm, halfopen);//2 is impossible
+		// 	int pinter1 = point_inter_triangle(e1, t1, t2, t3, false, norm, halfopen);
+		// 	// two points all inside, inside; two outside, outside; others, intersect t2-t3
+		// 	if (pinter0 == 1 && pinter1 == 1) return 1; // interior
+		// 	if (pinter0 == 0 && pinter1 == 0) return 0;//  out
+		// 	if (halfopen)
+		// 		return 3;// intersect t2-t3
+		// 	else
+		// 		return 2;
+		// }
+	}
+	return is_line_cut_triangle(e0, e1, t1, t2, t3, halfopen, norm);
+}
+
+bool seg_discrete_bilinear_intersection(const bilinear &bl, int n,const Vector3d&s0,const Vector3d&s1){
+std::vector<std::array<Vector3r, 3>> patch;
+tri_bilinear(bl, n,patch );
+Vector3r s0r(s0[0],s0[1],s0[2]),s1r(s1[0],s1[1],s1[2]);
+for(int i=0;i<patch.size();i++){
+	if(segment_triangle_intersection(s0r,s1r,patch[i][0],patch[i][1],patch[i][2],false)>0){
+		return true;
+	}
+
+}
+return false;
+}
 } // namespace ccd

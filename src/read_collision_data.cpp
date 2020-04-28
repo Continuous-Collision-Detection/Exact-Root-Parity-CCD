@@ -35,9 +35,9 @@ void read_edge_edge_data(
 {
     edge_edge_data.clear();
 
-    for (auto& entry : boost::filesystem::directory_iterator(data_dir)) {
-        H5Easy::File file(entry.path().string());
-
+    //for (auto& entry : boost::filesystem::directory_iterator(data_dir)) {
+        //H5Easy::File file(entry.path().string());
+    H5Easy::File file(data_dir);
         HighFive::Group root = file.getGroup("/");
 
         const auto query_names = root.listObjectNames();
@@ -45,5 +45,6 @@ void read_edge_edge_data(
             edge_edge_data.push_back(
                 H5Easy::load<Eigen::Matrix<double, 8, 3>>(file, query_name));
         }
-    }
+        std::cout<<"size of data "<<edge_edge_data.size()<<std::endl; 
+    //}
 }

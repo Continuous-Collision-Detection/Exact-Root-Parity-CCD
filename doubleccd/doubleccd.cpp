@@ -2,7 +2,7 @@
 #include <doubleCCD/doubleccd.hpp>
 #include <igl/Timer.h>
 igl::Timer timer1, timer2;
-double time1 = 0, time2 = 0, time3 = 0;
+double time1 = 0, time2 = 0, time3 = 0, time4=0, time5=0, time6=0, time7=0, time8=0;
 namespace doubleccd {
 
 // Detect collisions between a vertex and a triangular face.
@@ -147,35 +147,42 @@ bool edgeEdgeCCD(
     const Vector3d& edge1_vertex1_end,
     const double minimum_distance)
 {
+    timer1.start();
     hex hx(
         edge0_vertex0_start, edge0_vertex1_start, edge1_vertex0_start,
         edge1_vertex1_start, edge0_vertex0_end, edge0_vertex1_end,
         edge1_vertex0_end, edge1_vertex1_end);
-
+    time3+=timer1.getElapsedTimeInSec();
     // step 1. bounding box checking
+    timer1.start();
     Vector3d bmin(-minimum_distance, -minimum_distance, -minimum_distance),
         bmax(minimum_distance, minimum_distance, minimum_distance);
     bool intersection = hx.is_hex_bbox_cut_bbox(bmin, bmax);
+    time3+=timer1.getElapsedTimeInSec();
     if (!intersection)
         return false; // if bounding box not intersected, then not intersected
 
     // step 2. prism edges & prism bottom triangles check
     // prism edges test, segment degenerate cases already handled
     // std::cout << "before seg- intersect cube in double" << std::endl;
+    bool rt=false;
+    timer1.start();
     for (int i = 0; i < 12; i++) {
         if (is_seg_intersect_cube(
                 minimum_distance, hx.h_vertices[hx.hex_edge_id[i][0]],
                 hx.h_vertices[hx.hex_edge_id[i][1]])) {
             // std::cout << "which seg intersect cube "<<i << std::endl;
-            return true;
+            rt=true;
+            break;
         }
     }
-
+    time4+=timer1.getElapsedTimeInSec();
+    if (rt) return true;
     cube cb(minimum_distance);
 
     // step 3 tet facets- cube edges
     std::array<std::array<bool, 8>, 6> v_tet; // cube vertices - tets positions
-
+    timer1.start();
     bilinear bl0(
         hx.h_vertices[0], hx.h_vertices[1], hx.h_vertices[2], hx.h_vertices[3]);
     bilinear bl1(
@@ -189,58 +196,65 @@ bool edgeEdgeCCD(
     bilinear bl5(
         hx.h_vertices[0], hx.h_vertices[3], hx.h_vertices[7], hx.h_vertices[4]);
     std::array<bilinear, 6> bls = { { bl0, bl1, bl2, bl3, bl4, bl5 } };
+    time5+=timer1.getElapsedTimeInSec();
     bool cube_inter_tet[6];
     // std::cout << "before cube - opposite faces in double" << std::endl;
-    if (is_cube_intersect_tet_opposite_faces(
-            bl0, cb, v_tet[0], cube_inter_tet[0]))
-        return true;
-    if (is_cube_intersect_tet_opposite_faces(
-            bl1, cb, v_tet[1], cube_inter_tet[1]))
-        return true;
-    if (is_cube_intersect_tet_opposite_faces(
-            bl2, cb, v_tet[2], cube_inter_tet[2]))
-        return true;
-    if (is_cube_intersect_tet_opposite_faces(
-            bl3, cb, v_tet[3], cube_inter_tet[3]))
-        return true;
-    if (is_cube_intersect_tet_opposite_faces(
-            bl4, cb, v_tet[4], cube_inter_tet[4]))
-        return true;
-    if (is_cube_intersect_tet_opposite_faces(
-            bl5, cb, v_tet[5], cube_inter_tet[5]))
-        return true;
+    timer1.start();
+    for(int i=0;i<6;i++){
+        if(is_cube_intersect_tet_opposite_faces(
+            bls[i], cb, v_tet[i], cube_inter_tet[i])){
+            rt=true;
+            break;
+        }
+            
+    }
+    time8+=timer1.getElapsedTimeInSec();
+    if(rt) return true;
+    
 
     if (cube_inter_tet[0]) {
+        timer1.start();
         bool cit0 = is_cube_edge_intersect_bilinear(bl0, cb, v_tet[0]);
+        time6+=timer1.getElapsedTimeInSec();
         if (cit0)
             return true;
     }
     if (cube_inter_tet[1]) {
+        timer1.start();
         bool cit1 = is_cube_edge_intersect_bilinear(bl1, cb, v_tet[1]);
+        time6+=timer1.getElapsedTimeInSec();
         if (cit1)
             return true;
     }
     if (cube_inter_tet[2]) {
+        timer1.start();
         bool cit2 = is_cube_edge_intersect_bilinear(bl2, cb, v_tet[2]);
+        time6+=timer1.getElapsedTimeInSec();
         if (cit2)
             return true;
     }
     if (cube_inter_tet[3]) {
+         timer1.start();
         bool cit3 = is_cube_edge_intersect_bilinear(bl3, cb, v_tet[3]);
+        time6+=timer1.getElapsedTimeInSec();
         if (cit3)
             return true;
     }
     if (cube_inter_tet[4]) {
+         timer1.start();
         bool cit4 = is_cube_edge_intersect_bilinear(bl4, cb, v_tet[4]);
+        time6+=timer1.getElapsedTimeInSec();
         if (cit4)
             return true;
     }
     if (cube_inter_tet[5]) {
+         timer1.start();
         bool cit5 = is_cube_edge_intersect_bilinear(bl5, cb, v_tet[5]);
+        time6+=timer1.getElapsedTimeInSec();
         if (cit5)
             return true;
     }
-
+    timer1.start();
     int min_v = 6;
     int curr_v;
     int target = 0;
@@ -263,15 +277,21 @@ bool edgeEdgeCCD(
     p_tet[5] = v_tet[5][target];
 
     bool rtccd = retrial_ccd_hex(bls, cb.vr[target], p_tet);
-
+    time7+=timer1.getElapsedTimeInSec();
     return rtccd;
     return false;
 }
 
 void test()
 {
-    std::cout << "time for cube edge - bilinear " << time1 << std::endl;
-    std::cout << "time for retrail ccd  " << time2 << std::endl;
+    //std::cout << "time for cube edge - bilinear " << time1 << std::endl;
+    //std::cout << "time for retrail ccd  " << time2 << std::endl;
+    std::cout << "edge time for initial " << time3 << std::endl;
+    std::cout << "edge time for seg-cube " << time4 << std::endl;
+    std::cout << "edge time for build bilinears " << time5 << std::endl;
+    std::cout << "edge time for bilinear opposite faces " << time8 << std::endl;
+    std::cout << "edge time for not degenerated bilinears " << time6 << std::endl;
+    std::cout << "edge time for shooting ray " << time7 << std::endl;
+    
 }
-
 } // namespace doubleccd
