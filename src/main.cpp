@@ -429,7 +429,7 @@ int main(int argc, char* argv[])
     // test_shifted_compare();
     // test_rootfinder();
     //test_shift_maxerror();
-	test_edge_edge();
+	//test_edge_edge();
     // const string filename="/home/bw1760/scratch/cow-head/edge-edge/edge-edge-collisions-part004.hdf5";
     // std::vector<Eigen::Matrix<double, 8, 3>> edge_edge_data;
 	// read_edge_edge_data(filename, edge_edge_data);
