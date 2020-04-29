@@ -276,5 +276,5 @@ bool rootfinder(
     const bool p0in,
     const bool p1in,
     const int pairid);
-
+bool cube_discrete_bilinear_intersection(const cube&cb,const bilinear &bl, int n );
 } // namespace doubleccd

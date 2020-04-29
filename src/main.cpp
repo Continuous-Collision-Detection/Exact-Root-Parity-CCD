@@ -380,7 +380,7 @@ void test_more() {
 	
 }
 void test_edge_edge(){
-    string filename="/home/bw1760/scratch/cow-head/edge-edge/edge-edge-collisions-part001.hdf5";
+    string filename="/home/bw1760/scratch/cow-head/edge-edge/edge-edge-collisions-part010.hdf5";
     std::vector<ee_pair> eedata;
 	read_ee_data(filename,eedata);
 

@@ -275,6 +275,7 @@ bool is_cube_edges_intersect_triangle(
         s1 = cb.vr[cb.edgeid[i][1]];
         if (segment_triangle_intersection(s0, s1, t0, t1, t2, false)
             > 0) // return 0,1,2
+            
             return true;
     }
     return false;
@@ -1397,6 +1398,17 @@ bool is_cube_intersect_tet_opposite_faces(
     }
     if (side1 && side2)
         return true;
+    return false;
+}
+bool cube_discrete_bilinear_intersection(const cube&cb,const bilinear &bl, int n ){
+	Vector3d s0, s1;
+    for (int i = 0; i < 12; i++) {
+        s0 = cb.vr[cb.edgeid[i][0]];
+        s1 = cb.vr[cb.edgeid[i][1]];
+        if (seg_discrete_bilinear_intersection(bl,n,s0,s1)) // return 0,1,2
+            
+            return true;
+    }
     return false;
 }
 

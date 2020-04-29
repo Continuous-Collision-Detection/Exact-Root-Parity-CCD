@@ -200,9 +200,15 @@ bool edgeEdgeCCD(
     bool cube_inter_tet[6];
     // std::cout << "before cube - opposite faces in double" << std::endl;
     timer1.start();
+    int discrete=5;
     for(int i=0;i<6;i++){
         if(is_cube_intersect_tet_opposite_faces(
             bls[i], cb, v_tet[i], cube_inter_tet[i])){
+
+            bool rr=cube_discrete_bilinear_intersection(cb,bls[i],5);
+            if(!rr){
+                std::cout<<"result do not match in opposite check, ori vs discrete "<<1<<" "<<rr<<std::endl;
+            }
             rt=true;
             break;
         }
@@ -211,49 +217,20 @@ bool edgeEdgeCCD(
     time8+=timer1.getElapsedTimeInSec();
     if(rt) return true;
     
+    for(int i=0;i<6;i++){
+        if (cube_inter_tet[i]) {
+            timer1.start();
+            bool cit0 = is_cube_edge_intersect_bilinear(bls[i], cb, v_tet[i]);
+            bool rr=cube_discrete_bilinear_intersection(cb,bls[i],5);
+            if(cit0!=rr){
+                std::cout<<"result do not match, ori vs discrete "<<cit0<<" "<<rr<<std::endl;
+            }
+            time6+=timer1.getElapsedTimeInSec();
+            if (cit0)
+                return true;
+        }
+    }
 
-    if (cube_inter_tet[0]) {
-        timer1.start();
-        bool cit0 = is_cube_edge_intersect_bilinear(bl0, cb, v_tet[0]);
-        time6+=timer1.getElapsedTimeInSec();
-        if (cit0)
-            return true;
-    }
-    if (cube_inter_tet[1]) {
-        timer1.start();
-        bool cit1 = is_cube_edge_intersect_bilinear(bl1, cb, v_tet[1]);
-        time6+=timer1.getElapsedTimeInSec();
-        if (cit1)
-            return true;
-    }
-    if (cube_inter_tet[2]) {
-        timer1.start();
-        bool cit2 = is_cube_edge_intersect_bilinear(bl2, cb, v_tet[2]);
-        time6+=timer1.getElapsedTimeInSec();
-        if (cit2)
-            return true;
-    }
-    if (cube_inter_tet[3]) {
-         timer1.start();
-        bool cit3 = is_cube_edge_intersect_bilinear(bl3, cb, v_tet[3]);
-        time6+=timer1.getElapsedTimeInSec();
-        if (cit3)
-            return true;
-    }
-    if (cube_inter_tet[4]) {
-         timer1.start();
-        bool cit4 = is_cube_edge_intersect_bilinear(bl4, cb, v_tet[4]);
-        time6+=timer1.getElapsedTimeInSec();
-        if (cit4)
-            return true;
-    }
-    if (cube_inter_tet[5]) {
-         timer1.start();
-        bool cit5 = is_cube_edge_intersect_bilinear(bl5, cb, v_tet[5]);
-        time6+=timer1.getElapsedTimeInSec();
-        if (cit5)
-            return true;
-    }
     timer1.start();
     int min_v = 6;
     int curr_v;
