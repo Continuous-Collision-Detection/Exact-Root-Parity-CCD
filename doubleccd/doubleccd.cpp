@@ -205,10 +205,10 @@ bool edgeEdgeCCD(
         if(is_cube_intersect_tet_opposite_faces(
             bls[i], cb, v_tet[i], cube_inter_tet[i])){
 
-            bool rr=cube_discrete_bilinear_intersection(cb,bls[i],5);
-            if(!rr){
-                std::cout<<"result do not match in opposite check, ori vs discrete "<<1<<" "<<rr<<std::endl;
-            }
+            // bool rr=cube_discrete_bilinear_intersection(cb,bls[i],5);
+            // if(!rr){
+            //     std::cout<<"result do not match in opposite check, ori vs discrete "<<1<<" "<<rr<<std::endl;
+            // }
             rt=true;
             break;
         }
@@ -221,10 +221,10 @@ bool edgeEdgeCCD(
         if (cube_inter_tet[i]) {
             timer1.start();
             bool cit0 = is_cube_edge_intersect_bilinear(bls[i], cb, v_tet[i]);
-            bool rr=cube_discrete_bilinear_intersection(cb,bls[i],5);
-            if(cit0!=rr){
-                std::cout<<"result do not match, ori vs discrete "<<cit0<<" "<<rr<<std::endl;
-            }
+            // bool rr=cube_discrete_bilinear_intersection(cb,bls[i],5);
+            // if(cit0!=rr){
+            //     std::cout<<"result do not match, ori vs discrete "<<cit0<<" "<<rr<<std::endl;
+            // }
             time6+=timer1.getElapsedTimeInSec();
             if (cit0)
                 return true;
