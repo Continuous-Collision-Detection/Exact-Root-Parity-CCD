@@ -125,6 +125,45 @@ private:
 
     Vector3r get_prism_corner(int u, int v, int t);
 };
+class hex {
+public:
+	hex(const Vector3d& a0,
+		const Vector3d& a1,
+		const Vector3d& b0,
+		const Vector3d& b1,
+		const Vector3d& a0b,
+		const Vector3d& a1b,
+		const Vector3d& b0b,
+		const Vector3d& b1b);
+	//(1 - tar) * ((1 - tr) * a0rs_ + tr * a0re_) + tar * ((1 - tr) * a1rs_
+	//+ tr
+	//* a1re_) - ((1 - tbr) * ((1 - tr) * b0rs_ + tr * b0re_) + tbr * ((1 -
+	// tr)
+	//* b1rs_ + tr * b1re_));
+
+	template <typename T>
+	bool is_hex_bbox_cut_bbox(const T& min, const T& max) const
+	{
+		Vector3r pmin, pmax;
+		get_bbd_corners(h_vertices, pmin, pmax);
+		return box_box_intersection(pmin, pmax, min, max);
+	}
+
+	std::array<std::array<int, 2>, 12> hex_edge_id;
+	std::array<Vector3r, 8> h_vertices;
+
+private:
+	void get_hex_vertices(
+		const Vector3d& a0,
+		const Vector3d& a1,
+		const Vector3d& b0,
+		const Vector3d& b1,
+		const Vector3d& a0b,
+		const Vector3d& a1b,
+		const Vector3d& b0b,
+		const Vector3d& b1b,
+		std::array<Vector3r, 8>& h_vertices);
+};
 bool is_cube_intersect_tet_opposite_faces(
     const bilinear& bl,
     const cube& cube,

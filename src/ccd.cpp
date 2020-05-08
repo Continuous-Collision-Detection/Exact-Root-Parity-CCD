@@ -132,7 +132,116 @@ bool edgeEdgeCCD(
     const Vector3d& edge1_vertex1_end,
     const double minimum_distance)
 {
-    throw "not implemented";
+	//timer1.start();
+	hex hx(
+		edge0_vertex0_start, edge0_vertex1_start, edge1_vertex0_start,
+		edge1_vertex1_start, edge0_vertex0_end, edge0_vertex1_end,
+		edge1_vertex0_end, edge1_vertex1_end);
+	//time3 += timer1.getElapsedTimeInSec();
+	// step 1. bounding box checking
+	
+	Vector3d bmin(-minimum_distance, -minimum_distance, -minimum_distance),
+		bmax(minimum_distance, minimum_distance, minimum_distance);
+	bool intersection = hx.is_hex_bbox_cut_bbox(bmin, bmax);
+	
+	if (!intersection)
+		return false; // if bounding box not intersected, then not intersected
+
+	// step 2. prism edges & prism bottom triangles check
+	// prism edges test, segment degenerate cases already handled
+	// std::cout << "before seg- intersect cube in double" << std::endl;
+	bool rt = false;
+	
+	for (int i = 0; i < 12; i++) {
+		if (is_seg_intersect_cube(
+			minimum_distance, hx.h_vertices[hx.hex_edge_id[i][0]],
+			hx.h_vertices[hx.hex_edge_id[i][1]])) {
+			// std::cout << "which seg intersect cube "<<i << std::endl;
+			rt = true;
+			break;
+		}
+	}
+	
+	if (rt) return true;
+	cube cb(minimum_distance);
+
+	// step 3 tet facets- cube edges
+	std::array<std::array<bool, 8>, 6> v_tet; // cube vertices - tets positions
+	
+	bilinear bl0(
+		hx.h_vertices[0], hx.h_vertices[1], hx.h_vertices[2], hx.h_vertices[3]);
+	bilinear bl1(
+		hx.h_vertices[4], hx.h_vertices[5], hx.h_vertices[6], hx.h_vertices[7]);
+	bilinear bl2(
+		hx.h_vertices[0], hx.h_vertices[1], hx.h_vertices[5], hx.h_vertices[4]);
+	bilinear bl3(
+		hx.h_vertices[1], hx.h_vertices[2], hx.h_vertices[6], hx.h_vertices[5]);
+	bilinear bl4(
+		hx.h_vertices[2], hx.h_vertices[3], hx.h_vertices[7], hx.h_vertices[6]);
+	bilinear bl5(
+		hx.h_vertices[0], hx.h_vertices[3], hx.h_vertices[7], hx.h_vertices[4]);
+	std::array<bilinear, 6> bls = { { bl0, bl1, bl2, bl3, bl4, bl5 } };
+	
+	bool cube_inter_tet[6];
+	// std::cout << "before cube - opposite faces in double" << std::endl;
+	timer1.start();
+	int discrete = 5;
+	for (int i = 0; i < 6; i++) {
+		if (is_cube_intersect_tet_opposite_faces(
+			bls[i], cb, v_tet[i], cube_inter_tet[i])) {
+
+			// bool rr=cube_discrete_bilinear_intersection(cb,bls[i],5);
+			// if(!rr){
+			//     std::cout<<"result do not match in opposite check, ori vs discrete "<<1<<" "<<rr<<std::endl;
+			// }
+			rt = true;
+			break;
+		}
+
+	}
+	
+	if (rt) return true;
+
+	for (int i = 0; i < 6; i++) {
+		if (cube_inter_tet[i]) {
+			timer1.start();
+			bool cit0 = is_cube_edge_intersect_bilinear(bls[i], cb, v_tet[i]);
+			// bool rr=cube_discrete_bilinear_intersection(cb,bls[i],5);
+			// if(cit0!=rr){
+			//     std::cout<<"result do not match, ori vs discrete "<<cit0<<" "<<rr<<std::endl;
+			// }
+			
+			if (cit0)
+				return true;
+		}
+	}
+
+	timer1.start();
+	int min_v = 6;
+	int curr_v;
+	int target = 0;
+	for (int i = 0; i < 8; i++) {
+		curr_v = v_tet[0][i] + v_tet[1][i] + v_tet[2][i] + v_tet[3][i]
+			+ v_tet[4][i] + v_tet[5][i];
+		if (curr_v < min_v) {
+			min_v = curr_v;
+			target = i;
+		}
+	}
+	// std::cout << "shoot a ray in double" << std::endl;
+	std::vector<bool> p_tet;
+	p_tet.resize(6);
+	p_tet[0] = v_tet[0][target];
+	p_tet[1] = v_tet[1][target];
+	p_tet[2] = v_tet[2][target];
+	p_tet[3] = v_tet[3][target];
+	p_tet[4] = v_tet[4][target];
+	p_tet[5] = v_tet[5][target];
+
+	bool rtccd = retrial_ccd_hex(bls, cb.vr[target], p_tet);
+	
+	return rtccd;
+	return false;
 }
 
 } // namespace ccd

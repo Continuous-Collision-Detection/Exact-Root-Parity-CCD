@@ -490,6 +490,88 @@ bool prism::is_triangle_degenerated(const int up_or_bottom)
               << std::endl;
     return false;
 }
+Vector3r dtr(const Vector3d&d) {//transfer double to rational points
+	return Vector3r(d[0],d[1],d[2]);
+}
+void hex::get_hex_vertices(
+	const Vector3d& a0,
+	const Vector3d& a1,
+	const Vector3d& b0,
+	const Vector3d& b1,
+	const Vector3d& a0b,
+	const Vector3d& a1b,
+	const Vector3d& b0b,
+	const Vector3d& b1b,
+	std::array<Vector3r, 8>& h_vertices)
+{
+	h_vertices[0] = dtr(a0) - dtr(b0);
+	h_vertices[1] = dtr(a1) - dtr(b0);
+	h_vertices[2] = dtr(a1) - dtr(b1);
+	h_vertices[3] = dtr(a0) - dtr(b1);
+	h_vertices[4] = dtr(a0b) - dtr(b0b);
+	h_vertices[5] = dtr(a1b) - dtr(b0b);
+	h_vertices[6] = dtr(a1b) - dtr(b1b);
+	h_vertices[7] = dtr(a0b) - dtr(b1b);
+}
+hex::hex(
+	const Vector3d& a0,
+	const Vector3d& a1,
+	const Vector3d& b0,
+	const Vector3d& b1,
+	const Vector3d& a0b,
+	const Vector3d& a1b,
+	const Vector3d& b0b,
+	const Vector3d& b1b)
+{
+
+	// these are the 6 vertices of the prism,right hand law
+	// get_hex_shifted_vertices_double(vs, fs0, fs1, fs2, ve, fe0, fe1, fe2, k,
+	// p_vertices);
+	get_hex_vertices(
+		a0, a1, b0, b1, a0b, a1b, b0b, b1b,
+		h_vertices); // TODO before use this we need to shift all the vertices
+	std::array<int, 2> eid;
+
+	eid[0] = 0;
+	eid[1] = 1;
+	hex_edge_id[0] = eid;
+	eid[0] = 1;
+	eid[1] = 2;
+	hex_edge_id[1] = eid;
+	eid[0] = 2;
+	eid[1] = 3;
+	hex_edge_id[2] = eid;
+	eid[0] = 3;
+	eid[1] = 0;
+	hex_edge_id[3] = eid;
+
+	eid[0] = 4;
+	eid[1] = 5;
+	hex_edge_id[4] = eid;
+	eid[0] = 5;
+	eid[1] = 6;
+	hex_edge_id[5] = eid;
+	eid[0] = 6;
+	eid[1] = 7;
+	hex_edge_id[6] = eid;
+	eid[0] = 7;
+	eid[1] = 4;
+	hex_edge_id[7] = eid;
+
+	eid[0] = 0;
+	eid[1] = 4;
+	hex_edge_id[8] = eid;
+	eid[0] = 1;
+	eid[1] = 5;
+	hex_edge_id[9] = eid;
+	eid[0] = 2;
+	eid[1] = 6;
+	hex_edge_id[10] = eid;
+	eid[0] = 3;
+	eid[1] = 7;
+	hex_edge_id[11] = eid;
+}
+
 Vector3r prism::get_prism_corner(int u, int v, int t)
 {
     const Rational ur(u);
