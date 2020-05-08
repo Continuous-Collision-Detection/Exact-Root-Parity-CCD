@@ -73,17 +73,22 @@ struct ee_pair {
     }
 };
 
-void get_whole_mesh_shifted(
+double get_whole_mesh_shifted(
     const std::vector<vf_pair>& data1,
     const std::vector<ee_pair>& data2,
     std::vector<vf_pair>& shift_back1,
     std::vector<ee_pair>& shift_back2,
     Eigen::MatrixX3d& vertices);
 // x0 is the point, x1, x2, x3 is the triangle
-void get_whole_mesh_shifted(
+double get_whole_mesh_shifted(
     const std::vector<vf_pair>& data1,
     const std::vector<ee_pair>& data2,
     Eigen::MatrixX3d& vertices);
+
+// Convenience function that just wrap get_whole_mesh_shifted(...)
+double
+shift_vertex_face(const vf_pair& input_vf_pair, vf_pair& shifted_vf_pair);
+double shift_edge_edge(const ee_pair& input_ee_pair, ee_pair& shifted_ee_pair);
 
 class cube {
 public:
@@ -276,5 +281,6 @@ bool rootfinder(
     const bool p0in,
     const bool p1in,
     const int pairid);
-bool cube_discrete_bilinear_intersection(const cube&cb,const bilinear &bl, int n );
+bool cube_discrete_bilinear_intersection(
+    const cube& cb, const bilinear& bl, int n);
 } // namespace doubleccd

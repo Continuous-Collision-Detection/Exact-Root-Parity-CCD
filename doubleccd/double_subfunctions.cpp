@@ -4,7 +4,7 @@
 #include <doubleCCD/exact_subtraction.hpp>
 #include <predicates/indirect_predicates.h>
 int rootrue = 0, rootime = 0;
-double time00=0,time11=0,time22=0;
+double time00 = 0, time11 = 0, time22 = 0;
 //#include <ray_parity.h>
 namespace doubleccd {
 
@@ -275,7 +275,7 @@ bool is_cube_edges_intersect_triangle(
         s1 = cb.vr[cb.edgeid[i][1]];
         if (segment_triangle_intersection(s0, s1, t0, t1, t2, false)
             > 0) // return 0,1,2
-            
+
             return true;
     }
     return false;
@@ -515,7 +515,7 @@ void convert_sub_pairs_to_mesh_vers(
     }
 }
 // x0 is the point, x1, x2, x3 is the triangle
-void get_whole_mesh_shifted(
+double get_whole_mesh_shifted(
     const std::vector<vf_pair>& data1,
     const std::vector<ee_pair>& data2,
     std::vector<vf_pair>& shift_back1,
@@ -579,12 +579,11 @@ void get_whole_mesh_shifted(
         if (temerr > err)
             err = temerr;
     }
-    std::cout << "the shifted maximal error is " << err << std::endl;
-    return;
+    return err;
 }
 
 // x0 is the point, x1, x2, x3 is the triangle
-void get_whole_mesh_shifted(
+double get_whole_mesh_shifted(
     const std::vector<vf_pair>& data1,
     const std::vector<ee_pair>& data2,
     Eigen::MatrixX3d& vertices)
@@ -616,8 +615,31 @@ void get_whole_mesh_shifted(
 
     convert_sub_pairs_to_mesh_vers(vernew, vertices);
 
-    std::cout << "the shifted maximal error is " << err << std::endl;
-    return;
+    return err;
+}
+
+double shift_vertex_face(const vf_pair& input_vf_pair, vf_pair& shifted_vf_pair)
+{
+    std::vector<vf_pair> input_vf_pairs = { { input_vf_pair } };
+    std::vector<vf_pair> shifted_vf_pairs;
+    std::vector<ee_pair> input_ee_pairs, shifted_ee_pairs;
+    Eigen::MatrixX3d V;
+    double err = get_whole_mesh_shifted(
+        input_vf_pairs, input_ee_pairs, shifted_vf_pairs, shifted_ee_pairs, V);
+    shifted_vf_pair = shifted_vf_pairs[0];
+    return err;
+}
+
+double shift_edge_edge(const ee_pair& input_ee_pair, ee_pair& shifted_ee_pair)
+{
+    std::vector<vf_pair> input_vf_pairs, shifted_vf_pairs;
+    std::vector<ee_pair> input_ee_pairs = { { input_ee_pair } };
+    std::vector<ee_pair> shifted_ee_pairs;
+    Eigen::MatrixX3d V;
+    double err = get_whole_mesh_shifted(
+        input_vf_pairs, input_ee_pairs, shifted_vf_pairs, shifted_ee_pairs, V);
+    shifted_ee_pair = shifted_ee_pairs[0];
+    return err;
 }
 
 // x0 is the point, x1, x2, x3 is the triangle
@@ -873,24 +895,23 @@ bool is_point_inside_tet(const bilinear& bl, const Vector3d& p)
 // we already know the bilinear is degenerated, next check which kind
 int bilinear_degeneration(const bilinear& bl)
 {
-    bool dege1 = is_triangle_degenerated(bl.v[0], bl.v[1], bl.v[2]);    
+    bool dege1 = is_triangle_degenerated(bl.v[0], bl.v[1], bl.v[2]);
     bool dege2 = is_triangle_degenerated(bl.v[0], bl.v[2], bl.v[3]);
 
-	if (dege1&&dege2) {
-		return BI_DEGE_PLANE;
-	}
-	Vector3d p0, p1, p2;
+    if (dege1 && dege2) {
+        return BI_DEGE_PLANE;
+    }
+    Vector3d p0, p1, p2;
 
-	if (dege1) {
-		p0 = bl.v[0];
-		p1 = bl.v[2];
-		p2 = bl.v[3];
-	}
-	else {
-		p0 = bl.v[0];
-		p1 = bl.v[1];
-		p2 = bl.v[2];
-	}
+    if (dege1) {
+        p0 = bl.v[0];
+        p1 = bl.v[2];
+        p2 = bl.v[3];
+    } else {
+        p0 = bl.v[0];
+        p1 = bl.v[1];
+        p2 = bl.v[2];
+    }
 
     Vector3d np = Vector3d::Random();
     int ori = orient_3d(np, p0, p1, p2);
@@ -898,16 +919,16 @@ int bilinear_degeneration(const bilinear& bl)
         np = Vector3d::Random();
         ori = orient_3d(np, p0, p1, p2);
     }
-	int ori0 = orient_3d(np, bl.v[0], bl.v[1], bl.v[2]);
+    int ori0 = orient_3d(np, bl.v[0], bl.v[1], bl.v[2]);
     int ori1 = orient_3d(np, bl.v[0], bl.v[2], bl.v[3]);
     if (ori0 * ori1 <= 0) {
         return BI_DEGE_XOR_02;
     }
-	ori0 = orient_3d(np, bl.v[0], bl.v[1], bl.v[3]);
-	ori1 = orient_3d(np, bl.v[3], bl.v[1], bl.v[2]);
-	if (ori0 * ori1 <= 0) {
-		return BI_DEGE_XOR_13;
-	}
+    ori0 = orient_3d(np, bl.v[0], bl.v[1], bl.v[3]);
+    ori1 = orient_3d(np, bl.v[3], bl.v[1], bl.v[2]);
+    if (ori0 * ori1 <= 0) {
+        return BI_DEGE_XOR_13;
+    }
     return BI_DEGE_PLANE;
 }
 
@@ -946,21 +967,21 @@ bool is_cube_intersect_degenerated_bilinear(
             }
             return false;
         }
-		if (dege == BI_DEGE_XOR_13) { // triangle 0-1-2 and 0-2-3
-			for (int i = 0; i < 12; i++) {
-				res = int_seg_XOR(
-					segment_triangle_intersection(
-						cube.vr[cube.edgeid[i][0]], cube.vr[cube.edgeid[i][1]],
-						bl.v[0], bl.v[1], bl.v[3],
-						true), // CAUTION: need to be careful for the order here
-					segment_triangle_intersection(
-						cube.vr[cube.edgeid[i][0]], cube.vr[cube.edgeid[i][1]],
-						bl.v[2], bl.v[1], bl.v[3], true));
-				if (res == true)
-					return true;
-			}
-			return false;
-		}
+        if (dege == BI_DEGE_XOR_13) { // triangle 0-1-2 and 0-2-3
+            for (int i = 0; i < 12; i++) {
+                res = int_seg_XOR(
+                    segment_triangle_intersection(
+                        cube.vr[cube.edgeid[i][0]], cube.vr[cube.edgeid[i][1]],
+                        bl.v[0], bl.v[1], bl.v[3],
+                        true), // CAUTION: need to be careful for the order here
+                    segment_triangle_intersection(
+                        cube.vr[cube.edgeid[i][0]], cube.vr[cube.edgeid[i][1]],
+                        bl.v[2], bl.v[1], bl.v[3], true));
+                if (res == true)
+                    return true;
+            }
+            return false;
+        }
         //   if (dege == BI_DEGE_XOR_13) { // triangle 0-1-3 and 3-1-2
         //       for (int i = 0; i < 12; i++) {
         //           res = int_seg_XOR(
@@ -1158,9 +1179,9 @@ void print_sub()
 {
     std::cout << "root finder return true time " << rootrue << std::endl;
     std::cout << "root finder total call time " << rootime << std::endl;
-    std::cout<<"if point inside tet time "<<time00<<std::endl;
-    std::cout<<"intersect degenerate bilinear time "<<time11<<std::endl;
-    std::cout<<"seg intersect bilinear triangles "<<time22<<std::endl;
+    std::cout << "if point inside tet time " << time00 << std::endl;
+    std::cout << "intersect degenerate bilinear time " << time11 << std::endl;
+    std::cout << "seg intersect bilinear triangles " << time22 << std::endl;
 }
 
 bool rootfinder(
@@ -1390,12 +1411,12 @@ bool is_cube_intersect_tet_opposite_faces(
                 cube_inter_tet = true;
                 vin[i] = true;
             }
-            time00+=timer.getElapsedTimeInSec();
+            time00 += timer.getElapsedTimeInSec();
         }
     } else {
         timer.start();
-        bool rst=is_cube_intersect_degenerated_bilinear(bl, cube);
-        time11+=timer.getElapsedTimeInSec();
+        bool rst = is_cube_intersect_degenerated_bilinear(bl, cube);
+        time11 += timer.getElapsedTimeInSec();
         return rst;
     }
 
@@ -1411,11 +1432,11 @@ bool is_cube_intersect_tet_opposite_faces(
         }
         for (int j = 0; j < 4; j++) {
             timer.start();
-            int inter=segment_triangle_intersection(
-                    cube.vr[cube.edgeid[i][0]], cube.vr[cube.edgeid[i][1]],
-                    bl.v[bl.facets[j][0]], bl.v[bl.facets[j][1]],
-                    bl.v[bl.facets[j][2]], false);
-                    time22+=timer.getElapsedTimeInSec();
+            int inter = segment_triangle_intersection(
+                cube.vr[cube.edgeid[i][0]], cube.vr[cube.edgeid[i][1]],
+                bl.v[bl.facets[j][0]], bl.v[bl.facets[j][1]],
+                bl.v[bl.facets[j][2]], false);
+            time22 += timer.getElapsedTimeInSec();
             if (inter > 0) {
                 cube_inter_tet = true;
                 if (j == 0 || j == 1)
@@ -1431,13 +1452,15 @@ bool is_cube_intersect_tet_opposite_faces(
         return true;
     return false;
 }
-bool cube_discrete_bilinear_intersection(const cube&cb,const bilinear &bl, int n ){
-	Vector3d s0, s1;
+bool cube_discrete_bilinear_intersection(
+    const cube& cb, const bilinear& bl, int n)
+{
+    Vector3d s0, s1;
     for (int i = 0; i < 12; i++) {
         s0 = cb.vr[cb.edgeid[i][0]];
         s1 = cb.vr[cb.edgeid[i][1]];
-        if (seg_discrete_bilinear_intersection(bl,n,s0,s1)) // return 0,1,2
-            
+        if (seg_discrete_bilinear_intersection(bl, n, s0, s1)) // return 0,1,2
+
             return true;
     }
     return false;
