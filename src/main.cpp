@@ -421,7 +421,19 @@ void test_edge_edge(){
     test();
     print_sub();
 }
+void case_check(){
+    vf_pair dt;
+    dt.x0 = Vector3d(0.4166666667, 0.729166666666667, 0.1666666667);
+    dt.x1 = Vector3d(0.505833333333333, 1.55277079839257, 0.333333333333333);
+    dt.x2 = Vector3d(0.394067810842861, 0.530588778881995, 0.189316831889046);
+    dt.x3 = Vector3d(0.505833333333333, 1.55277079839257, 0);
 
+    dt.x0b = Vector3d(0.4166666667, 0.729166666666667, 0.1666666667);
+    dt.x1b = Vector3d(0.505833333333333, 1.55277079839257, 0.333333333333333);
+    dt.x2b = Vector3d(0.393920706299667, 0.530584999268601, 0.189314403384958);
+    dt.x3b = Vector3d(0.505833333333333, 1.55277079839257, 0);
+    ccd::vertexFaceCCD(dt.x0,dt.x1,dt.x2,dt.x3,dt.x0b,dt.x1b,dt.x2b,dt.x3b,1e-15);
+}
 int main(int argc, char* argv[])
 {
     // TODO: Put something more relevant here
@@ -433,6 +445,7 @@ int main(int argc, char* argv[])
     // const string filename="/home/bw1760/scratch/cow-head/edge-edge/edge-edge-collisions-part004.hdf5";
     // std::vector<Eigen::Matrix<double, 8, 3>> edge_edge_data;
 	// read_edge_edge_data(filename, edge_edge_data);
+    case_check();
     std::cout<<"done"<<std::endl;
     return 1;
 }
