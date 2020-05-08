@@ -351,7 +351,7 @@ namespace doubleccd {
 			if (o1 == 0) return point_on_ray(s0, e0, dir0, e1);
 			int o2 = -1 * orient_3d(np, s1, s0, e0);// already know this is not 0
 			int oo= orient_3d(np, e1, s0, s1);
-			if (oo == 0) {
+			if (oo == 0) {// actually can directly return 0 because s0-s1-e0 is not degenerated
 				if (point_on_ray(s0, e0, dir0, s1) > 0 || point_on_ray(s0, e0, dir0, e1) > 0)return 1;
 				return 0;
 			}
