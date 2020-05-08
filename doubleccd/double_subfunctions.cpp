@@ -873,24 +873,41 @@ bool is_point_inside_tet(const bilinear& bl, const Vector3d& p)
 // we already know the bilinear is degenerated, next check which kind
 int bilinear_degeneration(const bilinear& bl)
 {
-    bool dege1 = is_triangle_degenerated(bl.v[0], bl.v[1], bl.v[2]);
-    if (dege1)
-        return BI_DEGE_PLANE;
+    bool dege1 = is_triangle_degenerated(bl.v[0], bl.v[1], bl.v[2]);    
     bool dege2 = is_triangle_degenerated(bl.v[0], bl.v[2], bl.v[3]);
-    if (dege2)
-        return BI_DEGE_PLANE;
+
+	if (dege1&&dege2) {
+		return BI_DEGE_PLANE;
+	}
+	Vector3d p0, p1, p2;
+
+	if (dege1) {
+		p0 = bl.v[0];
+		p1 = bl.v[2];
+		p2 = bl.v[3];
+	}
+	else {
+		p0 = bl.v[0];
+		p1 = bl.v[1];
+		p2 = bl.v[2];
+	}
+
     Vector3d np = Vector3d::Random();
-    int ori = orient_3d(np, bl.v[0], bl.v[1], bl.v[2]);
+    int ori = orient_3d(np, p0, p1, p2);
     while (ori == 0) { // if coplanar, random
         np = Vector3d::Random();
-        ori = orient_3d(np, bl.v[0], bl.v[1], bl.v[2]);
+        ori = orient_3d(np, p0, p1, p2);
     }
+	int ori0 = orient_3d(np, bl.v[0], bl.v[1], bl.v[2]);
     int ori1 = orient_3d(np, bl.v[0], bl.v[2], bl.v[3]);
-    if (ori * ori1 < 0) {
+    if (ori0 * ori1 <= 0) {
         return BI_DEGE_XOR_02;
     }
-    // CAUTION: no need BI_DEGE_XOR_13 anymore, because it is the same with
-    // BI_DEGE_XOR_02
+	ori0 = orient_3d(np, bl.v[0], bl.v[1], bl.v[3]);
+	ori1 = orient_3d(np, bl.v[3], bl.v[1], bl.v[2]);
+	if (ori0 * ori1 <= 0) {
+		return BI_DEGE_XOR_13;
+	}
     return BI_DEGE_PLANE;
 }
 
@@ -929,7 +946,21 @@ bool is_cube_intersect_degenerated_bilinear(
             }
             return false;
         }
-
+		if (dege == BI_DEGE_XOR_13) { // triangle 0-1-2 and 0-2-3
+			for (int i = 0; i < 12; i++) {
+				res = int_seg_XOR(
+					segment_triangle_intersection(
+						cube.vr[cube.edgeid[i][0]], cube.vr[cube.edgeid[i][1]],
+						bl.v[0], bl.v[1], bl.v[3],
+						true), // CAUTION: need to be careful for the order here
+					segment_triangle_intersection(
+						cube.vr[cube.edgeid[i][0]], cube.vr[cube.edgeid[i][1]],
+						bl.v[2], bl.v[1], bl.v[3], true));
+				if (res == true)
+					return true;
+			}
+			return false;
+		}
         //   if (dege == BI_DEGE_XOR_13) { // triangle 0-1-3 and 3-1-2
         //       for (int i = 0; i < 12; i++) {
         //           res = int_seg_XOR(

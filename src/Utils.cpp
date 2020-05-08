@@ -447,17 +447,24 @@ int ray_segment_intersection(
 	const Vector3r& e1) {
 
 	if (same_point(e1, s1))//degenerated case
-		return point_on_ray(s0, dir0, s1);
-	/////////////////////////////////////
-	Vector3r norm = cross(s0-s1, e1-s0);
-	if (same_point(norm, ORIGIN))
 	{
-		if (colinear_point_on_segment(s0, s1, e1))
-			return 2;
-		else return 0;
+		//std::cout << "seg is degenerated" << std::endl;
+		return point_on_ray(s0, dir0, s1);
 	}
-	else {
 
+	/////////////////////////////////////
+	Vector3r norm = cross(s0 - s1, e1 - s0);
+	if (same_point(norm, ORIGIN))// seg colinear with ray
+	{
+		if (colinear_point_on_segment(s0, s1, e1))// s0 on seg
+			return 2;
+		int tm1 = point_on_ray(s0, dir0, s1);//fix: this is another case need to check
+		if (tm1 > 0) return  tm1;
+		return 0;
+	}
+	else {// seg is not colinear with ray
+		if (norm.dot(dir0) != 0)
+			return 0;// fix: this is for seg-ray colinear check
 		Vector3r norm1 = cross(s0 - s1, dir0);
 		if (same_point(norm1, ORIGIN))
 			return point_on_ray(s0, dir0, s1);
@@ -468,6 +475,7 @@ int ray_segment_intersection(
 		}
 
 		if (norm.dot(norm1) > 0 && norm.dot(norm2) > 0) {
+			//std::cout << "check 2 return 1 here" << std::endl;
 			return 1;
 		}
 		return 0;
