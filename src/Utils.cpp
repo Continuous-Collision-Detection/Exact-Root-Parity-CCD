@@ -448,7 +448,7 @@ int ray_segment_intersection(
 
 	if (same_point(e1, s1))//degenerated case
 	{
-		std::cout << "seg is degenerated" << std::endl;
+		//std::cout << "seg is degenerated" << std::endl;
 		return point_on_ray(s0, dir0, s1);
 	}
 
@@ -475,7 +475,7 @@ int ray_segment_intersection(
 		}
 
 		if (norm.dot(norm1) > 0 && norm.dot(norm2) > 0) {
-			std::cout << "check 2 return 1 here" << std::endl;
+			//std::cout << "check 2 return 1 here" << std::endl;
 			return 1;
 		}
 		return 0;
