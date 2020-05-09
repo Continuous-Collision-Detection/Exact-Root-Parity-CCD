@@ -697,6 +697,18 @@ void prism::get_prism_vertices(
     p_vertices[3] = x0b - x1b;
     p_vertices[4] = x0b - x3b;
     p_vertices[5] = x0b - x2b;
+    // for(int i=0;i<3;i++){
+    //     if(p_vertices[0][i]!=Rational(Rational(x0[i])-Rational(x1[i])))
+    //         std::cout<<"need rounded"<<std::endl;
+    //     if(p_vertices[1][i]!=Rational(Rational(x0[i])-Rational(x3[i])))
+    //         std::cout<<"need rounded"<<std::endl;
+    //     if(p_vertices[2][i]!=Rational(Rational(x0[i])-Rational(x2[i])))
+    //         std::cout<<"need rounded"<<std::endl;
+    // }
+    // std::cout<<"d vertices"<<std::endl;
+    // for(int i=0;i<6;i++){
+    //     std::cout<<"p"<<i<<" "<<p_vertices[i][0]<<" "<<p_vertices[i][1]<<" "<<p_vertices[i][2]<<std::endl;
+    // }
 }
 prism::prism(
     const Vector3d& vs,

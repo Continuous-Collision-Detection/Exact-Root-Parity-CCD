@@ -253,8 +253,9 @@ namespace doubleccd {
 		return orient2d(p[0], p[1], q[0], q[1], r[0], r[1]);
 	}
 	int orient_3d(const Vector3d&p, const Vector3d&q, const Vector3d&r, const Vector3d& s) {
-		return orient3d(p[0], p[1], p[2], q[0], q[1], q[2], r[0], r[1], r[2], s[0], s[1], s[2]);
+		return -orient3d(p[0], p[1], p[2], q[0], q[1], q[2], r[0], r[1], r[2], s[0], s[1], s[2]);
 	}
+	//TODO orient 3d we flip the sign
 	bool point_on_segment_2d(const Vector2d&p, const Vector2d&s0, const Vector2d&s1, bool need_check_colinear) {
 		if (need_check_colinear) {
 			if (orient_2d(p, s0, s1) != 0)
@@ -522,7 +523,20 @@ namespace doubleccd {
 		explicitPoint3D T1(t1[0], t1[1], t1[2]), T2(t2[0], t2[1], t2[2]), T3(t3[0], t3[1], t3[2]);
 		return rayIntersectsPlane(p, d, T1, T2, T3);
 	}
-	
+	Vector3r double2r(const Vector3d& pt){
+		return Vector3r(pt[0],pt[1],pt[2]);
+	}
+	bool is_ray_intersect_plane_rational(const Vector3d& pt,
+		const Vector3d& dir,
+		const Vector3d& t1,
+		const Vector3d& t2,
+		const Vector3d& t3){
+			Vector3r ptr=double2r(pt),dirr=double2r(dir),t1r=double2r(t1),
+			t2r=double2r(t2),t3r=double2r(t3),np;
+			Vector3r l=dirr,l0=ptr,p0=t1r,n=cross(t1-t2,t1-t3);
+			auto d=(p0-l0).dot(n)/(l.dot(n));
+			return d>=0;
+		}
 
 	// 0 no intersection, 1 intersect, 2 point on triangle(including two edges), 3 point or ray shoot t2-t3 edge, -1 shoot on border
 	int ray_triangle_intersection(
@@ -579,12 +593,15 @@ namespace doubleccd {
 
 		// if point not on plane, and not point to plane, return 0
 		//explicitPoint3D pte()
-		
-		
-		if (!is_ray_intersect_plane(pt, dir, t1, t2, t3)) return 0;
+		bool in1=is_ray_intersect_plane_rational(pt, dir, t1, t2, t3);
+		//bool in2=is_ray_intersect_plane(pt, dir, t1, t2, t3);
+		//if(in1!=in2)std::cout<<"ray intersection don't match "<<in1<<" "<<in2<<std::endl;
+		//TODO we are using Rational ray_tri_intersection
+		if (!in1) return 0;
 		
 		// if ray go across the plane, then get lpi and 3 orientations
 		int inter = is_line_cut_triangle(pt, pt1, t1, t2, t3, halfopen);
+		//std::cout<<"line cut tri? "<<inter<<std::endl;
 		if (inter == 0)return 0;
 		if (inter == 1)return 1;
 		if (inter == 2)return -1;//shoot on edge

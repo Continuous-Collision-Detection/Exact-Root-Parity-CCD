@@ -421,18 +421,53 @@ void test_edge_edge(){
     test();
     print_sub();
 }
+
+void check_false(){
+    H5Easy::File file(root_path + path_sep +"vertex-face-collisions.hdf5");
+    Eigen::Matrix<double, 8, 3> vertex_face_data;
+    vertex_face_data=H5Easy::load<Eigen::Matrix<double, 8, 3>>(file, "/vertex_face_0000252/shifted/points");
+    vf_pair dt;
+    for (int j = 0; j < 3; j++) {
+			dt.x0[j] = vertex_face_data(0, j);
+			dt.x1[j] = vertex_face_data(1, j);
+			dt.x2[j] = vertex_face_data(2, j);
+			dt.x3[j] = vertex_face_data(3, j);
+
+			dt.x0b[j] = vertex_face_data(4, j);
+			dt.x1b[j] = vertex_face_data(5, j);
+			dt.x2b[j] = vertex_face_data(6, j);
+			dt.x3b[j] = vertex_face_data(7, j);
+	}
+    double ms=1e-300;
+    std::cout<<"*method rational"<<std::endl;
+    int r1=ccd::vertexFaceCCD(dt.x0,dt.x1,dt.x2,dt.x3,dt.x0b,dt.x1b,dt.x2b,dt.x3b,ms);
+
+    std::cout<<"\n*method double"<<std::endl;
+    int r2=doubleccd::vertexFaceCCD(dt.x0,dt.x1,dt.x2,dt.x3,dt.x0b,dt.x1b,dt.x2b,dt.x3b,ms);
+    std::cout<<"the rational vf ccd result is "<<r1<<std::endl;
+    std::cout<<"the double vf ccd result is "<<r2<<std::endl;
+    //std::cout<<"ori1 "<< orient_3d(dt.x0,dt.x1,dt.x2,dt.x3)<<std::endl;
+    //std::cout<<"ori2 "<< orient_3d(dt.x0b,dt.x1b,dt.x2b,dt.x3b)<<std::endl;
+       // if(dt.x0[0]==dt.x0b[0]&&dt.x0[2]==dt.x0b[2]&&dt.x0[1]==dt.x0b[1]) std::cout<<"x0, x1 same point"<<std::endl;
+    // if(dt.x1[0]==dt.x0[0]&&dt.x1[2]==dt.x0[2])
+    //     if(dt.x1[0]==dt.x1b[0]&&dt.x1[2]==dt.x1b[2])
+    //         if(dt.x1[1]>dt.x0[1]&&dt.x1b[1]<dt.x0[1])
+    //             std::cout<<"point x1 hit x0 some time"<<std::endl;
+    //std::cout<<"x0,\n "<<dt.x0<<std::endl;std::cout<<"x1,\n "<<dt.x1<<std::endl;std::cout<<"x2,\n "<<dt.x2<<std::endl;std::cout<<"x3,\n "<<dt.x3<<std::endl;
+   // std::cout<<"x0b,\n "<<dt.x0b<<std::endl;std::cout<<"x1b,\n "<<dt.x1b<<std::endl;std::cout<<"x2b,\n "<<dt.x2b<<std::endl;std::cout<<"x3b,\n "<<dt.x3b<<std::endl;
+}
 void case_check(){
     vf_pair dt;
-    dt.x0 = Vector3d(0.4166666667, 0.729166666666667, 0.1666666667);
-    dt.x1 = Vector3d(0.505833333333333, 1.55277079839257, 0.333333333333333);
-    dt.x2 = Vector3d(0.394067810842861, 0.530588778881995, 0.189316831889046);
-    dt.x3 = Vector3d(0.505833333333333, 1.55277079839257, 0);
+    dt.x0 = Vector3d(5.06670675754481e-17,0.571825903784439,1);
+    dt.x1 = Vector3d(0,0.5,1);
+    dt.x2 = Vector3d(0,0.5,0);
+    dt.x3 = Vector3d(-0.25,-0.5,-0.25);
 
-    dt.x0b = Vector3d(0.4166666667, 0.729166666666667, 0.1666666667);
-    dt.x1b = Vector3d(0.505833333333333, 1.55277079839257, 0.333333333333333);
-    dt.x2b = Vector3d(0.393920706299667, 0.530584999268601, 0.189314403384958);
-    dt.x3b = Vector3d(0.505833333333333, 1.55277079839257, 0);
-    ccd::vertexFaceCCD(dt.x0,dt.x1,dt.x2,dt.x3,dt.x0b,dt.x1b,dt.x2b,dt.x3b,1e-15);
+    dt.x0b = Vector3d(1.26333711630941e-16,0.277626403784438,1);
+    dt.x1b = Vector3d(0,0.5,1);
+    dt.x2b = Vector3d(0,0.5,0);
+    dt.x3b = Vector3d(-0.25,-0.5,-0.25);
+    std::cout<<"the vf ccd result is "<<doubleccd::vertexFaceCCD(dt.x0,dt.x1,dt.x2,dt.x3,dt.x0b,dt.x1b,dt.x2b,dt.x3b,1e-300)<<std::endl;
 }
 int main(int argc, char* argv[])
 {
@@ -445,7 +480,14 @@ int main(int argc, char* argv[])
     // const string filename="/home/bw1760/scratch/cow-head/edge-edge/edge-edge-collisions-part004.hdf5";
     // std::vector<Eigen::Matrix<double, 8, 3>> edge_edge_data;
 	// read_edge_edge_data(filename, edge_edge_data);
-    case_check();
+   // case_check();
+    check_false();
+//     for(int i=0;i<20;i++){
+//  doubleccd::Vector3d p0=Vector3d::Random(),p1=Vector3d::Random(),p2=Vector3d::Random(),p3=Vector3d::Random();
+//     ccd::Vector3r p0r(p0[0],p0[1],p0[2]),p1r(p1[0],p1[1],p1[2]),p2r(p2[0],p2[1],p2[2]),p3r(p3[0],p3[1],p3[2]);
+//     std::cout<<"orient "<<doubleccd::orient_3d(p0,p1,p2,p3)<<" "<<ccd::orient3d(p0r,p1r,p2r,p3r)<<std::endl;
+//     }
+   
     std::cout<<"done"<<std::endl;
     return 1;
 }

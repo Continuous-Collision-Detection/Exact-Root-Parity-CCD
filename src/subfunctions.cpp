@@ -393,6 +393,7 @@ void get_prism_vertices_double(
 	}
 
 	k = displaceSubtractions_double(sub);
+    //std::cout<<"k "<<k<<std::endl;
 	int c = 0;
 	for (int i = 0; i < 6; i++) {
 		for (int j = 0; j < 3; j++) {
@@ -414,10 +415,11 @@ prism::prism(
 {
     for (int i = 0; i < 3; i++) {
         vsr[i] = vs[i];
-        ver[i] = ve[i];
         fs0r[i] = fs0[i];
         fs1r[i] = fs1[i];
         fs2r[i] = fs2[i];
+
+        ver[i] = ve[i];
         fe0r[i] = fe0[i];
         fe1r[i] = fe1[i];
         fe2r[i] = fe2[i];
@@ -425,14 +427,25 @@ prism::prism(
 	std::array<Vector3d, 6> v_double;
 	double k;
 	// these are the 6 vertices of the prism,right hand law
-	get_prism_vertices_double(vs, fs0, fs1, fs2, ve, fe0, fe1, fe2, k, v_double);
-	p_vertices[0] = Vector3r(v_double[0][0], v_double[0][1], v_double[0][2]);
-    p_vertices[1] = Vector3r(v_double[1][0], v_double[1][1], v_double[1][2]);
-    p_vertices[2] = Vector3r(v_double[2][0], v_double[2][1], v_double[2][2]);
-    p_vertices[3] = Vector3r(v_double[3][0], v_double[3][1], v_double[3][2]);
-    p_vertices[4] = Vector3r(v_double[4][0], v_double[4][1], v_double[4][2]);
-    p_vertices[5] = Vector3r(v_double[5][0], v_double[5][1], v_double[5][2]);
-
+    // {
+    //     get_prism_vertices_double(vs, fs0, fs1, fs2, ve, fe0, fe1, fe2, k, v_double);
+	// p_vertices[0] = Vector3r(v_double[0][0], v_double[0][1], v_double[0][2]);
+    // p_vertices[1] = Vector3r(v_double[1][0], v_double[1][1], v_double[1][2]);
+    // p_vertices[2] = Vector3r(v_double[2][0], v_double[2][1], v_double[2][2]);
+    // p_vertices[3] = Vector3r(v_double[3][0], v_double[3][1], v_double[3][2]);
+    // p_vertices[4] = Vector3r(v_double[4][0], v_double[4][1], v_double[4][2]);
+    // p_vertices[5] = Vector3r(v_double[5][0], v_double[5][1], v_double[5][2]);
+    // }
+	p_vertices[0]= vsr-fs0r;
+    p_vertices[1]= vsr-fs2r;
+    p_vertices[2]= vsr-fs1r;
+    p_vertices[3]= ver-fe0r;
+    p_vertices[4]= ver-fe2r;
+    p_vertices[5]= ver-fe1r;
+    // std::cout<<"r vertices"<<std::endl;
+    // for(int i=0;i<6;i++){
+    //     std::cout<<"p"<<i<<" "<<p_vertices[i][0]<<" "<<p_vertices[i][1]<<" "<<p_vertices[i][2]<<std::endl;
+    // }
     std::array<int, 2> eid;
 
     eid[0] = 0;

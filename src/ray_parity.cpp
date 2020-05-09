@@ -1,5 +1,6 @@
 #include <CCD/ray_parity.h>
 #include <iomanip>
+#define CHECK_CASE
 namespace ccd {
 	int ray_degenerated_bilinear_parity(
 		const bilinear& bl,
@@ -212,7 +213,7 @@ namespace ccd {
 
 			int is_ray_patch = ray_bilinear_parity(
 				bls[patch], pt, dir, bls[patch].is_degenerated, is_pt_in_tet[patch]);
-			
+			//std::cout<<"\nis ray parity "<<is_ray_patch<<" is pt in tet "<<is_pt_in_tet[patch]<<std::endl;
 
 			if (is_ray_patch == 2)
 				return 1;
@@ -228,7 +229,7 @@ namespace ccd {
 		res = ray_triangle_parity(
 			pt, dir, psm.p_vertices[0], psm.p_vertices[1], psm.p_vertices[2],
 			psm.is_triangle_degenerated(0));
-		
+		//std::cout<<"ray_tri"<<res<<std::endl;
 		if (res == 2)
 			return 1;// it should be impossible
 		if (res == -1)
@@ -239,7 +240,7 @@ namespace ccd {
 		res = ray_triangle_parity(
 			pt, dir, psm.p_vertices[3], psm.p_vertices[4], psm.p_vertices[5],
 			psm.is_triangle_degenerated(1));
-		
+		//std::cout<<"ray_tri"<<res<<std::endl;
 		if (res == 2)
 			return 1; // it should be impossible
 		if (res == -1)
@@ -258,15 +259,17 @@ namespace ccd {
 	{
 		static const int max_trials = 8;// TODO maybe dont need to set this
 		
-		
+		#ifdef CHECK_CASE
+		Vector3r dir(-2.57039e-23, 1.64606e-21, -1.88378e-22);
+		#else
 		Vector3r dir(1, 0, 0);
-		
+		#endif
 		int res = -1;
 		int trials;
 		for (trials = 0; trials < max_trials; ++trials) {
 	
 			res = point_inside_prism(psm, bls, pt, dir, is_pt_in_tet);
-
+			//std::cout<<"res rational "<< res<<std::endl;
 			if (res >= 0)
 				break;
 

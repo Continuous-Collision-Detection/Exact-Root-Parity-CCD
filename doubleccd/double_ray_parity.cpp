@@ -197,7 +197,9 @@ namespace doubleccd {
 	{
 		if (!is_triangle_degenerated) {
 			//std::cout << "not degenerated in double " << std::endl;
-			return ray_triangle_intersection(pt, pt1, dir, t0, t1, t2, false);
+			int res=ray_triangle_intersection(pt, pt1, dir, t0, t1, t2, false);
+			//std::cout<<"ray_triangle is used "<<res<<std::endl;
+			return res;
 			// 0 not hit, 1 hit on open triangle, -1 parallel or hit on edge, need
 			// another shoot.
 		}
@@ -231,7 +233,8 @@ namespace doubleccd {
 			timer.start();
 			int is_ray_patch = ray_bilinear_parity(
 				bls[patch], pt, pt1, dir, bls[patch].is_degenerated, is_pt_in_tet[patch]);
-			
+			//std::cout<<"\nis ray parity "<<is_ray_patch<<" is pt in tet "<<is_pt_in_tet[patch]<<std::endl;
+			//std::cout<<"dir "<<dir[0]<<" "<<dir[1]<<" "<<dir[2]<<std::endl;
 			timed1 += timer.getElapsedTimeInSec();
 			if (is_ray_patch == 2)
 				return 1;
@@ -245,9 +248,11 @@ namespace doubleccd {
 
 		int res;
 		timer.start();
+		//std::cout<<"**start ray tri1 "<<std::endl;
 		res = ray_triangle_parity(
 			pt, pt1, dir, psm.p_vertices[0], psm.p_vertices[1], psm.p_vertices[2],
 			psm.is_triangle_degenerated(0));
+			//std::cout<<"ray_tri"<<res<<std::endl;
 		timed2 += timer.getElapsedTimeInSec();
 		if (res == 2)
 			return 1;// it should be impossible
@@ -257,9 +262,11 @@ namespace doubleccd {
 		if (res > 0)
 			S++;
 		timer.start();
+		//std::cout<<"**start ray tri2 "<<std::endl;
 		res = ray_triangle_parity(
 			pt, pt1, dir, psm.p_vertices[3], psm.p_vertices[4], psm.p_vertices[5],
 			psm.is_triangle_degenerated(1));
+			//std::cout<<"ray_tri"<<res<<std::endl;
 		timed2 += timer.getElapsedTimeInSec();
 		if (res == 2)
 			return 1; // it should be impossible

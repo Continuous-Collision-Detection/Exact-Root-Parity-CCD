@@ -17,12 +17,15 @@ bool vertexFaceCCD(
     const Vector3d& face_vertex2_end,
     const double minimum_distance)
 {
-    // std::cout << "double ccd" << std::endl;
+    //Rational rtn=minimum_distance;
+
+    //std::cout << "eps "<<rtn.to_double() << std::endl;
     prism vfprism(
         vertex_start, face_vertex0_start, face_vertex1_start,
         face_vertex2_start, vertex_end, face_vertex0_end, face_vertex1_end,
         face_vertex2_end);
-
+//std::cout<<"ori 0 "<<orient_3d(Vector3d(0,0,0),vfprism.p_vertices[0],vfprism.p_vertices[1],vfprism.p_vertices[2])<<std::endl;
+    //std::cout<<"ori 1 "<<orient_3d(Vector3d(0,0,0),vfprism.p_vertices[3],vfprism.p_vertices[4],vfprism.p_vertices[5])<<std::endl;
     // step 1. bounding box checking
     Vector3d bmin(-minimum_distance, -minimum_distance, -minimum_distance),
         bmax(minimum_distance, minimum_distance, minimum_distance);
