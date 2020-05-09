@@ -427,7 +427,7 @@ void check_false(){
     //H5Easy::File file(root_path + path_sep +"vertex-face-collisions.hdf5");
     H5Easy::File file("/home/zachary/Development/ccd-queries/erleben-spikes/vertex-face/vertex-face-collisions.hdf5");
     Eigen::Matrix<double, 8, 3> vertex_face_data;
-    vertex_face_data=H5Easy::load<Eigen::Matrix<double, 8, 3>>(file, "/vertex_face_0000016/shifted/points");
+    vertex_face_data=H5Easy::load<Eigen::Matrix<double, 8, 3>>(file, "/vertex_face_0000031/shifted/points");
     vf_pair dt;
     for (int j = 0; j < 3; j++) {
 			dt.x0[j] = vertex_face_data(0, j);

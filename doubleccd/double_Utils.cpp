@@ -533,7 +533,7 @@ namespace doubleccd {
 		const Vector3d& t3){
 			Vector3r ptr=double2r(pt),dirr=double2r(dir),t1r=double2r(t1),
 			t2r=double2r(t2),t3r=double2r(t3),np;
-			Vector3r l=dirr,l0=ptr,p0=t1r,n=cross(t1-t2,t1-t3);
+			Vector3r l=dirr,l0=ptr,p0=t1r,n=cross(t1r-t2r,t1r-t3r);
 			auto d=(p0-l0).dot(n)/(l.dot(n));
 			return d>=0;
 		}
