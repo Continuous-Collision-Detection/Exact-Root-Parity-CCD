@@ -8,6 +8,7 @@
 #include <CCD/exact_subtraction.hpp>
 #include <array>
 #include <doubleCCD/doubleccd.hpp>
+#include <doubleCCD/hack.h>
 #include <fstream>
 #include<read_collision_data.hpp>
 //#include <exact_subtraction.hpp>
@@ -423,9 +424,10 @@ void test_edge_edge(){
 }
 
 void check_false(){
-    H5Easy::File file(root_path + path_sep +"vertex-face-collisions.hdf5");
+    //H5Easy::File file(root_path + path_sep +"vertex-face-collisions.hdf5");
+    H5Easy::File file("/home/zachary/Development/ccd-queries/erleben-spikes/vertex-face/vertex-face-collisions.hdf5");
     Eigen::Matrix<double, 8, 3> vertex_face_data;
-    vertex_face_data=H5Easy::load<Eigen::Matrix<double, 8, 3>>(file, "/vertex_face_0000252/shifted/points");
+    vertex_face_data=H5Easy::load<Eigen::Matrix<double, 8, 3>>(file, "/vertex_face_0000016/shifted/points");
     vf_pair dt;
     for (int j = 0; j < 3; j++) {
 			dt.x0[j] = vertex_face_data(0, j);
@@ -438,14 +440,17 @@ void check_false(){
 			dt.x2b[j] = vertex_face_data(6, j);
 			dt.x3b[j] = vertex_face_data(7, j);
 	}
-    double ms=1e-300;
-    std::cout<<"*method rational"<<std::endl;
-    int r1=ccd::vertexFaceCCD(dt.x0,dt.x1,dt.x2,dt.x3,dt.x0b,dt.x1b,dt.x2b,dt.x3b,ms);
-
+    double ms=1e-50;
+    
     std::cout<<"\n*method double"<<std::endl;
     int r2=doubleccd::vertexFaceCCD(dt.x0,dt.x1,dt.x2,dt.x3,dt.x0b,dt.x1b,dt.x2b,dt.x3b,ms);
-    std::cout<<"the rational vf ccd result is "<<r1<<std::endl;
+    std::cout<<" exact dir "<<doubleccd::hack::getInstance().dir[0]<<" "<< doubleccd::hack::getInstance().dir[1]<<" "<< doubleccd::hack::getInstance().dir[2]<<std::endl;
+    std::cout<<"*\n\nmethod rational"<<std::endl;
+    int r1=ccd::vertexFaceCCD(dt.x0,dt.x1,dt.x2,dt.x3,dt.x0b,dt.x1b,dt.x2b,dt.x3b,ms);
+
+    
     std::cout<<"the double vf ccd result is "<<r2<<std::endl;
+    std::cout<<"the rational vf ccd result is "<<r1<<std::endl;
     //std::cout<<"ori1 "<< orient_3d(dt.x0,dt.x1,dt.x2,dt.x3)<<std::endl;
     //std::cout<<"ori2 "<< orient_3d(dt.x0b,dt.x1b,dt.x2b,dt.x3b)<<std::endl;
        // if(dt.x0[0]==dt.x0b[0]&&dt.x0[2]==dt.x0b[2]&&dt.x0[1]==dt.x0b[1]) std::cout<<"x0, x1 same point"<<std::endl;
@@ -454,7 +459,7 @@ void check_false(){
     //         if(dt.x1[1]>dt.x0[1]&&dt.x1b[1]<dt.x0[1])
     //             std::cout<<"point x1 hit x0 some time"<<std::endl;
     //std::cout<<"x0,\n "<<dt.x0<<std::endl;std::cout<<"x1,\n "<<dt.x1<<std::endl;std::cout<<"x2,\n "<<dt.x2<<std::endl;std::cout<<"x3,\n "<<dt.x3<<std::endl;
-   // std::cout<<"x0b,\n "<<dt.x0b<<std::endl;std::cout<<"x1b,\n "<<dt.x1b<<std::endl;std::cout<<"x2b,\n "<<dt.x2b<<std::endl;std::cout<<"x3b,\n "<<dt.x3b<<std::endl;
+   //std::cout<<"x0b,\n "<<dt.x0b<<std::endl;std::cout<<"x1b,\n "<<dt.x1b<<std::endl;std::cout<<"x2b,\n "<<dt.x2b<<std::endl;std::cout<<"x3b,\n "<<dt.x3b<<std::endl;
 }
 void case_check(){
     vf_pair dt;

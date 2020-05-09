@@ -11,6 +11,7 @@ doubleccd/Rational.hpp
 doubleccd/rayPlaneIntersection.h
 doubleccd/rayPlaneIntersection.cpp
 doubleccd/exact_subtraction.hpp
+doubleccd/hack.h
 PARENT_SCOPE
 )
 ################################################################################
