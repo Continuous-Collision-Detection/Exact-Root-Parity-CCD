@@ -1,6 +1,7 @@
 #include <CCD/ray_parity.h>
 #include <iomanip>
-#define CHECK_CASE
+#include"../doubleccd/hack.h"
+//#define CHECK_CASE
 namespace ccd {
 	int ray_degenerated_bilinear_parity(
 		const bilinear& bl,
@@ -15,6 +16,7 @@ namespace ccd {
 			r1 = ray_triangle_intersection(// -1, 0, 1, 2
 				pt, dir, bl.v[0], bl.v[1],
 				bl.v[2], true);
+				//std::cout<<"inter t1, "<<r1<<"\n"<<std::endl;
 			if (r1 == 2)
 				return 2;
 			if (r1 == -1)
@@ -31,6 +33,7 @@ namespace ccd {
 			r2 = ray_triangle_intersection(
 				pt, dir, bl.v[0], bl.v[3],
 				bl.v[2], false);
+				//std::cout<<"inter t2, "<<r2<<std::endl;
 			if (r2 == 2)
 				return 2;
 			if (r2 == -1)
@@ -172,6 +175,7 @@ namespace ccd {
 		}
 		else {// degenerated bilinear
 			int degetype = bilinear_degeneration(bl);
+			//std::cout<<"dege type "<<degetype<<std::endl;
 			return ray_degenerated_bilinear_parity(bl, pt, dir, degetype);
 		}
 	}
@@ -252,6 +256,31 @@ namespace ccd {
 		//std::cout << "intersection nbrs " << S << std::endl;
 		return ((S % 2) == 1) ? 1 : 0;
 	}
+	
+	int point_inside_hex(std::array<bilinear, 6>& bls,const Vector3r& pt,const Vector3r& dir,
+		const std::vector<bool>& is_pt_in_tet){
+			int S = 0;
+
+		for (int patch = 0; patch < 6; ++patch) {
+
+			int is_ray_patch = ray_bilinear_parity(
+				bls[patch], pt, dir, bls[patch].is_degenerated, is_pt_in_tet[patch]);
+			//std::cout<<"\nis ray parity "<<is_ray_patch<<" is pt in tet "<<is_pt_in_tet[patch]<<std::endl;
+			//std::cout<<"bilinear ori, "<<orient3d(bls[patch].v[0],bls[patch].v[1],bls[patch].v[2],bls[patch].v[3])<<"this bilinear finished\n"<<std::endl;
+			if (is_ray_patch == 2)
+				return 1;
+
+			if (is_ray_patch == -1)
+				return -1;
+
+			if (is_ray_patch == 1)
+				S++;
+		}
+
+		//std::cout << "intersection nbrs " << S << std::endl;
+		return ((S % 2) == 1) ? 1 : 0;
+		}
+	
 	bool retrial_ccd(
 		prism& psm, std::array<bilinear, 3>& bls,
 		const Vector3r& pt,
@@ -270,6 +299,50 @@ namespace ccd {
 	
 			res = point_inside_prism(psm, bls, pt, dir, is_pt_in_tet);
 			//std::cout<<"res rational "<< res<<std::endl;
+			if (res >= 0)
+				break;
+
+			Vector3d dir1 = Vector3d::Random();
+			dir[0] = dir1[0];
+			dir[1] = dir1[1];
+			dir[2] = dir1[2];
+		}
+
+		if (trials == max_trials) {
+
+			std::cout << "All rays are on edges, increase trials" << std::endl;
+			throw "All rays are on edges, increase trials";
+			return false;
+		}
+
+		return res >= 1; // >=1 means point inside of prism
+	}
+	bool retrial_ccd_hex(
+		 std::array<bilinear, 6>& bls,
+		const Vector3r& pt,
+		const std::vector<bool>& is_pt_in_tet)
+	{
+
+		static const int max_trials = 8;// TODO maybe dont need to set this
+
+		// if a/2<=b<=2*a, then a-b is exact.
+
+		//
+		#ifdef CHECK_CASE
+		Vector3r dir;
+		dir[0]=doubleccd::hack::getInstance().dir[0];
+		dir[1]=doubleccd::hack::getInstance().dir[1];
+		dir[2]=doubleccd::hack::getInstance().dir[2];
+		#else
+			Vector3r dir(1, 0, 0);
+		#endif
+		//std::cout<<"dir "<<dir[0]<<" "<<dir[1]<<" "<<dir[2]<<std::endl;
+		int res = -1;
+		int trials;
+
+		for (trials = 0; trials < max_trials; ++trials) {
+			res = point_inside_hex(bls, pt, dir, is_pt_in_tet);
+			//std::cout<<"rerun time "<<trials<<"\n"<<std::endl;
 			if (res >= 0)
 				break;
 

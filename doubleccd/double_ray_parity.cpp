@@ -1,5 +1,6 @@
 #include <doubleCCD/double_ray_parity.h>
 #include <iomanip>
+#include <doubleCCD/hack.h>
 double timed1 = 0, timed2 = 0, timed3 = 0, timed4 = 0, timed5 = 0;
 namespace doubleccd {
 	int ray_degenerated_bilinear_parity(
@@ -16,6 +17,7 @@ namespace doubleccd {
 			r1 = ray_triangle_intersection(// -1, 0, 1, 2
 				pt, pt1, dir, bl.v[0], bl.v[1],
 				bl.v[2], true);
+				//std::cout<<"inter t1, "<<r1<<"\n"<<std::endl;
 			if (r1 == 2)
 				return 2;
 			if (r1 == -1)
@@ -32,6 +34,7 @@ namespace doubleccd {
 			r2 = ray_triangle_intersection(
 				pt, pt1, dir, bl.v[0], bl.v[3],
 				bl.v[2], false);
+				//std::cout<<"inter t2, "<<r2<<std::endl;
 			if (r2 == 2)
 				return 2;
 			if (r2 == -1)
@@ -182,6 +185,7 @@ namespace doubleccd {
 		}
 		else {// degenerated bilinear
 			int degetype = bilinear_degeneration(bl);
+			//std::cout<<"dege type "<<degetype<<std::endl;
 			return ray_degenerated_bilinear_parity(bl, pt, pt1, dir, degetype);
 		}
 	}
@@ -252,7 +256,7 @@ namespace doubleccd {
 		res = ray_triangle_parity(
 			pt, pt1, dir, psm.p_vertices[0], psm.p_vertices[1], psm.p_vertices[2],
 			psm.is_triangle_degenerated(0));
-			//std::cout<<"ray_tri"<<res<<std::endl;
+			//std::cout<<"ray_tri1 "<<res<<std::endl;
 		timed2 += timer.getElapsedTimeInSec();
 		if (res == 2)
 			return 1;// it should be impossible
@@ -266,7 +270,7 @@ namespace doubleccd {
 		res = ray_triangle_parity(
 			pt, pt1, dir, psm.p_vertices[3], psm.p_vertices[4], psm.p_vertices[5],
 			psm.is_triangle_degenerated(1));
-			//std::cout<<"ray_tri"<<res<<std::endl;
+			//std::cout<<"ray_tri2 "<<res<<std::endl;
 		timed2 += timer.getElapsedTimeInSec();
 		if (res == 2)
 			return 1; // it should be impossible
@@ -293,7 +297,8 @@ namespace doubleccd {
 			int is_ray_patch = ray_bilinear_parity(
 				bls[patch], pt, pt1, dir, bls[patch].is_degenerated, is_pt_in_tet[patch]);
 
-
+			//std::cout<<"\nis ray parity "<<is_ray_patch<<" is pt in tet "<<is_pt_in_tet[patch]<<std::endl;
+			//std::cout<<"bilinear ori, "<<orient_3d(bls[patch].v[0],bls[patch].v[1],bls[patch].v[2],bls[patch].v[3])<<"this bilinear finished\n"<<std::endl;
 			if (is_ray_patch == 2)
 				return 1;
 
@@ -380,10 +385,10 @@ namespace doubleccd {
 		timer.start();
 		for (trials = 0; trials < max_trials; ++trials) {
 			res = point_inside_prism(psm, bls, pt,pt2, dir, is_pt_in_tet);
-			
+			//std::cout<<"rerun time "<<trials<<std::endl;
 			if (res >= 0)
 				break;
-
+			//std::cout<<"rerun time "<<res<<std::endl;
 			get_direction(pt, pt2, dir);
 		}
 		timed3 += timer.getElapsedTimeInSec();
@@ -408,13 +413,16 @@ namespace doubleccd {
 
 		Vector3d pt2, dir;
 		get_direction(pt, pt2, dir);
-
+		hack::getInstance().dir[0]=dir[0];
+		hack::getInstance().dir[1]=dir[1];
+		hack::getInstance().dir[2]=dir[2];
+		//std::cout<<"direction \n"<<dir<<std::endl;
 		int res = -1;
 		int trials;
 
 		for (trials = 0; trials < max_trials; ++trials) {
 			res = point_inside_hex(bls, pt, pt2, dir, is_pt_in_tet);
-
+			//std::cout<<"rerun time "<<res<<std::endl;
 			if (res >= 0)
 				break;
 

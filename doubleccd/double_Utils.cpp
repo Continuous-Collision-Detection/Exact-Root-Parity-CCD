@@ -170,8 +170,26 @@ namespace doubleccd {
 		//std::cout<<"orient "<<orient_3d(e0,e1,t2,t3)<<std::endl;
 		//std::cout<<"orient "<<orient_3d(e0,e1,t1,t3)<<std::endl;
 		//std::cout<<"inter bc? "<<genericPoint::pointInSegment(l, b, c)<<std::endl;
-		if (genericPoint::pointInInnerTriangle(l, a, b, c))
-			return 1;
+		{//this piece is problematic
+		// if (genericPoint::pointInInnerTriangle(l, a, b, c))
+			// 	return 1;
+		}
+		
+			
+		Vector3d ap=Vector3d::Random();
+		while(orient_3d(ap,t1,t2,t3)==0){
+			ap=Vector3d::Random();
+		}
+		explicitPoint3D ape(ap[0],ap[1],ap[2]);
+		//std::cout<<"random point ori "<<orient_3d(ap,t1,t2,t3)<<std::endl;
+		int op1=genericPoint::orient3D(l,ape,a,b);
+		int op2=genericPoint::orient3D(l,ape,b,c);
+		int op3=genericPoint::orient3D(l,ape,c,a);
+		if(op1==op2&&op1==op3)//lpi in open triangle
+            return 1;
+                //std::cout<<"the orientations in double "<<op1<<" "<<op2<<" "<<op3<<std::endl;
+			//std::cout<<"l\n"<<e0<<"\n\n"<<e1<<std::endl;
+			//std::cout<<"a and b and c\n"<<t1<<"\n\n"<<t2<<"\n\n"<<t3<<std::endl;
 		// if (genericPoint::pointInSegment(l, a, c)){
 		// 	std::cout<<"l on ac"<<std::endl;
 		// 	return 2;
@@ -586,6 +604,7 @@ namespace doubleccd {
 
 		if (is_triangle_degenerated(t1, t2, t3))// triangle degeneration
 		{
+			//std::cout<<"tri degenerated "<<std::endl;
 			int inter1 = ray_segment_intersection(pt, pt1, dir, t1, t2);
 			if (inter1 == 1) return -1;
 			if (inter1 == 2) return 2;
@@ -633,9 +652,10 @@ namespace doubleccd {
 		//if(in1!=in2)std::cout<<"ray intersection don't match "<<in1<<" "<<in2<<std::endl;
 		//TODO we are using Rational ray_tri_intersection
 		if (!in1) return 0;
-		
+		//std::cout<<"ray inter plane"<<std::endl;
 		// if ray go across the plane, then get lpi and 3 orientations
 		int inter = is_line_cut_triangle(pt, pt1, t1, t2, t3, halfopen);
+		//std::cout<<"is line cut triangle "<<inter<<std::endl;
 		//std::cout<<"line cut tri? "<<inter<<std::endl;
 		if (inter == 0)return 0;
 		if (inter == 1)return 1;

@@ -178,6 +178,7 @@ int is_line_cut_triangle(
 			return 3;// on open edge t2-t3
 	}
 
+
 	if (o1 == o2 && o1 == o3)
 		return 1;
 	if (o1 == 0 && o2 * o3 >= 0)
@@ -662,6 +663,7 @@ int ray_triangle_intersection(
 	Vector3r norm = cross(t2 - t1, t3 - t2);
 	if (same_point(norm, ORIGIN))// triangle degeneration
 	{
+		//std::cout<<"tri degenerated "<<std::endl;
 		int inter1 = ray_segment_intersection(pt, dir, t1, t2);
 		if (inter1 == 1) return -1;
 		if (inter1 == 2) return 2;
@@ -704,9 +706,11 @@ int ray_triangle_intersection(
 	Rational dt = norm.dot(dir);// >0, dir is same direction with norm, pointing to +1 orientation
 	if (dt.get_sign() > 0 && o1 >= 0) return 0;
 	if (dt.get_sign() < 0 && o1 <= 0) return 0;
+	//std::cout<<"ray inter plane"<<std::endl;
 	Vector3r np = sum(pt, dir);
 	// if ray go across the plane, then get lpi and 3 orientations
 	int inter = is_line_cut_triangle(pt, np, t1, t2, t3, halfopen, norm);
+	//std::cout<<"is line cut triangle "<<inter<<std::endl;
 	if (inter == 0)return 0;
 	if (inter == 1)return 1;
 	if (inter == 2)return -1;//shoot on edge

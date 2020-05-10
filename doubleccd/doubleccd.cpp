@@ -41,10 +41,11 @@ bool vertexFaceCCD(
                 minimum_distance,
                 vfprism.p_vertices[vfprism.prism_edge_id[i][0]],
                 vfprism.p_vertices[vfprism.prism_edge_id[i][1]])) {
-            // std::cout << "which seg intersect cube "<<i << std::endl;
+             // std::cout << "which seg intersect cube "<<i << std::endl;
             return true;
         }
     }
+    //std::cout << "after seg_inter_cube " << std::endl;
     // std::cout << "before cube edge intersect 2 triangles in double" <<
     // std::endl;
     // prism top/bottom triangle test
@@ -61,7 +62,7 @@ bool vertexFaceCCD(
                 vfprism.p_vertices[5]))
             return true;
     }
-
+    //std::cout<<"after cube triangle"<<std::endl;
     // step 3 tet facets- cube edges
     std::array<std::array<bool, 8>, 3>
         v_tet; // cube vertices - tets positions
@@ -150,6 +151,9 @@ bool edgeEdgeCCD(
     const Vector3d& edge1_vertex1_end,
     const double minimum_distance)
 {
+    //Rational rtn=minimum_distance;
+
+    //std::cout << "eps "<<rtn.to_double() << std::endl;
     timer1.start();
     hex hx(
         edge0_vertex0_start, edge0_vertex1_start, edge1_vertex0_start,
@@ -179,8 +183,10 @@ bool edgeEdgeCCD(
             break;
         }
     }
+    
     time4+=timer1.getElapsedTimeInSec();
     if (rt) return true;
+    //std::cout<<"go after seg_cube"<<std::endl;
     cube cb(minimum_distance);
 
     // step 3 tet facets- cube edges
@@ -205,6 +211,7 @@ bool edgeEdgeCCD(
     timer1.start();
     int discrete=5;
     for(int i=0;i<6;i++){
+        //std::cout<<"start check opp"<<std::endl;
         if(is_cube_intersect_tet_opposite_faces(
             bls[i], cb, v_tet[i], cube_inter_tet[i])){
 
@@ -212,6 +219,7 @@ bool edgeEdgeCCD(
             // if(!rr){
             //     std::cout<<"result do not match in opposite check, ori vs discrete "<<1<<" "<<rr<<std::endl;
             // }
+            //std::cout<<"ith iteration break "<<i<<std::endl;
             rt=true;
             break;
         }
@@ -219,7 +227,7 @@ bool edgeEdgeCCD(
     }
     time8+=timer1.getElapsedTimeInSec();
     if(rt) return true;
-    
+    //std::cout<<"go after oppo"<<std::endl;
     for(int i=0;i<6;i++){
         if (cube_inter_tet[i]) {
             timer1.start();
@@ -230,6 +238,7 @@ bool edgeEdgeCCD(
             // }
             time6+=timer1.getElapsedTimeInSec();
             if (cit0)
+            //std::cout<<"return intersect bilinear"<<std::endl;
                 return true;
         }
     }

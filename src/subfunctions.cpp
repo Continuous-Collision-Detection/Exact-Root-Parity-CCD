@@ -180,23 +180,23 @@ int seg_cut_plane(
         return COPLANAR;
     return INTERSECTED;
 }
-
-bool is_seg_intersect_cube(
-    const double& eps, const Vector3r& e0, const Vector3r& e1)
-{
-    if (is_point_intersect_cube(eps, e0))
-        return true;
-    if (is_point_intersect_cube(eps, e1))
-        return true;
-    if (same_point(e0,e1))
-        return false; // degenerate case: the segment is degenerated as a point
-    // if intersected, must be coplanar with the edge, or intersect edge or face
-    if (is_seg_intersect_cube_2d(eps, e0, e1, 0)
-        && is_seg_intersect_cube_2d(eps, e0, e1, 1)
-        && is_seg_intersect_cube_2d(eps, e0, e1, 2))
-        return true;
-    return false;
-}
+// this is not correct
+// bool is_seg_intersect_cube(
+//     const double& eps, const Vector3r& e0, const Vector3r& e1)
+// {
+//     if (is_point_intersect_cube(eps, e0))
+//         return true;
+//     if (is_point_intersect_cube(eps, e1))
+//         return true;
+//     if (same_point(e0,e1))
+//         return false; // degenerate case: the segment is degenerated as a point
+//     // if intersected, must be coplanar with the edge, or intersect edge or face
+//     if (is_seg_intersect_cube_2d(eps, e0, e1, 0)
+//         && is_seg_intersect_cube_2d(eps, e0, e1, 1)
+//         && is_seg_intersect_cube_2d(eps, e0, e1, 2))
+//         return true;
+//     return false;
+// }
 bool seg_intersect_cube(const double eps, const Vector3r& e0, const Vector3r& e1) {
 	if (is_point_intersect_cube(eps, e0))
 		return true;
