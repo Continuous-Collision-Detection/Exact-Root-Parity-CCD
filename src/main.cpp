@@ -11,6 +11,7 @@
 #include <doubleCCD/hack.h>
 #include <fstream>
 #include<read_collision_data.hpp>
+//#include <predicates/indirect_predicates.h>
 //#include <exact_subtraction.hpp>
 //#include<subfunctions.h>
 using namespace doubleccd;
@@ -425,9 +426,9 @@ void test_edge_edge(){
 
 void check_false(){
     //H5Easy::File file(root_path + path_sep +"vertex-face-collisions.hdf5");
-    H5Easy::File file("/home/zachary/Development/ccd-queries/erleben-spikes/vertex-face/vertex-face-collisions.hdf5");
+    H5Easy::File file("/home/zachary/Development/ccd-queries/erleben-cube-cliff-edges/edge-edge/edge-edge-collisions.hdf5");
     Eigen::Matrix<double, 8, 3> vertex_face_data;
-    vertex_face_data=H5Easy::load<Eigen::Matrix<double, 8, 3>>(file, "/vertex_face_0000031/shifted/points");
+    vertex_face_data=H5Easy::load<Eigen::Matrix<double, 8, 3>>(file, "/edge_edge_0000314/shifted/points");
     vf_pair dt;
     for (int j = 0; j < 3; j++) {
 			dt.x0[j] = vertex_face_data(0, j);
@@ -440,13 +441,13 @@ void check_false(){
 			dt.x2b[j] = vertex_face_data(6, j);
 			dt.x3b[j] = vertex_face_data(7, j);
 	}
-    double ms=1e-50;
+    double ms=1e-300;
     
     std::cout<<"\n*method double"<<std::endl;
-    int r2=doubleccd::vertexFaceCCD(dt.x0,dt.x1,dt.x2,dt.x3,dt.x0b,dt.x1b,dt.x2b,dt.x3b,ms);
-    std::cout<<" exact dir "<<doubleccd::hack::getInstance().dir[0]<<" "<< doubleccd::hack::getInstance().dir[1]<<" "<< doubleccd::hack::getInstance().dir[2]<<std::endl;
+    int r2=doubleccd::edgeEdgeCCD(dt.x0,dt.x1,dt.x2,dt.x3,dt.x0b,dt.x1b,dt.x2b,dt.x3b,ms);
+    //std::cout<<" exact dir "<<doubleccd::hack::getInstance().dir[0]<<" "<< doubleccd::hack::getInstance().dir[1]<<" "<< doubleccd::hack::getInstance().dir[2]<<std::endl;
     std::cout<<"*\n\nmethod rational"<<std::endl;
-    int r1=ccd::vertexFaceCCD(dt.x0,dt.x1,dt.x2,dt.x3,dt.x0b,dt.x1b,dt.x2b,dt.x3b,ms);
+    int r1=ccd::edgeEdgeCCD(dt.x0,dt.x1,dt.x2,dt.x3,dt.x0b,dt.x1b,dt.x2b,dt.x3b,ms);
 
     
     std::cout<<"the double vf ccd result is "<<r2<<std::endl;
@@ -473,6 +474,16 @@ void case_check(){
     dt.x2b = Vector3d(0,0.5,0);
     dt.x3b = Vector3d(-0.25,-0.5,-0.25);
     std::cout<<"the vf ccd result is "<<doubleccd::vertexFaceCCD(dt.x0,dt.x1,dt.x2,dt.x3,dt.x0b,dt.x1b,dt.x2b,dt.x3b,1e-300)<<std::endl;
+}
+void case_for_marco(){
+    double sm=1e-300;
+    Vector3d e0(-sm, -sm, sm), e1(sm, -sm, sm), 
+    t1(0, 0.00287304, 2.22045e-16),t2(0, -0.222374, 0), t3(0, 1.00287, 0);
+    // explicitPoint3D p(e0[0], e0[1], e0[2]);
+	// 	explicitPoint3D q(e1[0], e1[1], e1[2]);
+	// 	explicitPoint3D a(t1[0], t1[1], t1[2]);
+	// 	explicitPoint3D b(t2[0], t2[1], t2[2]);
+	// 	explicitPoint3D c(t3[0], t3[1], t3[2]);
 }
 int main(int argc, char* argv[])
 {

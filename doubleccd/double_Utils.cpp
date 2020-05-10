@@ -151,11 +151,6 @@ namespace doubleccd {
 		const Vector3d& t3,
 		const bool halfopen) {
 
-		////if (orient3d(n, t1, t2, t3) == 0) {
-		//	//std::cout << "Degeneration happens" << std::endl;
-		//	n = Vector3r(rand(), rand(), rand());
-		//}
-
 
 		explicitPoint3D p(e0[0], e0[1], e0[2]);
 		explicitPoint3D q(e1[0], e1[1], e1[2]);
@@ -164,18 +159,57 @@ namespace doubleccd {
 		explicitPoint3D c(t3[0], t3[1], t3[2]);
 		implicitPoint3D_LPI l(p, q, a, b, c);
 		explicitPoint3D ppp;
+		///std::cout<<"in lpi, check if point exist"<<std::endl;
+
 		if (!l.approxExplicit(ppp)) return 0;// this is important
+		//std::cout<<"in lpi, already know point exist"<<std::endl;
+		//int o1=orient_3d(e0,t1,t2,t3);
+		//int o2=orient_3d(e1,t1,t2,t3);
+		//std::cout<<"*orient "<<o1<<" "<<o2<<std::endl;
+		//std::cout<<"orient "<<orient_3d(e0,e1,t1,t2)<<std::endl;
+		//std::cout<<"orient "<<orient_3d(e0,e1,t2,t3)<<std::endl;
+		//std::cout<<"orient "<<orient_3d(e0,e1,t1,t3)<<std::endl;
+		//std::cout<<"inter bc? "<<genericPoint::pointInSegment(l, b, c)<<std::endl;
 		if (genericPoint::pointInInnerTriangle(l, a, b, c))
 			return 1;
-		if (genericPoint::pointInSegment(l, a, b))
+		// if (genericPoint::pointInSegment(l, a, c)){
+		// 	std::cout<<"l on ac"<<std::endl;
+		// 	return 2;
+		// }
+		// if (genericPoint::pointInSegment(l, b, a)){
+		// 	std::cout<<"seg seg check "<<genericPoint::segmentsCross(p,q,a,b)<<std::endl;
+		// 	std::cout<<"l on ab"<<std::endl;
+		// 	std::cout<<"l\n"<<e0<<"\n\n"<<e1<<std::endl;
+		// 	std::cout<<"a and b and c\n"<<t1<<"\n\n"<<t2<<"\n\n"<<t3<<std::endl;
+		// 	std::cout<<"orientation "<<orient_3d(e0,e1,t1,t2)<<std::endl;
+		// 	return 2;
+		// }
+			
+		
+		if(orient_3d(e0,e1,t1,t3)==0&&genericPoint::segmentsCross(p,q,a,c)){
+			//std::cout<<"l on ac"<<std::endl;
 			return 2;
-		if (genericPoint::pointInSegment(l, a, c))
+		}
+		if (orient_3d(e0,e1,t1,t2)==0&&genericPoint::segmentsCross(p,q,a,b)){
+			//std::cout<<"l on ab"<<std::endl;
+			//std::cout<<"l\n"<<e0<<"\n\n"<<e1<<std::endl;
+			//std::cout<<"a and b and c\n"<<t1<<"\n\n"<<t2<<"\n\n"<<t3<<std::endl;
+			//std::cout<<"orientation "<<orient_3d(e0,e1,t1,t2)<<std::endl;
 			return 2;
-		if (genericPoint::pointInSegment(l, b, c))
+		}
+		
+			
+		//if (genericPoint::pointInSegment(l, b, c))
+		if (orient_3d(e0,e1,t3,t2)==0&&genericPoint::segmentsCross(p,q,c,b)){
 			if (halfopen)
 				return 3;// on open edge t2-t3
-			else
+			else{
+				//std::cout<<"return the last 2"<<std::endl;
 				return 2;
+			}
+		}
+			
+				
 
 		return 0;
 	}
@@ -510,6 +544,7 @@ namespace doubleccd {
 					return 2;
 			}
 		}
+		//std::cout<<"in xor2 go before line_trianlge test"<<std::endl;
 		return is_line_cut_triangle(e0, e1, t1, t2, t3, halfopen);
 	}
 	// pt is not on the plane
