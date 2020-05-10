@@ -4,7 +4,8 @@
 #include <doubleccd.hpp>
 
 static const double EPSILON = std::numeric_limits<float>::epsilon();
-static const double MIN_DIST = 0.1 * EPSILON;
+static const double MIN_DIST = 1e-30;
+
 TEST_CASE(
     "Test Point-Triangle Continuous Collision Detection",
     "[ccd][point-triangle]")
