@@ -793,7 +793,7 @@ namespace doubleccd {
 
 		// if point not on plane, and not point to plane, return 0
 		//explicitPoint3D pte()
-		bool in1=is_ray_intersect_plane_rational(pt, dir, t1, t2, t3);
+		bool in1=is_ray_intersect_plane(pt, dir, t1, t2, t3);
 		//bool in2=is_ray_intersect_plane(pt, dir, t1, t2, t3);
 		//if(in1!=in2)std::cout<<"ray intersection don't match "<<in1<<" "<<in2<<std::endl;
 		//TODO we are using Rational ray_tri_intersection
