@@ -168,25 +168,24 @@ namespace doubleccd {
 		//std::cout<<"orient "<<orient_3d(e0,e1,t1,t3)<<std::endl;
 		//std::cout<<"inter bc? "<<genericPoint::pointInSegment(l, b, c)<<std::endl;
 		//this piece is problematic
-		// if (genericPoint::pointInInnerTriangle(l, a, b, c)){
-		// 	std::cout<<"return here with l in inner"<<std::endl;
-		// 		return 1;
-		// }
+		if (genericPoint::pointInInnerTriangle(l, a, b, c)){
+				return 1;
 		
+		}
 		
 		
 			
-		Vector3d ap=Vector3d::Random();
-		while(orient_3d(ap,t1,t2,t3)==0){
-			ap=Vector3d::Random();
-		}
-		explicitPoint3D ape(ap[0],ap[1],ap[2]);
-		//std::cout<<"random point ori "<<orient_3d(ap,t1,t2,t3)<<std::endl;
-		int op1=genericPoint::orient3D(l,ape,a,b);
-		int op2=genericPoint::orient3D(l,ape,b,c);
-		int op3=genericPoint::orient3D(l,ape,c,a);
-		if(op1==op2&&op1==op3)//lpi in open triangle
-            return 1;
+		// Vector3d ap=Vector3d::Random();
+		// while(orient_3d(ap,t1,t2,t3)==0){
+		// 	ap=Vector3d::Random();
+		// }
+		// explicitPoint3D ape(ap[0],ap[1],ap[2]);
+		// //std::cout<<"random point ori "<<orient_3d(ap,t1,t2,t3)<<std::endl;
+		// int op1=genericPoint::orient3D(l,ape,a,b);
+		// int op2=genericPoint::orient3D(l,ape,b,c);
+		// int op3=genericPoint::orient3D(l,ape,c,a);
+		// if(op1==op2&&op1==op3)//lpi in open triangle
+        //     return 1;
 
                 //std::cout<<"the orientations in double "<<op1<<" "<<op2<<" "<<op3<<std::endl;
 			//std::cout<<"l\n"<<e0<<"\n\n"<<e1<<std::endl;
