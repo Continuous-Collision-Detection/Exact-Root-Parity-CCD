@@ -141,13 +141,14 @@ namespace doubleccd {
 		std::cout << "impossible to go here " << std::endl;
 		return -1;
 	}
-	int is_line_cut_triangle_1(
+	int is_line_cut_triangle(
 		const Vector3d& e0,
 		const Vector3d& e1,
 		const Vector3d& t1,
 		const Vector3d& t2,
 		const Vector3d& t3,
 		const bool halfopen){
+		//std::cout<<"double version is called"<<std::endl;
 		explicitPoint3D p(e0[0], e0[1], e0[2]);
 		explicitPoint3D q(e1[0], e1[1], e1[2]);
 		explicitPoint3D a(t1[0], t1[1], t1[2]);
@@ -166,10 +167,13 @@ namespace doubleccd {
 		//std::cout<<"orient "<<orient_3d(e0,e1,t2,t3)<<std::endl;
 		//std::cout<<"orient "<<orient_3d(e0,e1,t1,t3)<<std::endl;
 		//std::cout<<"inter bc? "<<genericPoint::pointInSegment(l, b, c)<<std::endl;
-		{//this piece is problematic
-		// if (genericPoint::pointInInnerTriangle(l, a, b, c))
-			// 	return 1;
-		}
+		//this piece is problematic
+		// if (genericPoint::pointInInnerTriangle(l, a, b, c)){
+		// 	std::cout<<"return here with l in inner"<<std::endl;
+		// 		return 1;
+		// }
+		
+		
 		
 			
 		Vector3d ap=Vector3d::Random();
@@ -183,6 +187,7 @@ namespace doubleccd {
 		int op3=genericPoint::orient3D(l,ape,c,a);
 		if(op1==op2&&op1==op3)//lpi in open triangle
             return 1;
+
                 //std::cout<<"the orientations in double "<<op1<<" "<<op2<<" "<<op3<<std::endl;
 			//std::cout<<"l\n"<<e0<<"\n\n"<<e1<<std::endl;
 			//std::cout<<"a and b and c\n"<<t1<<"\n\n"<<t2<<"\n\n"<<t3<<std::endl;
@@ -228,40 +233,55 @@ namespace doubleccd {
 		return 0;
 		}
 	void compare_lpi_results(){
-		std::array<Vector3d,4> e0,e1,t1,t2,t3;
-		int k=0; double dis=1e-300;
-		e0[k]=Vector3d(-dis,-dis,dis);
-		e1[k]=Vector3d(-dis,-dis,-dis);
-		t1[k]=Vector3d(0,1.00287,0);
-		t2[k]=Vector3d(1.11022e-16,0.00287304,0);
-		t3[k]=Vector3d(1.11022e-16,0.777626,0);
+		// std::array<Vector3d,4> e0,e1,t1,t2,t3;
+		// int k=0; double dis=1e-300;
+		// e0[k]=Vector3d(-dis,-dis,dis);
+		// e1[k]=Vector3d(-dis,-dis,-dis);
+		// t1[k]=Vector3d(0,1.00287,0);
+		// t2[k]=Vector3d(1.11022e-16,0.00287304,0);
+		// t3[k]=Vector3d(1.11022e-16,0.777626,0);
 		
-		k=1;
-		e0[k]=Vector3d(-dis,dis,-dis);
-		e1[k]=Vector3d(-8.28203e-301,9.72593e-301,-8.79701e-301);
-		t1[k]=Vector3d(0,1.00287,0);
-		t2[k]=Vector3d(1.11022e-16,0.777626,0);
-		t3[k]=Vector3d(2.22045e-16,-0.222374,0);
+		// k=1;
+		// e0[k]=Vector3d(-dis,dis,-dis);
+		// e1[k]=Vector3d(-8.28203e-301,9.72593e-301,-8.79701e-301);
+		// t1[k]=Vector3d(0,1.00287,0);
+		// t2[k]=Vector3d(1.11022e-16,0.777626,0);
+		// t3[k]=Vector3d(2.22045e-16,-0.222374,0);
 
-		k=2;
-		e0[k]=Vector3d(-dis,-dis,dis);
-		e1[k]=Vector3d(dis,-dis,dis);
-		t1[k]=Vector3d(0,0.0143652,2.22045e-16);
-		t2[k]=Vector3d(0,1.01437,0);
-		t3[k]=Vector3d(0,-0.222374,2.22045e-16);
+		// k=2;
+		// e0[k]=Vector3d(-dis,-dis,dis);
+		// e1[k]=Vector3d(dis,-dis,dis);
+		// t1[k]=Vector3d(0,0.0143652,2.22045e-16);
+		// t2[k]=Vector3d(0,1.01437,0);
+		// t3[k]=Vector3d(0,-0.222374,2.22045e-16);
 
-		int check=2;
-		int result =is_line_cut_triangle(e0[check],e1[check],t1[check],t2[check],t3[check],true);
-		int res2=is_line_cut_triangle_1(e0[check],e1[check],t1[check],t2[check],t3[check],true);
-		if(result!=res2){
-			std::cout<<"results, r vs d "<<result<<" "<<res2<<std::endl; 
-			// std::cout<<"l\n"<<e0[]<<"\n\n"<<e1<<std::endl;
-			// std::cout<<"a and b and c\n"<<t1<<"\n\n"<<t2<<"\n\n"<<t3<<std::endl;
-		}
+		// int check=2;
+		// int result =is_line_cut_triangle(e0[check],e1[check],t1[check],t2[check],t3[check],true);
+		// int res2=is_line_cut_triangle_1(e0[check],e1[check],t1[check],t2[check],t3[check],true);
+		// if(result!=res2){
+		// 	std::cout<<"results, r vs d "<<result<<" "<<res2<<std::endl; 
+			
+		// }
+
+		explicitPoint3D e0, e1, t1, t2, t3;
+	double dis = 1e-300;
+	e0 = explicitPoint3D(-dis, -dis, dis);
+	e1 = explicitPoint3D(-dis, -dis, -dis);
+	t1 = explicitPoint3D(0, 1.00287, 0);
+	t2 = explicitPoint3D(1.11022e-16, 0.00287304, 0);
+	t3 = explicitPoint3D(1.11022e-16, 0.777626, 0);
+	implicitPoint3D_LPI l1(e0, e1, t1, t2, t3);
+	std::cout << l1 << std::endl;
+	std::cout << genericPoint::pointInInnerTriangle(l1, t1, t2, t3) << std::endl;
+	std::cout <<"closed "<< genericPoint::pointInTriangle(l1, t1, t2, t3) << std::endl;
+	std::cout<<"o1 "<<genericPoint::orient3D(e0,e1,t3,t1)<<std::endl;
+	std::cout<<"o2 "<<genericPoint::orient3D(e0,e1,t1,t2)<<std::endl;
+	std::cout<<"o3 "<<genericPoint::orient3D(e0,e1,t2,t3)<<std::endl;
+
 	}
 	
 	// parallel means not intersected
-	int is_line_cut_triangle(
+	int is_line_cut_triangle_rational(
 		const Vector3d& e0,
 		const Vector3d& e1,
 		const Vector3d& t1,
@@ -295,22 +315,25 @@ namespace doubleccd {
 		//std::cout<<"orient "<<orient_3d(e0,e1,t1,t3)<<std::endl;
 		//std::cout<<"inter bc? "<<genericPoint::pointInSegment(l, b, c)<<std::endl;
 		{//this piece is problematic
-		// if (genericPoint::pointInInnerTriangle(l, a, b, c))
-			// 	return 1;
+		if (genericPoint::pointInInnerTriangle(l, a, b, c))
+		std::cout<<"return here with l in inner"<<std::endl;
+				return 1;
 		}
 		
-			
-		Vector3d ap=Vector3d::Random();
-		while(orient_3d(ap,t1,t2,t3)==0){
-			ap=Vector3d::Random();
-		}
-		explicitPoint3D ape(ap[0],ap[1],ap[2]);
-		//std::cout<<"random point ori "<<orient_3d(ap,t1,t2,t3)<<std::endl;
-		int op1=genericPoint::orient3D(l,ape,a,b);
-		int op2=genericPoint::orient3D(l,ape,b,c);
-		int op3=genericPoint::orient3D(l,ape,c,a);
-		if(op1==op2&&op1==op3)//lpi in open triangle
-            return 1;
+		{
+		// 	Vector3d ap=Vector3d::Random();
+		// while(orient_3d(ap,t1,t2,t3)==0){
+		// 	ap=Vector3d::Random();
+		// }
+		// explicitPoint3D ape(ap[0],ap[1],ap[2]);
+		// //std::cout<<"random point ori "<<orient_3d(ap,t1,t2,t3)<<std::endl;
+		// int op1=genericPoint::orient3D(l,ape,a,b);
+		// int op2=genericPoint::orient3D(l,ape,b,c);
+		// int op3=genericPoint::orient3D(l,ape,c,a);
+		// if(op1==op2&&op1==op3)//lpi in open triangle
+        //     return 1;
+		}	
+		
                 //std::cout<<"the orientations in double "<<op1<<" "<<op2<<" "<<op3<<std::endl;
 			//std::cout<<"l\n"<<e0<<"\n\n"<<e1<<std::endl;
 			//std::cout<<"a and b and c\n"<<t1<<"\n\n"<<t2<<"\n\n"<<t3<<std::endl;
