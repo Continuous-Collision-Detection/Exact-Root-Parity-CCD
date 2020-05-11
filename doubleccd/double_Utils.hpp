@@ -276,4 +276,7 @@ int ray_triangle_intersection(
 void tri_bilinear(const bilinear &bl, int n, std::vector<std::array<Vector3r, 3>>& patch);
 void save_obj(const std::string &name, const std::vector<std::array<Vector3r, 3>>& tris);
 bool seg_discrete_bilinear_intersection(const bilinear &bl, int n,const Vector3d&s0,const Vector3d&s1);
+int lpi_in_triangle(const Vector3d& p,const Vector3d& q,const Vector3d& r,const Vector3d& s,const Vector3d& t,bool halfopen);
+bool lpi_rational(const Vector3d& p,const Vector3d& q,const Vector3d& r,const Vector3d& s,const Vector3d& t,
+Rational&a11,Rational&a12,Rational&a13,Rational&d);
 } // namespace ccd

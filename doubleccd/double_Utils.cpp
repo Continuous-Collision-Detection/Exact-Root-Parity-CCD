@@ -150,8 +150,8 @@ namespace doubleccd {
 		const Vector3d& t2,
 		const Vector3d& t3,
 		const bool halfopen) {
-
-
+		int result=lpi_in_triangle(e0,e1,t1,t2,t3,halfopen);
+		return result;// TODO replace this with rational version
 		explicitPoint3D p(e0[0], e0[1], e0[2]);
 		explicitPoint3D q(e1[0], e1[1], e1[2]);
 		explicitPoint3D a(t1[0], t1[1], t1[2]);
@@ -838,6 +838,53 @@ for(int i=0;i<patch.size();i++){
 }
 return false;
 }
-
+int orient_lpi(const Rational&a11,const Rational&a12,const Rational&a13,const Rational&d,
+const Vector3d& p,const Vector3d& r,const Vector3d& s,const Vector3d& t){
+	return orient3D_LPI_postfilter_multiprecision(a11,a12,a13,d,
+	Rational(p[0]),Rational(p[1]),Rational(p[2]),
+	Rational(r[0]),Rational(r[1]),Rational(r[2]),
+	Rational(s[0]),Rational(s[1]),Rational(s[2]),
+	Rational(t[0]),Rational(t[1]),Rational(t[2]),check_rational);
+}
+// triangle cannot be degenerated
+// 0 not intersected, 1 interior, 2, on edges, 3 on edge s-t
+int lpi_in_triangle(const Vector3d& p,const Vector3d& q,const Vector3d& r,const Vector3d& s,const Vector3d& t,bool halfopen){
+	//std::cout<<"using rational predicates"<<std::endl;
+	Rational a11,a12,a13,d;
+	bool exist=lpi_rational(p,q,r,s,t,a11,a12,a13,d);
+	if (!exist) return 0;
+	Vector3d np=Vector3d::Random();
+	while (orient_3d(np,r,s,t)==0){
+		np=Vector3d::Random();
+	}
+	int o1=orient_lpi(a11,a12,a13,d,p,np,r,s);
+	int o2=orient_lpi(a11,a12,a13,d,p,np,s,t);// special with halfopen
+	int o3=orient_lpi(a11,a12,a13,d,p,np,t,r);
+	if(o1==o2&&o2==o3)
+		return 1;
+	if(o1==o2&&o3==0) return 2;
+	if(o3==o2&&o1==0) return 2;
+	if(o1==o3&&o2==0){
+		if(halfopen) return 3;
+		else return 2;
+	}
+	if(o1==o2&&o1==0) return 2;//o1==o2==0
+	if(o1==o3&&o1==0) return 2;//o1==o3==0
+	if(o2==o3&&o2==0) return 2;//o2==o3==0
+	return 0;
+	
+}
+bool lpi_rational(const Vector3d& p,const Vector3d& q,const Vector3d& r,const Vector3d& s,const Vector3d& t,
+Rational&a11,Rational&a12,Rational&a13,Rational&d){
+	Rational n;
+	bool exist= orient3D_LPI_prefilter_multiprecision(
+		Rational(p[0]),Rational(p[1]),Rational(p[2]),
+		Rational(q[0]),Rational(q[1]),Rational(q[2]),
+		Rational(r[0]),Rational(r[1]),Rational(r[2]),
+		Rational(s[0]),Rational(s[1]),Rational(s[2]),
+		Rational(t[0]),Rational(t[1]),Rational(t[2]),
+		a11,a12,a13,d,n,check_rational);
+		return exist;
+}
 
 } // namespace ccd
