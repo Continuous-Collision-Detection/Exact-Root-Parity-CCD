@@ -262,21 +262,39 @@ namespace doubleccd {
 			
 		// }
 
-		explicitPoint3D e0, e1, t1, t2, t3;
-	double dis = 1e-300;
-	e0 = explicitPoint3D(-dis, -dis, dis);
-	e1 = explicitPoint3D(-dis, -dis, -dis);
-	t1 = explicitPoint3D(0, 1.00287, 0);
-	t2 = explicitPoint3D(1.11022e-16, 0.00287304, 0);
-	t3 = explicitPoint3D(1.11022e-16, 0.777626, 0);
-	implicitPoint3D_LPI l1(e0, e1, t1, t2, t3);
-	std::cout << l1 << std::endl;
-	std::cout << genericPoint::pointInInnerTriangle(l1, t1, t2, t3) << std::endl;
-	std::cout <<"closed "<< genericPoint::pointInTriangle(l1, t1, t2, t3) << std::endl;
-	std::cout<<"o1 "<<genericPoint::orient3D(e0,e1,t3,t1)<<std::endl;
-	std::cout<<"o2 "<<genericPoint::orient3D(e0,e1,t1,t2)<<std::endl;
-	std::cout<<"o3 "<<genericPoint::orient3D(e0,e1,t2,t3)<<std::endl;
+	// 	explicitPoint3D e0, e1, t1, t2, t3;
+	// double dis = 1e-300;
+	// e0 = explicitPoint3D(-dis, -dis, dis);
+	// e1 = explicitPoint3D(-dis, -dis, -dis);
+	// t1 = explicitPoint3D(0, 1.00287, 0);
+	// t2 = explicitPoint3D(1.11022e-16, 0.00287304, 0);
+	// t3 = explicitPoint3D(1.11022e-16, 0.777626, 0);
+	// implicitPoint3D_LPI l1(e0, e1, t1, t2, t3);
+	// std::cout << l1 << std::endl;
+	// std::cout << genericPoint::pointInInnerTriangle(l1, t1, t2, t3) << std::endl;
+	// std::cout <<"closed "<< genericPoint::pointInTriangle(l1, t1, t2, t3) << std::endl;
+	// std::cout<<"o1 "<<genericPoint::orient3D(e0,e1,t3,t1)<<std::endl;
+	// std::cout<<"o2 "<<genericPoint::orient3D(e0,e1,t1,t2)<<std::endl;
+	// std::cout<<"o3 "<<genericPoint::orient3D(e0,e1,t2,t3)<<std::endl;
+	std::array<Vector3d,4> e0,dir,t1,t2,t3;
+		int k=0; double dis=1e-30;
+		e0[k]=Vector3d(-dis,-dis,dis);
+		dir[k]=Vector3d(-2.57039e-33, 1.64606e-31, -1.88378e-32);
+		t1[k]=Vector3d(-0.0158771, 2.66218e-05, 0.0184747);
+		t2[k]=Vector3d(1.01584, -2.51465e-05, 0.0137027);
+		t3[k]=Vector3d(-0.021159, -0.000130363, 0.0136844);
 
+		k=1;
+		e0[k]=Vector3d(-dis,-dis,dis);
+		dir[k]=Vector3d(-2.57039e-33, 1.64606e-31, -1.88378e-32);
+		t1[k]=Vector3d(-0.0137115, 0.00573199, 1.01866);
+		t2[k]=Vector3d(1.01849, 0.00598655, 1.0103);
+		t3[k]=Vector3d(-0.0224488, -0.000956426, 1.01275);
+
+		int check=1;
+		bool result1=is_ray_intersect_plane(e0[check],dir[check],t1[check],t2[check],t3[check]);
+		bool result2=is_ray_intersect_plane_rational(e0[check],dir[check],t1[check],t2[check],t3[check]);
+		if(result1!=result2) std::cout<<"comparison of ray_plane not match, "<<result1<<" "<<result2<<std::endl;
 	}
 	
 	// parallel means not intersected
@@ -794,8 +812,13 @@ namespace doubleccd {
 		// if point not on plane, and not point to plane, return 0
 		//explicitPoint3D pte()
 		bool in1=is_ray_intersect_plane(pt, dir, t1, t2, t3);
-		//bool in2=is_ray_intersect_plane(pt, dir, t1, t2, t3);
-		//if(in1!=in2)std::cout<<"ray intersection don't match "<<in1<<" "<<in2<<std::endl;
+		//bool in2=is_ray_intersect_plane_rational(pt, dir, t1, t2, t3);
+		// if(in1!=in2){std::cout<<"ray intersection don't match "<<in1<<" "<<in2<<std::endl;
+		// std::cout<<"pt\n"<<pt[0]<<", "<<pt[1]<<", "<<pt[2]<<std::endl;
+		// std::cout<<"dir\n"<<dir[0]<<", "<<dir[1]<<", "<<dir[2]<<std::endl;
+		// std::cout<<"t1\n"<<t1[0]<<", "<<t1[1]<<", "<<t1[2]<<std::endl;
+		// std::cout<<"t2\n"<<t2[0]<<", "<<t2[1]<<", "<<t2[2]<<std::endl;
+		// std::cout<<"t3\n"<<t3[0]<<", "<<t3[1]<<", "<<t3[2]<<std::endl;}
 		//TODO we are using Rational ray_tri_intersection
 		if (!in1) return 0;
 		//std::cout<<"ray inter plane"<<std::endl;

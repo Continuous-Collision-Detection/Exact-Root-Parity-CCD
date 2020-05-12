@@ -426,9 +426,9 @@ void test_edge_edge(){
 
 void check_false(){
     //H5Easy::File file(root_path + path_sep +"vertex-face-collisions.hdf5");
-    H5Easy::File file("/home/zachary/Development/ccd-queries/erleben-cube-cliff-edges/edge-edge/edge-edge-collisions.hdf5");
+    H5Easy::File file("/home/zachary/Development/ccd-queries/erleben-cube-cliff-edges/vertex-face/vertex-face-collisions.hdf5");
     Eigen::Matrix<double, 8, 3> vertex_face_data;
-    string test_case= "/edge_edge_0000163/shifted/points";
+    string test_case= "/vertex_face_0000277/shifted/points";
     vertex_face_data=H5Easy::load<Eigen::Matrix<double, 8, 3>>(file,test_case);
     std::cout<<test_case<<std::endl;
     vf_pair dt;
@@ -443,14 +443,14 @@ void check_false(){
 			dt.x2b[j] = vertex_face_data(6, j);
 			dt.x3b[j] = vertex_face_data(7, j);
 	}
-    double ms=1e-200;
+    double ms=1e-30;
     std::cout<<"ms "<<ms<<std::endl;
     
     std::cout<<"\n*method double"<<std::endl;
-    int r2=doubleccd::edgeEdgeCCD(dt.x0,dt.x1,dt.x2,dt.x3,dt.x0b,dt.x1b,dt.x2b,dt.x3b,ms);
+    int r2=doubleccd::vertexFaceCCD(dt.x0,dt.x1,dt.x2,dt.x3,dt.x0b,dt.x1b,dt.x2b,dt.x3b,ms);
     //std::cout<<" exact dir "<<doubleccd::hack::getInstance().dir[0]<<" "<< doubleccd::hack::getInstance().dir[1]<<" "<< doubleccd::hack::getInstance().dir[2]<<std::endl;
     std::cout<<"*\n\nmethod rational"<<std::endl;
-    int r1=ccd::edgeEdgeCCD(dt.x0,dt.x1,dt.x2,dt.x3,dt.x0b,dt.x1b,dt.x2b,dt.x3b,ms);
+    int r1=ccd::vertexFaceCCD(dt.x0,dt.x1,dt.x2,dt.x3,dt.x0b,dt.x1b,dt.x2b,dt.x3b,ms);
 
     
     std::cout<<"the double vf ccd result is "<<r2<<std::endl;
@@ -500,13 +500,13 @@ int main(int argc, char* argv[])
     // std::vector<Eigen::Matrix<double, 8, 3>> edge_edge_data;
 	// read_edge_edge_data(filename, edge_edge_data);
    // case_check();
-    check_false();
+    //check_false();
 //     for(int i=0;i<20;i++){
 //  doubleccd::Vector3d p0=Vector3d::Random(),p1=Vector3d::Random(),p2=Vector3d::Random(),p3=Vector3d::Random();
 //     ccd::Vector3r p0r(p0[0],p0[1],p0[2]),p1r(p1[0],p1[1],p1[2]),p2r(p2[0],p2[1],p2[2]),p3r(p3[0],p3[1],p3[2]);
 //     std::cout<<"orient "<<doubleccd::orient_3d(p0,p1,p2,p3)<<" "<<ccd::orient3d(p0r,p1r,p2r,p3r)<<std::endl;
 //     }
-   //compare_lpi_results();
+   compare_lpi_results();
     std::cout<<"done"<<std::endl;
     
     return 1;
