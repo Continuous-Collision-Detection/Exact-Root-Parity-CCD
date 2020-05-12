@@ -33,7 +33,7 @@ endfunction()
 function(ccd_download_indirect_predicates)
   ccd_download_project(indirect_predicates
     GIT_REPOSITORY https://github.com/MarcoAttene/Indirect_Predicates.git
-    GIT_TAG        3c7c492445c1cd5a2698d53ca1e2dee67a096498
+    GIT_TAG        1a2c56899d21fd4aed5e652e82735a494890918a
   )
 endfunction()
 
