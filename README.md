@@ -1,1 +1,1 @@
-# Exactly Exact Continuous Collision Detection
+# Exact Minimum Separation Continuous Collision Detection
