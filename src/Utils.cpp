@@ -619,7 +619,7 @@ int segment_triangle_intersection(
 	if (same_point(norm, ORIGIN))// triangle degeneration
 	{
 		return 0;//we already checked triangle (at least two edges)edge against cube
-		//TODO need to make it a general one?
+		
 	}
 
 	int o1 = orient3d(e0, t1, t2, t3);

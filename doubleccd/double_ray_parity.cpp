@@ -344,7 +344,7 @@ namespace doubleccd {
 		const std::vector<bool>& is_pt_in_tet)
 	{
 
-		static const int max_trials = 8;// TODO maybe dont need to set this
+		static const int max_trials = 8;
 
 		// if a/2<=b<=2*a, then a-b is exact.
 		
@@ -380,7 +380,7 @@ namespace doubleccd {
 		const std::vector<bool>& is_pt_in_tet)
 	{
 
-		static const int max_trials = 8;// TODO maybe dont need to set this
+		static const int max_trials = 8;
 
 		// if a/2<=b<=2*a, then a-b is exact.
 

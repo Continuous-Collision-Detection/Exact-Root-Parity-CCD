@@ -112,7 +112,7 @@ namespace doubleccd {
 		Vector3r  pr(corners[p][0], corners[p][1], corners[p][2]),
 			qr(corners[q][0], corners[q][1], corners[q][2]), rr(corners[r][0], corners[r][1], corners[r][2]);
 		return (xr - pr)
-			.dot(cross(qr - pr, rr - pr));// TODO maybe minus is not allowed
+			.dot(cross(qr - pr, rr - pr));
 	}
 	bool int_seg_XOR(const int a, const int b)
 	{
@@ -240,7 +240,7 @@ namespace doubleccd {
 		// 	std::cout<<"l\n"<<e0<<"\n\n"<<e1<<std::endl;
 		// 	std::cout<<"a and b and c\n"<<t1<<"\n\n"<<t2<<"\n\n"<<t3<<std::endl;
 		// }
-		return result;// TODO replace this with rational version
+		return result;
 		explicitPoint3D p(e0[0], e0[1], e0[2]);
 		explicitPoint3D q(e1[0], e1[1], e1[2]);
 		explicitPoint3D a(t1[0], t1[1], t1[2]);
@@ -399,7 +399,7 @@ namespace doubleccd {
 	int orient_3d(const Vector3d&p, const Vector3d&q, const Vector3d&r, const Vector3d& s) {
 		return -orient3d(p[0], p[1], p[2], q[0], q[1], q[2], r[0], r[1], r[2], s[0], s[1], s[2]);
 	}
-	//TODO orient 3d we flip the sign
+	
 	bool point_on_segment_2d(const Vector2d&p, const Vector2d&s0, const Vector2d&s1, bool need_check_colinear) {
 		if (need_check_colinear) {
 			if (orient_2d(p, s0, s1) != 0)
@@ -899,7 +899,7 @@ namespace doubleccd {
 	if (norm[0]==0&&norm[1]==0&&norm[2]==0)// triangle degeneration
 	{
 		return 0;//we already checked triangle (at least two edges)edge against cube
-		//TODO need to make it a general one?
+		
 	}
 
 	int o1 = orient3d(e0, t1, t2, t3);

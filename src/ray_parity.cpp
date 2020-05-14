@@ -286,7 +286,7 @@ namespace ccd {
 		const Vector3r& pt,
 		const std::vector<bool>& is_pt_in_tet)
 	{
-		static const int max_trials = 8;// TODO maybe dont need to set this
+		static const int max_trials = 8;
 		
 		#ifdef CHECK_CASE
 		Vector3r dir(-2.57039e-23, 1.64606e-21, -1.88378e-22);
@@ -323,7 +323,7 @@ namespace ccd {
 		const std::vector<bool>& is_pt_in_tet)
 	{
 
-		static const int max_trials = 8;// TODO maybe dont need to set this
+		static const int max_trials = 8;
 
 		// if a/2<=b<=2*a, then a-b is exact.
 

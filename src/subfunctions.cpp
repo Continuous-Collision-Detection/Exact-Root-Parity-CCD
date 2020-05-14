@@ -243,7 +243,7 @@ bool is_seg_intersect_cube_2d(
         return true;
     if (e1[i1] <= eps && e1[i1] >= -eps && e1[i2] <= eps && e1[i2] >= -eps)
         return true;
-    if (segment_segment_intersection(e0, e1, p0, p1))// TODO maybe implement a 2d version
+    if (segment_segment_intersection(e0, e1, p0, p1))
         return true; // check if segments has intersection, or if cube points
                      // p0, p1 on e0-e1
     if (segment_segment_intersection(e0, e1, p1, p2))
@@ -542,7 +542,7 @@ hex::hex(
 	// p_vertices);
 	get_hex_vertices(
 		a0, a1, b0, b1, a0b, a1b, b0b, b1b,
-		h_vertices); // TODO before use this we need to shift all the vertices
+		h_vertices); //before use this we need to shift all the vertices
 	std::array<int, 2> eid;
 
 	eid[0] = 0;
@@ -880,7 +880,7 @@ bool rootfinder(
     }
     if (p1in) { // change the order of input to get t just because we want
                 // domain to be [0, t]
-        bool res1 = line_triangle_inter_return_t(//TODO here get n1, d1, n2, d2
+        bool res1 = line_triangle_inter_return_t(// here get n1, d1, n2, d2
             p1, p0, bl.v[bl.facets[fid][0]], bl.v[bl.facets[fid][1]],
             bl.v[bl.facets[fid][2]], t);
         if (!res1) {

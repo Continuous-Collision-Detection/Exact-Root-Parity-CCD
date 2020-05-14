@@ -65,8 +65,7 @@ bool vertexFaceCCD(
     // step 3 tet facets- cube edges
     std::array<std::array<bool, 8>, 3>
         v_tet; // cube vertices - tets positions
-               // TODO one solution for v_tet is to  make a boolean which can
-               // show if pt is on the border
+               
     bilinear bl0(
         vfprism.p_vertices[0], vfprism.p_vertices[1], vfprism.p_vertices[4],
         vfprism.p_vertices[3]);
@@ -90,7 +89,7 @@ bool vertexFaceCCD(
 
     // if cube intersect any tet, need check if intersect bilinear;
     // if cube not intersect any tet, shoot a ray
-    // TODO we can also have some information about the edge-face intersection
+    
     // above
     if (cube_inter_tet[0]) {
         if (is_cube_edge_intersect_bilinear(bl0, cb, v_tet[0]))

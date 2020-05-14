@@ -653,7 +653,7 @@ prism::prism(
     
     get_prism_vertices(
         vs, fs0, fs1, fs2, ve, fe0, fe1, fe2,
-        p_vertices); // TODO before use this we need to shift all the vertices
+        p_vertices); //  before use this we need to shift all the vertices
     std::array<int, 2> eid;
 
     eid[0] = 0;
@@ -757,7 +757,7 @@ hex::hex(
     
     get_hex_vertices(
         a0, a1, b0, b1, a0b, a1b, b0b, b1b,
-        h_vertices); // TODO before use this we need to shift all the vertices
+        h_vertices); //before use this we need to shift all the vertices
     std::array<int, 2> eid;
 
     eid[0] = 0;
@@ -1115,7 +1115,7 @@ bool rootfinder(
     }
     if (p1in) { // change the order of input to get t just because we want
                 // domain to be [0, t]
-        bool res1 = seg_triangle_inter_return_t( // TODO here get n1, d1, n2, d2
+        bool res1 = seg_triangle_inter_return_t( // here get n1, d1, n2, d2
             p1d, p0d, bl.v[bl.facets[fid][0]], bl.v[bl.facets[fid][1]],
             bl.v[bl.facets[fid][2]], t);
         if (!res1) {
