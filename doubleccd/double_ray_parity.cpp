@@ -1,7 +1,7 @@
 #include <doubleCCD/double_ray_parity.h>
 #include <iomanip>
-#include <doubleCCD/hack.h>
-double timed1 = 0, timed2 = 0, timed3 = 0, timed4 = 0, timed5 = 0;
+
+
 namespace doubleccd {
 	int ray_degenerated_bilinear_parity(
 		const bilinear& bl,
@@ -137,15 +137,15 @@ namespace doubleccd {
 			if (!is_point_in_tet) { // p out of tet,or on the border
 				int r1, r2;
 				//we need to know: if shoot on any edge?(two edges return -1, one edge return 1)
-				igl::Timer timer;
-				timer.start();
+				
+				
 				r1 = ray_triangle_intersection(
 					pt, pt1, dir, bl.v[bl.facets[0][0]], bl.v[bl.facets[0][1]],
 					bl.v[bl.facets[0][2]], true);
 				r2 = ray_triangle_intersection(
 					pt, pt1, dir, bl.v[bl.facets[1][0]], bl.v[bl.facets[1][1]],
 					bl.v[bl.facets[1][2]], true);
-					timed5+=timer.getElapsedTimeInSec();
+					
 				// idea is: if -1
 				if (r1 == -1 || r2 == -1)
 					return -1;
@@ -187,7 +187,7 @@ namespace doubleccd {
 		}
 		else {// degenerated bilinear
 			int degetype = bilinear_degeneration(bl);
-			//std::cout<<"dege type "<<degetype<<std::endl;
+			
 			return ray_degenerated_bilinear_parity(bl, pt, pt1, dir, degetype);
 		}
 	}
@@ -202,9 +202,9 @@ namespace doubleccd {
 		const bool is_triangle_degenerated)
 	{
 		if (!is_triangle_degenerated) {
-			//std::cout << "not degenerated in double " << std::endl;
+			
 			int res=ray_triangle_intersection(pt, pt1, dir, t0, t1, t2, false);
-			//std::cout<<"ray_triangle is used "<<res<<std::endl;
+			
 			return res;
 			// 0 not hit, 1 hit on open triangle, -1 parallel or hit on edge, need
 			// another shoot.
@@ -217,9 +217,7 @@ namespace doubleccd {
 			int i2 = ray_segment_intersection(pt, pt1, dir, t1, t2);
 			if (i2 == 2) return 2;
 			if (i2 == 1) return -1;
-			/*int i3 = ray_segment_intersection(pt, dir, t2, t0);// if degenerated, check two edges is enough
-			if (i3 == 2) return 2;
-			if (i3 == 1) return -1;*/
+			
 
 			return 0;
 		}
@@ -233,16 +231,14 @@ namespace doubleccd {
 			std::cout << "random direction wrong" << std::endl;
 			return -1;
 		}
-		igl::Timer timer;
+		
 		
 		for (int patch = 0; patch < 3; ++patch) {
-			timer.start();
+			
 			int is_ray_patch = ray_bilinear_parity(
 				bls[patch], pt, pt1, dir, bls[patch].is_degenerated, is_pt_in_tet[patch]);
-			//std::cout<<"\nis ray parity "<<is_ray_patch<<" is pt in tet "<<is_pt_in_tet[patch]<<std::endl;
-			//std::cout<<"is bilinear degenerated "<<bls[patch].is_degenerated<<std::endl;
-			//std::cout<<"dir "<<dir[0]<<" "<<dir[1]<<" "<<dir[2]<<std::endl;
-			timed1 += timer.getElapsedTimeInSec();
+			
+			
 			if (is_ray_patch == 2)
 				return 1;
 
@@ -254,14 +250,13 @@ namespace doubleccd {
 		}
 
 		int res;
-		timer.start();
-		//std::cout<<"**start ray tri1 "<<std::endl;
+		
+		
 		res = ray_triangle_parity(
 			pt, pt1, dir, psm.p_vertices[0], psm.p_vertices[1], psm.p_vertices[2],
 			psm.is_triangle_degenerated(0));
-			//std::cout<<"ray_tri1 "<<res<<std::endl;
-			//std::cout<<"triangle degeneration? "<<psm.is_triangle_degenerated(0)<<std::endl;
-		timed2 += timer.getElapsedTimeInSec();
+			
+		
 		if (res == 2)
 			return 1;// it should be impossible
 		if (res == -1)
@@ -269,14 +264,13 @@ namespace doubleccd {
 
 		if (res > 0)
 			S++;
-		timer.start();
-		//std::cout<<"**start ray tri2 "<<std::endl;
+		
+		
 		res = ray_triangle_parity(
 			pt, pt1, dir, psm.p_vertices[3], psm.p_vertices[4], psm.p_vertices[5],
 			psm.is_triangle_degenerated(1));
-			//std::cout<<"ray_tri2 "<<res<<std::endl;
-			//std::cout<<"triangle degeneration? "<<psm.is_triangle_degenerated(1)<<std::endl;
-		timed2 += timer.getElapsedTimeInSec();
+			
+		
 		if (res == 2)
 			return 1; // it should be impossible
 		if (res == -1)
@@ -288,8 +282,7 @@ namespace doubleccd {
 		
 		return ((S % 2) == 1) ? 1 : 0;
 	}
-	//void case_for_
-	// dir = pt1 - pt
+	
 	int point_inside_hex(std::array<bilinear, 6> &bls,
 		const Vector3d& pt, const Vector3d& pt1, const Vector3d& dir, const std::vector<bool>& is_pt_in_tet)
 	{
@@ -303,8 +296,6 @@ namespace doubleccd {
 			int is_ray_patch = ray_bilinear_parity(
 				bls[patch], pt, pt1, dir, bls[patch].is_degenerated, is_pt_in_tet[patch]);
 
-			//std::cout<<"\nis ray parity "<<is_ray_patch<<" is pt in tet "<<is_pt_in_tet[patch]<<std::endl;
-			//std::cout<<"bilinear ori, "<<orient_3d(bls[patch].v[0],bls[patch].v[1],bls[patch].v[2],bls[patch].v[3])<<"this bilinear finished\n"<<std::endl;
 			if (is_ray_patch == 2)
 				return 1;
 
@@ -327,26 +318,10 @@ namespace doubleccd {
 		rd = double(rand()) / RAND_MAX;//random number from 0 to 1
 		rd = 0.25 + rd / 2;
 		a = b / 2 + 3 * rd * b / 4;// a random number from b/2 to 2b
-		//while (Rational(b) >= Rational(2) *Rational(a) || Rational(b) <= Rational(a) / Rational(2)) {
-		//while ((b) >= (2) *(a) ||(b) <=(a) / 2) {
-		//	//throw "we have wrong direction";
-		//rd = double(rand()) / RAND_MAX;//random number from 0 to 1
-		//	a = b / 2 + 3 * rd * b / 4;
-		//}
+		
 
 		assert((b>=0 && b < 2*a && b > a/2) || (b < 0 && b > 2 * a && b < a / 2));
-		//}
-		//else {
-		//	rd = double(rand()) / RAND_MAX;//random number from 0 to 1
-		//	//rd = 0.25 + rd / 2;
-		//	a = b / 2 + 3 * rd * b / 4;// a random number from b/2 to 2b
-		//	
-		//	while ((b) >= (a) / (2) || (b) <= (2)*(a)) {
-		//		//throw "we have wrong direction";
-		//		rd = double(rand()) / RAND_MAX;//random number from 0 to 1
-		//		a = b / 2 + 3 * rd * b / 4;
-		//	}
-		//}
+		
 		
 		return;
 
@@ -360,15 +335,7 @@ namespace doubleccd {
 
 		dir = np - pt;
 		//test
-		/*if (dir[0] == 0 && dir[1] == 0 && dir[2] == 0) std::cout << "need fix dir" << std::endl;
-		Rational r0, r1, r2;
-		r0 = Rational(np[0]) - Rational(pt[0]);
-		r1 = Rational(np[1]) - Rational(pt[1]);
-		r2 = Rational(np[2]) - Rational(pt[2]);
 		
-		if (r0 > dir[0] || r0 < dir[0]) std::cout << "get direction wrong0" << std::endl;
-		if (r1 > dir[1] || r1 < dir[1]) std::cout << "get direction wrong1" << std::endl;
-		if (r2 > dir[2] || r2 < dir[2]) std::cout << "get direction wrong2" << std::endl;*/
 		
 	}
 	bool retrial_ccd(
@@ -380,24 +347,24 @@ namespace doubleccd {
 		static const int max_trials = 8;// TODO maybe dont need to set this
 
 		// if a/2<=b<=2*a, then a-b is exact.
-		igl::Timer timer;
-		timer.start();
+		
+		
 		Vector3d pt2, dir;
 		get_direction(pt, pt2, dir);
-		timed4 += timer.getElapsedTimeInSec();
+		
 		int res = -1;
 		int trials;
 		
-		timer.start();
+		
 		for (trials = 0; trials < max_trials; ++trials) {
 			res = point_inside_prism(psm, bls, pt,pt2, dir, is_pt_in_tet);
-			//std::cout<<"rerun time "<<trials<<std::endl;
+
 			if (res >= 0)
 				break;
-			//std::cout<<"rerun time "<<res<<std::endl;
+
 			get_direction(pt, pt2, dir);
 		}
-		timed3 += timer.getElapsedTimeInSec();
+
 		if (trials == max_trials) {
 
 			std::cout << "All rays are on edges, increase trials" << std::endl;
@@ -419,16 +386,14 @@ namespace doubleccd {
 
 		Vector3d pt2, dir;
 		get_direction(pt, pt2, dir);
-		hack::getInstance().dir[0]=dir[0];
-		hack::getInstance().dir[1]=dir[1];
-		hack::getInstance().dir[2]=dir[2];
-		//std::cout<<"direction \n"<<dir<<std::endl;
+		
+
 		int res = -1;
 		int trials;
 
 		for (trials = 0; trials < max_trials; ++trials) {
 			res = point_inside_hex(bls, pt, pt2, dir, is_pt_in_tet);
-			//std::cout<<"rerun time "<<res<<std::endl;
+			
 			if (res >= 0)
 				break;
 
@@ -445,10 +410,6 @@ namespace doubleccd {
 		return res >= 1; // >=1 means point inside of prism
 	}
 	void ray_time() {
-		std::cout << "get random direction time " << timed4 << std::endl;
-		std::cout << "point inside prism time " << timed3 << std::endl;
-		std::cout << "ray bilinear time " << timed1 << std::endl;
-		std::cout << "ray triangle time " << timed2 << std::endl;
-		std::cout<<"in ray bilinear, ray_triangle time "<<timed5<<std::endl;
+		
 	}
 }

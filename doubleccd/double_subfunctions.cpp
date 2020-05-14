@@ -3,9 +3,8 @@
 #include <doubleCCD/doubleccd.hpp>
 #include <doubleCCD/exact_subtraction.hpp>
 #include <predicates/indirect_predicates.h>
-int rootrue = 0, rootime = 0;
-double time00 = 0, time11 = 0, time22 = 0;
-//#include <ray_parity.h>
+
+
 namespace doubleccd {
 
 // cube
@@ -45,82 +44,7 @@ void get_corners(const Eigen::MatrixX3d& p, Vector3d& min, Vector3d& max)
     max = p.colwise().maxCoeff();
 }
 
-/*
-std::array<Vector3d, 6> get_prism_vertices_double(
-    const Vector3d& x0,
-    const Vector3d& x1,
-    const Vector3d& x2,
-    const Vector3d& x3,
-    const Vector3d& x0b,
-    const Vector3d& x1b,
-    const Vector3d& x2b,
-    const Vector3d& x3b,
-    double& k,
-    bool& correct,
-    double& maxerror)
-{
-    std::vector<std::pair<double, double>> sub;
-    sub.reserve(18);
-    std::pair<double, double> temp;
-    correct = true;
-    for (int i = 0; i < 3; i++) {
-        temp.first = x0[i];
-        temp.second = x1[i];
-        sub.push_back(temp);
-    }
-    for (int i = 0; i < 3; i++) {
-        temp.first = x0[i];
-        temp.second = x3[i];
-        sub.push_back(temp);
-    }
-    for (int i = 0; i < 3; i++) {
-        temp.first = x0[i];
-        temp.second = x2[i];
-        sub.push_back(temp);
-    }
-    //
-    for (int i = 0; i < 3; i++) {
-        temp.first = x0b[i];
-        temp.second = x1b[i];
-        sub.push_back(temp);
-    }
-    for (int i = 0; i < 3; i++) {
-        temp.first = x0b[i];
-        temp.second = x3b[i];
-        sub.push_back(temp);
-    }
-    for (int i = 0; i < 3; i++) {
-        temp.first = x0b[i];
-        temp.second = x2b[i];
-        sub.push_back(temp);
-    }
-    std::vector<std::pair<double, double>> sub_record
-        = sub; // record the origin data
-    k = displaceSubtractions_double(sub);
-    std::array<Vector3d, 6> result;
-    int ct = 0;
-    maxerror = 0;
-    for (int i = 0; i < 6; i++) {
-        for (int j = 0; j < 3; j++) {
-            result[i][j] = sub[ct].first - sub[ct].second;
 
-            if (Rational(sub[ct].first) - Rational(sub[ct].second)
-                != result[i][j]) {
-                correct = false;
-            }
-            double mns = sub_record[ct].first - sub_record[ct].second;
-            Rational m = Rational(result[i][j]) - Rational(mns);
-            double md = m.to_double();
-            if (fabs(md) > maxerror) {
-                maxerror = fabs(md);
-            }
-
-            ct++;
-        }
-    }
-    return result;
-}
-*/
 
 Vector3d get_prism_corner_double(
     const Vector3d& vertex_start,       // x0
@@ -167,10 +91,7 @@ bool is_seg_intersect_cube(
     if (is_seg_intersect_cube_2d(eps, e0, e1, 0)
         && is_seg_intersect_cube_2d(eps, e0, e1, 1)
         && is_seg_intersect_cube_2d(eps, e0, e1, 2)) {
-        // std::cout << "seg intersect 2d cube" << std::endl;
-        // std::cout << "e0 \n" << e0 << std::endl;
-        // std::cout << "e1 \n" << e1 << std::endl;
-        // std::cout << "eps " << eps << std::endl;
+        
         return true;
     }
 
@@ -234,28 +155,7 @@ bool is_point_intersect_cube(const double eps, const Vector3d& p)
     return false;
 }
 
-// int get_triangle_project_axis(
-//    const Vector3r& t0, const Vector3r& t1, const Vector3r& t2)
-//{
-//    Vector3r normal = cross(t0 - t1, t0 - t2);
-//    if (normal[0] == 0 && normal[1] == 0 && normal[2] == 0) {
-//        return 3; // if triangle degenerated as a segment or point, then no
-//                  // intersection, because before here we already check that
-//    }
-//
-//    if (normal[0] * normal[0].get_sign() >= normal[1] * normal[1].get_sign())
-//        if (normal[0] * normal[0].get_sign()
-//            >= normal[2] * normal[2].get_sign())
-//            return 0;
-//    if (normal[1] * normal[1].get_sign() >= normal[0] * normal[0].get_sign())
-//        if (normal[1] * normal[1].get_sign()
-//            >= normal[2] * normal[2].get_sign())
-//            return 1;
-//    if (normal[2] * normal[2].get_sign() >= normal[1] * normal[1].get_sign())
-//        if (normal[2] * normal[2].get_sign()
-//            >= normal[0] * normal[0].get_sign())
-//            return 2;
-//}
+
 bool is_cube_edges_intersect_triangle(
     const cube& cb, const Vector3d& t0, const Vector3d& t1, const Vector3d& t2)
 {
@@ -263,9 +163,7 @@ bool is_cube_edges_intersect_triangle(
     // also checked. so, only need to check if cube edge has intersection with
     // the open triangle.
 
-    // int axis = get_triangle_project_axis(t0, t1, t2);
-    // if (axis == 3)
-    //    return false; // if triangle degenerated as a segment or point, then
+    /// if triangle degenerated as a segment or point, then
     //    no
     //                  // intersection, because before here we already check
     //                  that
@@ -701,6 +599,18 @@ void get_prism_shifted_vertices_double(
         }
     }
 }
+// check if p1-p2 has truncation
+bool have_no_truncation(const Vector3d&p1,const Vector3d&p2){
+    for (int i=0;i<3;i++){
+        double x=p1[i]-p2[i];
+        Rational xr=Rational(p1[i])-Rational(p2[i]);
+        if(xr>x||xr<x) return false;
+    }
+    return true;
+    
+
+}
+
 // x0 is the point, x1, x2, x3 is the triangle
 void prism::get_prism_vertices(
     const Vector3d& x0,
@@ -719,18 +629,13 @@ void prism::get_prism_vertices(
     p_vertices[3] = x0b - x1b;
     p_vertices[4] = x0b - x3b;
     p_vertices[5] = x0b - x2b;
-    // for(int i=0;i<3;i++){
-    //     if(p_vertices[0][i]!=Rational(Rational(x0[i])-Rational(x1[i])))
-    //         std::cout<<"need rounded"<<std::endl;
-    //     if(p_vertices[1][i]!=Rational(Rational(x0[i])-Rational(x3[i])))
-    //         std::cout<<"need rounded"<<std::endl;
-    //     if(p_vertices[2][i]!=Rational(Rational(x0[i])-Rational(x2[i])))
-    //         std::cout<<"need rounded"<<std::endl;
-    // }
-    // std::cout<<"d vertices"<<std::endl;
-    // for(int i=0;i<6;i++){
-    //     std::cout<<"p"<<i<<" "<<p_vertices[i][0]<<" "<<p_vertices[i][1]<<" "<<p_vertices[i][2]<<std::endl;
-    // }
+    assert(have_no_truncation(x0,x1));
+    assert(have_no_truncation(x0,x3));
+    assert(have_no_truncation(x0,x2));
+    assert(have_no_truncation(x0b , x1b));
+    assert(have_no_truncation(x0b , x3b));
+    assert(have_no_truncation(x0b , x2b));
+    
 }
 prism::prism(
     const Vector3d& vs,
@@ -743,10 +648,9 @@ prism::prism(
     const Vector3d& fe2)
 {
 
-    double k;
+   // double k;
     // these are the 6 vertices of the prism,right hand law
-    // get_prism_shifted_vertices_double(vs, fs0, fs1, fs2, ve, fe0, fe1, fe2,
-    // k, p_vertices);
+    
     get_prism_vertices(
         vs, fs0, fs1, fs2, ve, fe0, fe1, fe2,
         p_vertices); // TODO before use this we need to shift all the vertices
@@ -828,6 +732,15 @@ void hex::get_hex_vertices(
     h_vertices[5] = a1b - b0b;
     h_vertices[6] = a1b - b1b;
     h_vertices[7] = a0b - b1b;
+    assert(have_no_truncation(a0,b0));
+    assert(have_no_truncation(a1,b0));
+    assert(have_no_truncation(a1,b1));
+    assert(have_no_truncation(a0,b1));
+
+    assert(have_no_truncation(a0b,b0b));
+    assert(have_no_truncation(a1b,b0b));
+    assert(have_no_truncation(a1b,b1b));
+    assert(have_no_truncation(a0b,b1b));
 }
 // a0, a1 is one edge, b0, b1 is another  edge
 hex::hex(
@@ -841,9 +754,7 @@ hex::hex(
     const Vector3d& b1b)
 {
 
-    // these are the 6 vertices of the prism,right hand law
-    // get_hex_shifted_vertices_double(vs, fs0, fs1, fs2, ve, fe0, fe1, fe2, k,
-    // p_vertices);
+    
     get_hex_vertices(
         a0, a1, b0, b1, a0b, a1b, b0b, b1b,
         h_vertices); // TODO before use this we need to shift all the vertices
@@ -958,12 +869,7 @@ bool is_cube_intersect_degenerated_bilinear(
             return true;
         return false;
     } else {
-        // int  axis = get_triangle_project_axis(bl.v[0], bl.v[1], bl.v[3]);
-        //      if (axis == 3)
-        //          axis = get_triangle_project_axis(bl.v[3], bl.v[1], bl.v[2]);
-        //      if (axis == 3)
-        //          return false; // both 2 triangles are all degenerated as a
-        //          segment
+        
         if (dege == BI_DEGE_XOR_02) { // triangle 0-1-2 and 0-2-3
             for (int i = 0; i < 12; i++) {
                 res = int_seg_XOR(
@@ -994,22 +900,7 @@ bool is_cube_intersect_degenerated_bilinear(
             }
             return false;
         }
-        //   if (dege == BI_DEGE_XOR_13) { // triangle 0-1-3 and 3-1-2
-        //       for (int i = 0; i < 12; i++) {
-        //           res = int_seg_XOR(
-        // segment_triangle_intersection(
-        //                   cube.vr[cube.edgeid[i][0]],
-        //                   cube.vr[cube.edgeid[i][1]], bl.v[0], bl.v[1],
-        //                   bl.v[3], true),
-        // segment_triangle_intersection(
-        //                   cube.vr[cube.edgeid[i][0]],
-        //                   cube.vr[cube.edgeid[i][1]], bl.v[2], bl.v[1],
-        //                   bl.v[3], true));
-        //           if (res == true)
-        //               return true;
-        //       }
-        //       return false;
-        //   }
+       
     }
     std::cout << "!! THIS CANNOT HAPPEN" << std::endl;
     return false;
@@ -1176,24 +1067,19 @@ bool get_function_find_root(
     if (t1 > 1 || t1 < 0)
         std::cout << "t is not right: exceed the limit" << std::endl;
     Rational a, b, c;
-    // Vector3r p0(p0d[0], p0d[1], p0d[2]), p1(p1d[0], p1d[1], p1d[2]);
+    
     Vector3r dir = p1 - p0;
     get_quadratic_function(
         Rational(p0[0]), Rational(p0[1]), Rational(p0[2]), Rational(dir[0]),
         Rational(dir[1]), Rational(dir[2]), bl.v[0], bl.v[1], bl.v[2], bl.v[3],
         a, b, c);
     bool res = quadratic_function_rootfinder(a, b, c, t0, t1);
-    if (res)
-        rootrue++;
+    
     return res;
 }
 void print_sub()
 {
-    std::cout << "root finder return true time " << rootrue << std::endl;
-    std::cout << "root finder total call time " << rootime << std::endl;
-    std::cout << "if point inside tet time " << time00 << std::endl;
-    std::cout << "intersect degenerate bilinear time " << time11 << std::endl;
-    std::cout << "seg intersect bilinear triangles " << time22 << std::endl;
+    
 }
 
 bool rootfinder(
@@ -1204,9 +1090,9 @@ bool rootfinder(
     const bool p1in,
     const int pairid)
 {
-    rootime++;
+    
     Vector3r p0(p0d[0], p0d[1], p0d[2]), p1(p1d[0], p1d[1], p1d[2]);
-    // std::cout << "we use root finder here" << std::endl;
+    
     if (p0in && p1in) {
         // t0=0, t1=1
         return get_function_find_root(bl, p0, p1, Rational(0), Rational(1));
@@ -1413,22 +1299,22 @@ bool is_cube_intersect_tet_opposite_faces(
     std::array<bool, 8>& vin,
     bool& cube_inter_tet)
 {
-    igl::Timer timer;
+    
     cube_inter_tet = false;
     if (!bl.is_degenerated) {
         for (int i = 0; i < 8; i++) {
             vin[i] = false;
-            timer.start();
+           
             if (is_point_inside_tet(bl, cube.vr[i])) {
                 cube_inter_tet = true;
                 vin[i] = true;
             }
-            time00 += timer.getElapsedTimeInSec();
+            
         }
     } else {
-        timer.start();
+        
         bool rst = is_cube_intersect_degenerated_bilinear(bl, cube);
-        time11 += timer.getElapsedTimeInSec();
+        
         return rst;
     }
 
@@ -1443,12 +1329,12 @@ bool is_cube_intersect_tet_opposite_faces(
             continue;
         }
         for (int j = 0; j < 4; j++) {
-            timer.start();
+            
             int inter = segment_triangle_intersection(
                 cube.vr[cube.edgeid[i][0]], cube.vr[cube.edgeid[i][1]],
                 bl.v[bl.facets[j][0]], bl.v[bl.facets[j][1]],
                 bl.v[bl.facets[j][2]], false);
-            time22 += timer.getElapsedTimeInSec();
+            
             if (inter > 0) {
                 cube_inter_tet = true;
                 if (j == 0 || j == 1)

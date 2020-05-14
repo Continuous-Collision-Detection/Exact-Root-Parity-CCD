@@ -508,7 +508,7 @@ void case_check(){
     std::cout<<"the vf ccd result is "<<doubleccd::vertexFaceCCD(dt.x0,dt.x1,dt.x2,dt.x3,dt.x0b,dt.x1b,dt.x2b,dt.x3b,1e-300)<<std::endl;
 }
 void get_multiple(){
-double ms=1e-189;
+double ms=1e-8;
     std::cout<<"ms "<<ms<<std::endl;
 
     H5Easy::File file("/home/zachary/Development/ccd-queries/erleben-cube-cliff-edges/edge-edge/edge-edge-collisions.hdf5");
@@ -559,14 +559,14 @@ int main(int argc, char* argv[])
     // std::vector<Eigen::Matrix<double, 8, 3>> edge_edge_data;
 	// read_edge_edge_data(filename, edge_edge_data);
    // case_check();
-    check_false();
+    //check_false();
 //     for(int i=0;i<20;i++){
 //  doubleccd::Vector3d p0=Vector3d::Random(),p1=Vector3d::Random(),p2=Vector3d::Random(),p3=Vector3d::Random();
 //     ccd::Vector3r p0r(p0[0],p0[1],p0[2]),p1r(p1[0],p1[1],p1[2]),p2r(p2[0],p2[1],p2[2]),p3r(p3[0],p3[1],p3[2]);
 //     std::cout<<"orient "<<doubleccd::orient_3d(p0,p1,p2,p3)<<" "<<ccd::orient3d(p0r,p1r,p2r,p3r)<<std::endl;
 //     }
    //compare_lpi_results();
-   //get_multiple();
+   get_multiple();
     std::cout<<"done"<<std::endl;
     
     return 1;
