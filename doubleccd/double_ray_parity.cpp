@@ -137,13 +137,15 @@ namespace doubleccd {
 			if (!is_point_in_tet) { // p out of tet,or on the border
 				int r1, r2;
 				//we need to know: if shoot on any edge?(two edges return -1, one edge return 1)
-
+				igl::Timer timer;
+				timer.start();
 				r1 = ray_triangle_intersection(
 					pt, pt1, dir, bl.v[bl.facets[0][0]], bl.v[bl.facets[0][1]],
 					bl.v[bl.facets[0][2]], true);
 				r2 = ray_triangle_intersection(
 					pt, pt1, dir, bl.v[bl.facets[1][0]], bl.v[bl.facets[1][1]],
 					bl.v[bl.facets[1][2]], true);
+					timed5+=timer.getElapsedTimeInSec();
 				// idea is: if -1
 				if (r1 == -1 || r2 == -1)
 					return -1;
@@ -238,6 +240,7 @@ namespace doubleccd {
 			int is_ray_patch = ray_bilinear_parity(
 				bls[patch], pt, pt1, dir, bls[patch].is_degenerated, is_pt_in_tet[patch]);
 			//std::cout<<"\nis ray parity "<<is_ray_patch<<" is pt in tet "<<is_pt_in_tet[patch]<<std::endl;
+			//std::cout<<"is bilinear degenerated "<<bls[patch].is_degenerated<<std::endl;
 			//std::cout<<"dir "<<dir[0]<<" "<<dir[1]<<" "<<dir[2]<<std::endl;
 			timed1 += timer.getElapsedTimeInSec();
 			if (is_ray_patch == 2)
@@ -257,6 +260,7 @@ namespace doubleccd {
 			pt, pt1, dir, psm.p_vertices[0], psm.p_vertices[1], psm.p_vertices[2],
 			psm.is_triangle_degenerated(0));
 			//std::cout<<"ray_tri1 "<<res<<std::endl;
+			//std::cout<<"triangle degeneration? "<<psm.is_triangle_degenerated(0)<<std::endl;
 		timed2 += timer.getElapsedTimeInSec();
 		if (res == 2)
 			return 1;// it should be impossible
@@ -271,6 +275,7 @@ namespace doubleccd {
 			pt, pt1, dir, psm.p_vertices[3], psm.p_vertices[4], psm.p_vertices[5],
 			psm.is_triangle_degenerated(1));
 			//std::cout<<"ray_tri2 "<<res<<std::endl;
+			//std::cout<<"triangle degeneration? "<<psm.is_triangle_degenerated(1)<<std::endl;
 		timed2 += timer.getElapsedTimeInSec();
 		if (res == 2)
 			return 1; // it should be impossible
@@ -283,6 +288,7 @@ namespace doubleccd {
 		
 		return ((S % 2) == 1) ? 1 : 0;
 	}
+	//void case_for_
 	// dir = pt1 - pt
 	int point_inside_hex(std::array<bilinear, 6> &bls,
 		const Vector3d& pt, const Vector3d& pt1, const Vector3d& dir, const std::vector<bool>& is_pt_in_tet)
@@ -443,5 +449,6 @@ namespace doubleccd {
 		std::cout << "point inside prism time " << timed3 << std::endl;
 		std::cout << "ray bilinear time " << timed1 << std::endl;
 		std::cout << "ray triangle time " << timed2 << std::endl;
+		std::cout<<"in ray bilinear, ray_triangle time "<<timed5<<std::endl;
 	}
 }

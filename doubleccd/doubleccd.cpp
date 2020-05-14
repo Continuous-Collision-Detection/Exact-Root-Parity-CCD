@@ -3,6 +3,7 @@
 #include <igl/Timer.h>
 igl::Timer timer1, timer2;
 double time1 = 0, time2 = 0, time3 = 0, time4=0, time5=0, time6=0, time7=0, time8=0;
+int count1=0,count2=0,count3=0,count4=0,count5=0;
 namespace doubleccd {
 
 // Detect collisions between a vertex and a triangular face.
@@ -24,14 +25,23 @@ bool vertexFaceCCD(
         vertex_start, face_vertex0_start, face_vertex1_start,
         face_vertex2_start, vertex_end, face_vertex0_end, face_vertex1_end,
         face_vertex2_end);
+    //std::cout<<"prism v0\n"<<vfprism.p_vertices[0]<<"\n"<<std::endl;
+    //std::cout<<"prism v1\n"<<vfprism.p_vertices[1]<<"\n"<<std::endl;
+    //std::cout<<"prism v2\n"<<vfprism.p_vertices[2]<<"\n"<<std::endl;
+    //std::cout<<"prism v3\n"<<vfprism.p_vertices[3]<<"\n"<<std::endl;
+    //std::cout<<"prism v4\n"<<vfprism.p_vertices[4]<<"\n"<<std::endl;
+    //std::cout<<"prism v5\n"<<vfprism.p_vertices[5]<<"\n"<<std::endl;
 //std::cout<<"ori 0 "<<orient_3d(Vector3d(0,0,0),vfprism.p_vertices[0],vfprism.p_vertices[1],vfprism.p_vertices[2])<<std::endl;
     //std::cout<<"ori 1 "<<orient_3d(Vector3d(0,0,0),vfprism.p_vertices[3],vfprism.p_vertices[4],vfprism.p_vertices[5])<<std::endl;
     // step 1. bounding box checking
     Vector3d bmin(-minimum_distance, -minimum_distance, -minimum_distance),
         bmax(minimum_distance, minimum_distance, minimum_distance);
     bool intersection = vfprism.is_prism_bbox_cut_bbox(bmin, bmax);
-    if (!intersection)
+    if (!intersection){
+        count1++;
         return false; // if bounding box not intersected, then not intersected
+    }
+        
 
     // step 2. prism edges & prism bottom triangles check
     // prism edges test, segment degenerate cases already handled
@@ -42,6 +52,7 @@ bool vertexFaceCCD(
                 vfprism.p_vertices[vfprism.prism_edge_id[i][0]],
                 vfprism.p_vertices[vfprism.prism_edge_id[i][1]])) {
              // std::cout << "which seg intersect cube "<<i << std::endl;
+             count2++;
             return true;
         }
     }
@@ -54,13 +65,19 @@ bool vertexFaceCCD(
         if (is_cube_edges_intersect_triangle(
                 cb, vfprism.p_vertices[0], vfprism.p_vertices[1],
                 vfprism.p_vertices[2])) // if this triangle is not degenerated
-            return true;
+                {count3++;
+                    return true;
+                }
+            
     }
     if (!vfprism.is_triangle_degenerated(1)) {
         if (is_cube_edges_intersect_triangle(
                 cb, vfprism.p_vertices[3], vfprism.p_vertices[4],
                 vfprism.p_vertices[5]))
-            return true;
+        {count3++;
+                    return true;
+        }
+            
     }
     //std::cout<<"after cube triangle"<<std::endl;
     // step 3 tet facets- cube edges
@@ -81,14 +98,21 @@ bool vertexFaceCCD(
     bool cube_inter_tet[3];
     // std::cout << "before cube - opposite faces in double" << std::endl;
     if (is_cube_intersect_tet_opposite_faces(
-            bl0, cb, v_tet[0], cube_inter_tet[0]))
-        return true;
+            bl0, cb, v_tet[0], cube_inter_tet[0])){
+                count3++;
+                return true;
+            }
+        
     if (is_cube_intersect_tet_opposite_faces(
-            bl1, cb, v_tet[1], cube_inter_tet[1]))
-        return true;
+            bl1, cb, v_tet[1], cube_inter_tet[1])){
+                count3++;
+                return true;
+            }
     if (is_cube_intersect_tet_opposite_faces(
-            bl2, cb, v_tet[2], cube_inter_tet[2]))
-        return true;
+            bl2, cb, v_tet[2], cube_inter_tet[2])){
+                count3++;
+                return true;
+            }
 
     // if cube intersect any tet, need check if intersect bilinear;
     // if cube not intersect any tet, shoot a ray
@@ -99,21 +123,30 @@ bool vertexFaceCCD(
         bool cit0 = is_cube_edge_intersect_bilinear(bl0, cb, v_tet[0]);
         time1 += timer1.getElapsedTimeInSec();
         if (cit0)
-            return true;
+            {
+                count3++;
+                return true;
+            }
     }
     if (cube_inter_tet[1]) {
         timer1.start();
         bool cit1 = is_cube_edge_intersect_bilinear(bl1, cb, v_tet[1]);
         time1 += timer1.getElapsedTimeInSec();
         if (cit1)
-            return true;
+            {
+                count3++;
+                return true;
+            }
     }
     if (cube_inter_tet[2]) {
         timer1.start();
         bool cit2 = is_cube_edge_intersect_bilinear(bl2, cb, v_tet[2]);
         time1 += timer1.getElapsedTimeInSec();
         if (cit2)
-            return true;
+           {
+                count3++;
+                return true;
+            }
     }
     // down here is the last part of the algorithm
 
@@ -136,6 +169,7 @@ bool vertexFaceCCD(
     timer2.start();
     bool rtccd = retrial_ccd(vfprism, bls, cb.vr[target], p_tet);
     time2 += timer2.getElapsedTimeInSec();
+    count4++;
     return rtccd;
 }
 
@@ -273,6 +307,10 @@ bool edgeEdgeCCD(
 
 void test()
 {
+    std::cout<<"return when bounding box "<<count1<<std::endl;
+    std::cout<<"return when prism edge "<<count2<<std::endl;
+    std::cout<<"return when box edge- prism surface "<<count3<<std::endl;
+    std::cout<<"return when shooting ray "<<count4<<std::endl;
     //std::cout << "time for cube edge - bilinear " << time1 << std::endl;
     //std::cout << "time for retrail ccd  " << time2 << std::endl;
     std::cout << "edge time for initial " << time3 << std::endl;

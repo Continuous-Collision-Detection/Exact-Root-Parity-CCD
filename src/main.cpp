@@ -11,6 +11,7 @@
 #include <doubleCCD/hack.h>
 #include <fstream>
 #include<read_collision_data.hpp>
+#include<sstream>
 //#include <predicates/indirect_predicates.h>
 //#include <exact_subtraction.hpp>
 //#include<subfunctions.h>
@@ -228,14 +229,20 @@ void test_shifted_compare()
     int inside = 0;
     igl::Timer timer;
     double time = 0;
-    for (int i = 0; i < fn; i++) {
+    for (int i = 0; i < 5; i++) {
         if (i % 200 == 0)
             std::cout << "i " << i << std::endl;
         // std::cout << "i " << std::endl;
         timer.start();
         results[i] = vertexFaceCCD( // double
             data[i].pts, data[i].v1s, data[i].v2s, data[i].v3s, data[i].pte,
-            data[i].v1e, data[i].v2e, data[i].v3e, 1e-3);
+            data[i].v1e, data[i].v2e, data[i].v3e, 1e-1);
+            if(results[1]==0){
+                std::cout<<"this case not collision "<<i<<std::endl;
+                std::cout<<"x0,\n "<<data[i].pts<<std::endl;std::cout<<"x1,\n "<<data[i].v1s<<std::endl;std::cout<<"x2,\n "<<data[i].v2s<<std::endl;std::cout<<"x3,\n "<<data[i].v3s<<std::endl;
+                std::cout<<"x0b,\n "<<data[i].pte<<std::endl;std::cout<<"x1b,\n "<<data[i].v1e<<std::endl;std::cout<<"x2b,\n "<<data[i].v2e<<std::endl;std::cout<<"x3b,\n "<<data[i].v3e<<std::endl;
+
+            }
         time += timer.getElapsedTimeInSec();
         // results1[i] = ccd::vertexFaceCCD(//rational
         //	data[i].pts, data[i].v1s, data[i].v2s, data[i].v3s,
@@ -426,9 +433,9 @@ void test_edge_edge(){
 
 void check_false(){
     //H5Easy::File file(root_path + path_sep +"vertex-face-collisions.hdf5");
-    H5Easy::File file("/home/zachary/Development/ccd-queries/erleben-cube-cliff-edges/vertex-face/vertex-face-collisions.hdf5");
+    H5Easy::File file("/home/zachary/Development/ccd-queries/golf-ball/vertex-face/failing/vertex-face-collisions-part00007.hdf5");
     Eigen::Matrix<double, 8, 3> vertex_face_data;
-    string test_case= "/vertex_face_0000277/shifted/points";
+    string test_case= "/vertex_face_0786036/shifted/points";
     vertex_face_data=H5Easy::load<Eigen::Matrix<double, 8, 3>>(file,test_case);
     std::cout<<test_case<<std::endl;
     vf_pair dt;
@@ -443,7 +450,25 @@ void check_false(){
 			dt.x2b[j] = vertex_face_data(6, j);
 			dt.x3b[j] = vertex_face_data(7, j);
 	}
-    double ms=1e-30;
+    // dt.x0=Vector3d(0.1,0.1,1);
+    // dt.x1=Vector3d(0,0,0);
+    // dt.x2=Vector3d(0, -0.5, 0);
+    // dt.x3=Vector3d(-0.5, -0.5, 0);
+    // dt.x0b=Vector3d(0.5,0.5,0.5);
+    // dt.x1b=Vector3d(0.4, 0.4, 0.5);
+    // dt.x2b=Vector3d(0.4, -0.1, 0.5);
+    // dt.x3b=Vector3d(-0.1,-0.1,0.5);
+
+    dt.x0=Vector3d(0.1,0.1,1);
+    dt.x1=Vector3d(-0.05,-0.05,-0.05);
+    dt.x2=Vector3d(0, -0.9, 0);
+    dt.x3=Vector3d(-0.8, -0.8, 0);
+    dt.x0b=Vector3d(0.5,0.5,0.5);
+    dt.x1b=Vector3d(0.3, 0.3, 0.5);
+    dt.x2b=Vector3d(0.4, -0.4, 0.5);
+    dt.x3b=Vector3d(-0.2,0,0.5);
+    
+    double ms=0.1;
     std::cout<<"ms "<<ms<<std::endl;
     
     std::cout<<"\n*method double"<<std::endl;
@@ -464,6 +489,10 @@ void check_false(){
     //             std::cout<<"point x1 hit x0 some time"<<std::endl;
     //std::cout<<"x0,\n "<<dt.x0<<std::endl;std::cout<<"x1,\n "<<dt.x1<<std::endl;std::cout<<"x2,\n "<<dt.x2<<std::endl;std::cout<<"x3,\n "<<dt.x3<<std::endl;
    //std::cout<<"x0b,\n "<<dt.x0b<<std::endl;std::cout<<"x1b,\n "<<dt.x1b<<std::endl;std::cout<<"x2b,\n "<<dt.x2b<<std::endl;std::cout<<"x3b,\n "<<dt.x3b<<std::endl;
+    test();
+
+    print_sub();
+    ray_time();
 }
 void case_check(){
     vf_pair dt;
@@ -478,21 +507,51 @@ void case_check(){
     dt.x3b = Vector3d(-0.25,-0.5,-0.25);
     std::cout<<"the vf ccd result is "<<doubleccd::vertexFaceCCD(dt.x0,dt.x1,dt.x2,dt.x3,dt.x0b,dt.x1b,dt.x2b,dt.x3b,1e-300)<<std::endl;
 }
-void case_for_marco(){
-    double sm=1e-300;
-    Vector3d e0(-sm, -sm, sm), e1(sm, -sm, sm), 
-    t1(0, 0.00287304, 2.22045e-16),t2(0, -0.222374, 0), t3(0, 1.00287, 0);
-    // explicitPoint3D p(e0[0], e0[1], e0[2]);
-	// 	explicitPoint3D q(e1[0], e1[1], e1[2]);
-	// 	explicitPoint3D a(t1[0], t1[1], t1[2]);
-	// 	explicitPoint3D b(t2[0], t2[1], t2[2]);
-	// 	explicitPoint3D c(t3[0], t3[1], t3[2]);
+void get_multiple(){
+double ms=1e-189;
+    std::cout<<"ms "<<ms<<std::endl;
+
+    H5Easy::File file("/home/zachary/Development/ccd-queries/erleben-cube-cliff-edges/edge-edge/edge-edge-collisions.hdf5");
+const auto query_names = file.getGroup("/").listObjectNames();
+std::cout<<"data size "<<query_names.size()<<std::endl;
+igl::Timer timer;
+    double time = 0;
+for (size_t i = 0; i < query_names.size(); i++) {
+    if (i % 1000 == 0)
+            std::cout << "i " << i << std::endl;
+std::stringstream ss;
+ss << query_names[i] << "/shifted/points";
+Eigen::Matrix<double, 8, 3> vertex_face_data = H5Easy::load<Eigen::Matrix<double, 8, 3>>(
+                    file, ss.str());
+    vf_pair dt;
+    for (int j = 0; j < 3; j++) {
+			dt.x0[j] = vertex_face_data(0, j);
+			dt.x1[j] = vertex_face_data(1, j);
+			dt.x2[j] = vertex_face_data(2, j);
+			dt.x3[j] = vertex_face_data(3, j);
+
+			dt.x0b[j] = vertex_face_data(4, j);
+			dt.x1b[j] = vertex_face_data(5, j);
+			dt.x2b[j] = vertex_face_data(6, j);
+			dt.x3b[j] = vertex_face_data(7, j);
+	}
+    timer.start();
+    doubleccd::edgeEdgeCCD(dt.x0,dt.x1,dt.x2,dt.x3,dt.x0b,dt.x1b,dt.x2b,dt.x3b,ms);
+    time += timer.getElapsedTimeInSec();
+    
+}
+std::cout << "total time " << time << std::endl;
+    
+    test();
+
+    print_sub();
+    ray_time();
 }
 int main(int argc, char* argv[])
 {
     // TODO: Put something more relevant here
     // ccd::test();
-    // test_shifted_compare();
+   // test_shifted_compare();
     // test_rootfinder();
     //test_shift_maxerror();
 	//test_edge_edge();
@@ -500,13 +559,14 @@ int main(int argc, char* argv[])
     // std::vector<Eigen::Matrix<double, 8, 3>> edge_edge_data;
 	// read_edge_edge_data(filename, edge_edge_data);
    // case_check();
-    //check_false();
+    check_false();
 //     for(int i=0;i<20;i++){
 //  doubleccd::Vector3d p0=Vector3d::Random(),p1=Vector3d::Random(),p2=Vector3d::Random(),p3=Vector3d::Random();
 //     ccd::Vector3r p0r(p0[0],p0[1],p0[2]),p1r(p1[0],p1[1],p1[2]),p2r(p2[0],p2[1],p2[2]),p3r(p3[0],p3[1],p3[2]);
 //     std::cout<<"orient "<<doubleccd::orient_3d(p0,p1,p2,p3)<<" "<<ccd::orient3d(p0r,p1r,p2r,p3r)<<std::endl;
 //     }
-   compare_lpi_results();
+   //compare_lpi_results();
+   //get_multiple();
     std::cout<<"done"<<std::endl;
     
     return 1;

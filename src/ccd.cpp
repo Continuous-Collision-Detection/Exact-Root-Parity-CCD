@@ -24,8 +24,14 @@ bool vertexFaceCCD(
     Vector3r bmin(-minimum_distance, -minimum_distance, -minimum_distance),
         bmax(minimum_distance, minimum_distance, minimum_distance);
     bool intersection = vfprism.is_prism_bbox_cut_bbox(bmin, bmax);
-    if (!intersection)
-        return false; // if bounding box not intersected, then not intersected
+    if (!intersection){
+        //std::cout<<"bounding box not intersected"<<std::endl;
+        //std::cout<<
+        
+
+         return false; // if bounding box not intersected, then not intersected
+    }
+       
 
     // step 2. prism edges & prism bottom triangles check
     // prism edges test, segment degenerate cases already handled

@@ -291,4 +291,11 @@ bool is_ray_intersect_plane(
 		const Vector3d& t1,
 		const Vector3d& t2,
 		const Vector3d& t3);
+		int is_line_cut_triangle_rational(
+		const Vector3d& e0,
+		const Vector3d& e1,
+		const Vector3d& t1,
+		const Vector3d& t2,
+		const Vector3d& t3,
+		const bool halfopen);
 } // namespace ccd

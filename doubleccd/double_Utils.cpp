@@ -148,6 +148,8 @@ namespace doubleccd {
 		const Vector3d& t2,
 		const Vector3d& t3,
 		const bool halfopen){
+			//std::cout<<"using rational line_triangle"<<std::endl;
+		//return is_line_cut_triangle_rational(e0,e1,t1,t2,t3,halfopen);
 		//std::cout<<"double version is called"<<std::endl;
 		explicitPoint3D p(e0[0], e0[1], e0[2]);
 		explicitPoint3D q(e1[0], e1[1], e1[2]);
@@ -232,20 +234,21 @@ namespace doubleccd {
 		return 0;
 		}
 	void compare_lpi_results(){
-		// std::array<Vector3d,4> e0,e1,t1,t2,t3;
-		// int k=0; double dis=1e-300;
-		// e0[k]=Vector3d(-dis,-dis,dis);
-		// e1[k]=Vector3d(-dis,-dis,-dis);
-		// t1[k]=Vector3d(0,1.00287,0);
-		// t2[k]=Vector3d(1.11022e-16,0.00287304,0);
-		// t3[k]=Vector3d(1.11022e-16,0.777626,0);
+		std::cout<<"start comparing"<<std::endl;
+		std::array<Vector3d,4> e0,e1,t1,t2,t3;
+		int k=0; double dis=1e-300;
+		e0[k]=Vector3d(1.35305e-143, 1.35305e-143, -1.35305e-143);
+		e1[k]=Vector3d(1.11531e-143, 1.19072e-143, -1.41338e-143);
+		t1[k]=Vector3d(1.01319, -0.00234277, 0.0163708);
+		t2[k]=Vector3d(1.01319, -0.00234277, 1.01637);
+		t3[k]=Vector3d(-0.0163336, -0.00275503, -0.0129583);
 		
-		// k=1;
-		// e0[k]=Vector3d(-dis,dis,-dis);
-		// e1[k]=Vector3d(-8.28203e-301,9.72593e-301,-8.79701e-301);
-		// t1[k]=Vector3d(0,1.00287,0);
-		// t2[k]=Vector3d(1.11022e-16,0.777626,0);
-		// t3[k]=Vector3d(2.22045e-16,-0.222374,0);
+		k=1;
+		e0[k]=Vector3d(1.48497e-141, 1.48497e-141, -1.48497e-141);
+		e1[k]=Vector3d(1.22405e-141, 1.30681e-141, -1.55118e-141);
+		t1[k]=Vector3d(1.01319, -0.00234277, 0.0163708);
+		t2[k]=Vector3d(1.01319, -0.00234277, 1.01637);
+		t3[k]=Vector3d(-0.0163336, -0.00275503, -0.0129583);
 
 		// k=2;
 		// e0[k]=Vector3d(-dis,-dis,dis);
@@ -254,13 +257,13 @@ namespace doubleccd {
 		// t2[k]=Vector3d(0,1.01437,0);
 		// t3[k]=Vector3d(0,-0.222374,2.22045e-16);
 
-		// int check=2;
-		// int result =is_line_cut_triangle(e0[check],e1[check],t1[check],t2[check],t3[check],true);
-		// int res2=is_line_cut_triangle_1(e0[check],e1[check],t1[check],t2[check],t3[check],true);
-		// if(result!=res2){
-		// 	std::cout<<"results, r vs d "<<result<<" "<<res2<<std::endl; 
+		int check=0;
+		int result =is_line_cut_triangle(e0[check],e1[check],t1[check],t2[check],t3[check],true);
+		int res2=is_line_cut_triangle_rational(e0[check],e1[check],t1[check],t2[check],t3[check],true);
+		if(result!=res2){
+			std::cout<<"results, d vs r "<<result<<" "<<res2<<std::endl; 
 			
-		// }
+		}
 
 	// 	explicitPoint3D e0, e1, t1, t2, t3;
 	// double dis = 1e-300;
@@ -276,25 +279,26 @@ namespace doubleccd {
 	// std::cout<<"o1 "<<genericPoint::orient3D(e0,e1,t3,t1)<<std::endl;
 	// std::cout<<"o2 "<<genericPoint::orient3D(e0,e1,t1,t2)<<std::endl;
 	// std::cout<<"o3 "<<genericPoint::orient3D(e0,e1,t2,t3)<<std::endl;
-	std::array<Vector3d,4> e0,dir,t1,t2,t3;
-		int k=0; double dis=1e-30;
-		e0[k]=Vector3d(-dis,-dis,dis);
-		dir[k]=Vector3d(-2.57039e-33, 1.64606e-31, -1.88378e-32);
-		t1[k]=Vector3d(-0.0158771, 2.66218e-05, 0.0184747);
-		t2[k]=Vector3d(1.01584, -2.51465e-05, 0.0137027);
-		t3[k]=Vector3d(-0.021159, -0.000130363, 0.0136844);
+	
+	// std::array<Vector3d,4> e0,dir,t1,t2,t3;
+	// 	int k=0; double dis=1e-30;
+	// 	e0[k]=Vector3d(-dis,-dis,dis);
+	// 	dir[k]=Vector3d(-2.57039e-33, 1.64606e-31, -1.88378e-32);
+	// 	t1[k]=Vector3d(-0.0158771, 2.66218e-05, 0.0184747);
+	// 	t2[k]=Vector3d(1.01584, -2.51465e-05, 0.0137027);
+	// 	t3[k]=Vector3d(-0.021159, -0.000130363, 0.0136844);
 
-		k=1;
-		e0[k]=Vector3d(-dis,-dis,dis);
-		dir[k]=Vector3d(-2.57039e-33, 1.64606e-31, -1.88378e-32);
-		t1[k]=Vector3d(-0.0137115, 0.00573199, 1.01866);
-		t2[k]=Vector3d(1.01849, 0.00598655, 1.0103);
-		t3[k]=Vector3d(-0.0224488, -0.000956426, 1.01275);
+	// 	k=1;
+	// 	e0[k]=Vector3d(-dis,-dis,dis);
+	// 	dir[k]=Vector3d(-2.57039e-33, 1.64606e-31, -1.88378e-32);
+	// 	t1[k]=Vector3d(-0.0137115, 0.00573199, 1.01866);
+	// 	t2[k]=Vector3d(1.01849, 0.00598655, 1.0103);
+	// 	t3[k]=Vector3d(-0.0224488, -0.000956426, 1.01275);
 
-		int check=1;
-		bool result1=is_ray_intersect_plane(e0[check],dir[check],t1[check],t2[check],t3[check]);
-		bool result2=is_ray_intersect_plane_rational(e0[check],dir[check],t1[check],t2[check],t3[check]);
-		if(result1!=result2) std::cout<<"comparison of ray_plane not match, "<<result1<<" "<<result2<<std::endl;
+	// 	int check=1;
+	// 	bool result1=is_ray_intersect_plane(e0[check],dir[check],t1[check],t2[check],t3[check]);
+	// 	bool result2=is_ray_intersect_plane_rational(e0[check],dir[check],t1[check],t2[check],t3[check]);
+	// 	if(result1!=result2) std::cout<<"comparison of ray_plane not match, "<<result1<<" "<<result2<<std::endl;
 	}
 	
 	// parallel means not intersected
@@ -727,7 +731,20 @@ namespace doubleccd {
 			}
 		}
 		//std::cout<<"in xor2 go before line_trianlge test"<<std::endl;
-		return is_line_cut_triangle(e0, e1, t1, t2, t3, halfopen);
+		//the rest of the cases are two points on different sides
+		int ori12=orient_3d(e0,e1,t1,t2);
+		int ori23=orient_3d(e0,e1,t2,t3);
+		int ori31=orient_3d(e0,e1,t3,t1);
+		if(ori12==ori23&&ori12==ori31) return 1;
+		if(ori12==ori23&&ori31==0) return 2;
+		if(ori31==ori23&&ori12==0) return 2;
+		if(ori12==ori31&&ori23==0){
+			if(halfopen) return 3;
+			else return 2;
+		}
+		return 0;
+
+		//return is_line_cut_triangle(e0, e1, t1, t2, t3, halfopen);
 	}
 	// pt is not on the plane
 	bool is_ray_intersect_plane(
@@ -812,18 +829,25 @@ namespace doubleccd {
 		// if point not on plane, and not point to plane, return 0
 		//explicitPoint3D pte()
 		bool in1=is_ray_intersect_plane(pt, dir, t1, t2, t3);
-		//bool in2=is_ray_intersect_plane_rational(pt, dir, t1, t2, t3);
-		// if(in1!=in2){std::cout<<"ray intersection don't match "<<in1<<" "<<in2<<std::endl;
-		// std::cout<<"pt\n"<<pt[0]<<", "<<pt[1]<<", "<<pt[2]<<std::endl;
-		// std::cout<<"dir\n"<<dir[0]<<", "<<dir[1]<<", "<<dir[2]<<std::endl;
-		// std::cout<<"t1\n"<<t1[0]<<", "<<t1[1]<<", "<<t1[2]<<std::endl;
-		// std::cout<<"t2\n"<<t2[0]<<", "<<t2[1]<<", "<<t2[2]<<std::endl;
-		// std::cout<<"t3\n"<<t3[0]<<", "<<t3[1]<<", "<<t3[2]<<std::endl;}
+		// bool in2=is_ray_intersect_plane_rational(pt, dir, t1, t2, t3);
+		//  if(in1!=in2){std::cout<<"ray intersection don't match "<<in1<<" "<<in2<<std::endl;
+		//  std::cout<<"pt\n"<<pt[0]<<", "<<pt[1]<<", "<<pt[2]<<std::endl;
+		//  std::cout<<"dir\n"<<dir[0]<<", "<<dir[1]<<", "<<dir[2]<<std::endl;
+		//  std::cout<<"t1\n"<<t1[0]<<", "<<t1[1]<<", "<<t1[2]<<std::endl;
+		//  std::cout<<"t2\n"<<t2[0]<<", "<<t2[1]<<", "<<t2[2]<<std::endl;
+		//  std::cout<<"t3\n"<<t3[0]<<", "<<t3[1]<<", "<<t3[2]<<std::endl;}
 		//TODO we are using Rational ray_tri_intersection
 		if (!in1) return 0;
 		//std::cout<<"ray inter plane"<<std::endl;
 		// if ray go across the plane, then get lpi and 3 orientations
 		int inter = is_line_cut_triangle(pt, pt1, t1, t2, t3, halfopen);
+		// int inter2=is_line_cut_triangle_rational(pt, pt1, t1, t2, t3, halfopen);
+		// if(inter!=inter2){std::cout<<"line triangle intersection don't match "<<inter<<" "<<inter2<<std::endl;
+		//  std::cout<<"pt\n"<<pt[0]<<", "<<pt[1]<<", "<<pt[2]<<std::endl;
+		//  std::cout<<"pt1\n"<<pt1[0]<<", "<<pt1[1]<<", "<<pt1[2]<<std::endl;
+		//  std::cout<<"t1\n"<<t1[0]<<", "<<t1[1]<<", "<<t1[2]<<std::endl;
+		//  std::cout<<"t2\n"<<t2[0]<<", "<<t2[1]<<", "<<t2[2]<<std::endl;
+		//  std::cout<<"t3\n"<<t3[0]<<", "<<t3[1]<<", "<<t3[2]<<std::endl;}
 		//std::cout<<"is line cut triangle "<<inter<<std::endl;
 		//std::cout<<"line cut tri? "<<inter<<std::endl;
 		if (inter == 0)return 0;
