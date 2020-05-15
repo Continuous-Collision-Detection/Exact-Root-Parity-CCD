@@ -1,4 +1,5 @@
 // Read collision data from a HDF5 file
+#include "read_collision_data.hpp"
 
 #include <array>
 #include <string>
@@ -7,8 +8,6 @@
 #include <Eigen/Core>
 #include <boost/filesystem.hpp>
 #include <highfive/H5Easy.hpp>
-
-#include <ccd.hpp>
 
 void read_vertex_face_data(
     std::string data_dir,
@@ -45,6 +44,6 @@ void read_edge_edge_data(
             edge_edge_data.push_back(
                 H5Easy::load<Eigen::Matrix<double, 8, 3>>(file, query_name));
         }
-        std::cout<<"size of data "<<edge_edge_data.size()<<std::endl; 
+        std::cout<<"size of data "<<edge_edge_data.size()<<std::endl;
     //}
 }

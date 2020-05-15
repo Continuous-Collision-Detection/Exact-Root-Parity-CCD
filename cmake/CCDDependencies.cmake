@@ -22,10 +22,6 @@ if(NOT TARGET igl)
   set(ENV{EIGEN3_INCLUDE_DIR} "${CCD_EXTERNAL}/libigl/external/eigen/")
 endif()
 
-
-ccd_download_geogram()
-include(geogram)
-
 #Indirect_Predicates
 if(NOT TARGET indirect_predicates)
   ccd_download_indirect_predicates()
@@ -60,6 +56,8 @@ endif()
 
 # HDF5 Reader
 if(NOT TARGET HighFive::HighFive)
+  option(HIGHFIVE_UNIT_TESTS "Enable unit tests" OFF)
+  option(HIGHFIVE_EXAMPLES "Compile examples" OFF)
   set(USE_EIGEN TRUE CACHE BOOL "Enable Eigen testing" FORCE)
   ccd_download_high_five()
   add_subdirectory(${CCD_EXTERNAL}/HighFive EXCLUDE_FROM_ALL)

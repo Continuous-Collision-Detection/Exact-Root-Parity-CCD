@@ -8,7 +8,6 @@
 #include <boost/filesystem.hpp>
 #include <highfive/H5Easy.hpp>
 
-#include <ccd.hpp>
 
 /// Example: read_vertex_face_data("path/to/vf-data/", vertex_face_data);
 void read_vertex_face_data(

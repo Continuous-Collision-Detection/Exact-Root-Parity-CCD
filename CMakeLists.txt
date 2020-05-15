@@ -3,8 +3,16 @@ project(CCD)
 
 ################################################################################
 
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+    set(CCD_TOPLEVEL_PROJECT ON)
+else()
+    set(CCD_TOPLEVEL_PROJECT OFF)
+endif()
+
 # project-options
 option(CCD_WITH_UNIT_TESTS   "Build unit tests using Catch2"  ON)
+option(CCD_BUILD_RATIONAL    "Buil Rational Version"          ON)
+
 
 # libigl
 option(LIBIGL_USE_STATIC_LIBRARY     "Use libigl as static library" OFF)
@@ -28,6 +36,9 @@ option(LIBIGL_WITH_XML               "Use XML"                      OFF)
 option(LIBIGL_WITH_PREDICATES        "Use exact predicates"         ON)
 ################################################################################
 
+
+
+
 ### Configuration
 set(CCD_EXTERNAL "${CMAKE_CURRENT_SOURCE_DIR}/external")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
@@ -36,41 +47,36 @@ include(Warnings)
 include(UseColors)
 include(${PROJECT_NAME}Dependencies)
 include(CCDUtils)
-################################################################################
-# Library
-################################################################################
-
-add_subdirectory(src)
-prepend_current_path(SOURCES)
-CCD_copy_headers(${SOURCES})
-CCD_set_source_group(${SOURCES})
-
-add_library(${PROJECT_NAME}_rational ${SOURCES})
-target_include_directories(${PROJECT_NAME}_rational PUBLIC ${PROJECT_BINARY_DIR}/include)
-
-# libigl
-target_link_libraries(${PROJECT_NAME}_rational PUBLIC igl::core)
-
-# Logger
-target_link_libraries(${PROJECT_NAME}_rational PUBLIC spdlog::spdlog)
-
-# Extra warnings
-target_link_libraries(${PROJECT_NAME}_rational PRIVATE warnings::all)
-#GMP
-
-target_include_directories(${PROJECT_NAME}_rational PUBLIC ${GMP_INCLUDE_DIRS} src)
-target_link_libraries(${PROJECT_NAME}_rational PUBLIC ${GMP_LIBRARIES})
-
-target_link_libraries(${PROJECT_NAME}_rational PUBLIC HighFive::HighFive)
-
-# Boost
-set(Boost_USE_MULTITHREADED TRUE)
-find_package(Boost COMPONENTS filesystem REQUIRED)
-target_link_libraries(${PROJECT_NAME}_rational PUBLIC Boost::filesystem)
 
 ################################################################################
+# Rational Library
 ################################################################################
+if(CCD_BUILD_RATIONAL)
+  add_subdirectory(src)
+  prepend_current_path(SOURCES)
+  CCD_copy_headers(${SOURCES})
+  CCD_set_source_group(${SOURCES})
 
+  add_library(${PROJECT_NAME}_rational ${SOURCES})
+  target_include_directories(${PROJECT_NAME}_rational PUBLIC ${PROJECT_BINARY_DIR}/include)
+
+  # libigl
+  target_link_libraries(${PROJECT_NAME}_rational PUBLIC igl::core)
+
+  # Logger
+  target_link_libraries(${PROJECT_NAME}_rational PUBLIC spdlog::spdlog)
+
+  # Extra warnings
+  target_link_libraries(${PROJECT_NAME}_rational PRIVATE warnings::all)
+
+  #GMP
+  target_include_directories(${PROJECT_NAME}_rational PUBLIC ${GMP_INCLUDE_DIRS} src)
+  target_link_libraries(${PROJECT_NAME}_rational PUBLIC ${GMP_LIBRARIES})
+endif()
+
+################################################################################
+# Floating-point Library
+################################################################################
 # doubleCCD
 add_subdirectory(doubleccd)
 prepend_current_path(DOUBLECCD_SOURCES)
@@ -79,30 +85,21 @@ CCD_set_source_group(${DOUBLECCD_SOURCES})
 
 add_library(${PROJECT_NAME}_double  ${DOUBLECCD_SOURCES})
 target_include_directories(${PROJECT_NAME}_double PUBLIC ${PROJECT_BINARY_DIR}/include)
-target_link_libraries(${PROJECT_NAME}_double PUBLIC indirect_predicates)
 
-target_compile_definitions(${PROJECT_NAME}_double PUBLIC MSCCD_USE_GEO_PREDICATES)
-# target_compile_definitions(${PROJECT_NAME}_double PUBLIC MSCCD_USE_IND_PREDICATES)
-# target_compile_definitions(${PROJECT_NAME}_double PUBLIC MSCCD_USE_IGL_PREDICATES)
+#remove me?
+target_link_libraries(${PROJECT_NAME}_double PUBLIC indirect_predicates)
 
 # libigl
 target_link_libraries(${PROJECT_NAME}_double PUBLIC igl::core igl::predicates)
-
-# geogram
-if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-  target_link_libraries(${PROJECT_NAME}_double PUBLIC OpenMP::OpenMP_CXX)
-endif()
-target_link_libraries(${PROJECT_NAME}_double PUBLIC geogram)
-
 
 # Logger
 target_link_libraries(${PROJECT_NAME}_double PUBLIC spdlog::spdlog)
 
 # Extra warnings
 target_link_libraries(${PROJECT_NAME}_double PRIVATE warnings::all)
+
 #GMP
 find_package(GMPECCD)
-
 IF(NOT ${GMP_FOUND})
         MESSAGE(FATAL_ERROR "Cannot find GMP")
 ENDIF()
@@ -114,17 +111,25 @@ target_link_libraries(${PROJECT_NAME}_double PUBLIC ${GMP_LIBRARIES})
 ################################################################################
 # Executable
 ################################################################################
+if(CCD_TOPLEVEL_PROJECT AND CCD_BUILD_RATIONAL)
+  add_executable(${PROJECT_NAME}_bin
+    # Add executable source here
+    src/main.cpp
+    src/read_collision_data.cpp
+  )
 
-add_executable(${PROJECT_NAME}_bin
-  # Add executable source here
-  src/main.cpp
-)
+  target_link_libraries(${PROJECT_NAME}_bin PUBLIC HighFive::HighFive)
 
-target_link_libraries(${PROJECT_NAME}_bin PUBLIC ${PROJECT_NAME}_rational)
-target_link_libraries(${PROJECT_NAME}_bin PUBLIC ${PROJECT_NAME}_double)
-set(DATA_PATH "${CMAKE_CURRENT_SOURCE_DIR}/data/")
-target_compile_definitions(${PROJECT_NAME}_bin PUBLIC -DCCD_DATA_PATH=\"${DATA_PATH}\")
+  # Boost
+  set(Boost_USE_MULTITHREADED TRUE)
+  find_package(Boost COMPONENTS filesystem REQUIRED)
+  target_link_libraries(${PROJECT_NAME}_bin PUBLIC Boost::filesystem)
 
+  target_link_libraries(${PROJECT_NAME}_bin PUBLIC ${PROJECT_NAME}_rational)
+  target_link_libraries(${PROJECT_NAME}_bin PUBLIC ${PROJECT_NAME}_double)
+  set(DATA_PATH "${CMAKE_CURRENT_SOURCE_DIR}/data/")
+  target_compile_definitions(${PROJECT_NAME}_bin PUBLIC -DCCD_DATA_PATH=\"${DATA_PATH}\")
+endif()
 
 ################################################################################
 # Tests

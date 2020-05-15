@@ -5,7 +5,6 @@
 #include <array>
 #include <Eigen/Core>
 #include <igl/Timer.h>
-#include <geogram/delaunay/delaunay_3d.h>
 #include<igl/predicates/predicates.h>
 namespace doubleccd {
 
@@ -47,46 +46,15 @@ template <typename V1, typename V2> Vector3r cross(const V1& v1, const V2& v2)
     return res;
 }
 
-inline int geo_orient_3d(const Vector3d&p, const Vector3d&q, const Vector3d&r, const Vector3d& s){
-	return -GEO::PCK::orient_3d(p.data(), q.data(), r.data(), s.data());
-}
-inline int geo_orient_2d(const Vector2d&p, const Vector2d&q, const Vector2d&r){
-	return GEO::PCK::orient_2d(p.data(), q.data(),r.data());
-}
- int ind_orient_3d(const Vector3d&p, const Vector3d&q, const Vector3d&r, const Vector3d& s);
- int ind_orient_2d(const Vector2d&p, const Vector2d&q, const Vector2d&r);
-
-inline int igl_orient_3d(const Vector3d&p, const Vector3d&q, const Vector3d&r, const Vector3d& s){
-	igl::predicates::exactinit();
-	return (int)igl::predicates::orient3d(p,q,r,s);
-}
-inline int igl_orient_2d(const Vector2d&p, const Vector2d&q, const Vector2d&r){
-	igl::predicates::exactinit();
-	return (int)igl::predicates::orient2d(p,q,r);
-}
-
 inline int orient_3d(const Vector3d&p, const Vector3d&q, const Vector3d&r, const Vector3d& s){
-	#ifdef MSCCD_USE_GEO_PREDICATES
-	return geo_orient_3d(p,q,r,s);
-	#endif
-	#ifdef MSCCD_USE_IND_PREDICATES
-	return ind_orient_3d(p,q,r,s);
-	#endif
-	#ifdef MSCCD_USE_IGL_PREDICATES
-	return igl_orient_3d(p,q,r,s);
-	#endif
+    igl::predicates::exactinit();
+    return (int)igl::predicates::orient3d(p, q, r, s);
 }
 inline int orient_2d(const Vector2d&p, const Vector2d&q, const Vector2d&r){
-	#ifdef MSCCD_USE_GEO_PREDICATES
-	return geo_orient_2d(p,q,r);
-	#endif
-	#ifdef MSCCD_USE_IND_PREDICATES
-	return ind_orient_2d(p,q,r);
-	#endif
-	#ifdef MSCCD_USE_IGL_PREDICATES
-	return igl_orient_2d(p,q,r);
-	#endif
+    igl::predicates::exactinit();
+    return (int)igl::predicates::orient2d(p, q, r);
 }
+
 Rational func_g(
 	const Vector3r& x,
 	const std::array<Vector3d, 4>& corners,

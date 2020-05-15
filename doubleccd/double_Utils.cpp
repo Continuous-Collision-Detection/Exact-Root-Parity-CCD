@@ -172,7 +172,7 @@ namespace doubleccd {
 		t1[k]=Vector3d(1.01319, -0.00234277, 0.0163708);
 		t2[k]=Vector3d(1.01319, -0.00234277, 1.01637);
 		t3[k]=Vector3d(-0.0163336, -0.00275503, -0.0129583);
-		
+
 		k=1;
 		e0[k]=Vector3d(1.48497e-141, 1.48497e-141, -1.48497e-141);
 		e1[k]=Vector3d(1.22405e-141, 1.30681e-141, -1.55118e-141);
@@ -187,7 +187,7 @@ namespace doubleccd {
 		// t2[k]=Vector3d(0,1.01437,0);
 		// t3[k]=Vector3d(0,-0.222374,2.22045e-16);
 
-		
+
 
 	// 	explicitPoint3D e0, e1, t1, t2, t3;
 	// double dis = 1e-300;
@@ -203,7 +203,7 @@ namespace doubleccd {
 	// std::cout<<"o1 "<<genericPoint::orient3D(e0,e1,t3,t1)<<std::endl;
 	// std::cout<<"o2 "<<genericPoint::orient3D(e0,e1,t1,t2)<<std::endl;
 	// std::cout<<"o3 "<<genericPoint::orient3D(e0,e1,t2,t3)<<std::endl;
-	
+
 	// std::array<Vector3d,4> e0,dir,t1,t2,t3;
 	// 	int k=0; double dis=1e-30;
 	// 	e0[k]=Vector3d(-dis,-dis,dis);
@@ -224,7 +224,7 @@ namespace doubleccd {
 	// 	bool result2=is_ray_intersect_plane_rational(e0[check],dir[check],t1[check],t2[check],t3[check]);
 	// 	if(result1!=result2) std::cout<<"comparison of ray_plane not match, "<<result1<<" "<<result2<<std::endl;
 	}
-	
+
 	// parallel means not intersected
 	int is_line_cut_triangle_rational(
 		const Vector3d& e0,
@@ -234,9 +234,9 @@ namespace doubleccd {
 		const Vector3d& t3,
 		const bool halfopen) {
 		int result=lpi_in_triangle(e0,e1,t1,t2,t3,halfopen);
-		
+
 		// if(result!=res2){
-		// 	std::cout<<"results, r vs d "<<result<<" "<<res2<<std::endl; 
+		// 	std::cout<<"results, r vs d "<<result<<" "<<res2<<std::endl;
 		// 	std::cout<<"l\n"<<e0<<"\n\n"<<e1<<std::endl;
 		// 	std::cout<<"a and b and c\n"<<t1<<"\n\n"<<t2<<"\n\n"<<t3<<std::endl;
 		// }
@@ -264,7 +264,7 @@ namespace doubleccd {
 		std::cout<<"return here with l in inner"<<std::endl;
 				return 1;
 		}
-		
+
 		{
 		// 	Vector3d ap=Vector3d::Random();
 		// while(orient_3d(ap,t1,t2,t3)==0){
@@ -277,8 +277,8 @@ namespace doubleccd {
 		// int op3=genericPoint::orient3D(l,ape,c,a);
 		// if(op1==op2&&op1==op3)//lpi in open triangle
         //     return 1;
-		}	
-		
+		}
+
                 //std::cout<<"the orientations in double "<<op1<<" "<<op2<<" "<<op3<<std::endl;
 			//std::cout<<"l\n"<<e0<<"\n\n"<<e1<<std::endl;
 			//std::cout<<"a and b and c\n"<<t1<<"\n\n"<<t2<<"\n\n"<<t3<<std::endl;
@@ -294,8 +294,8 @@ namespace doubleccd {
 		// 	std::cout<<"orientation "<<orient_3d(e0,e1,t1,t2)<<std::endl;
 		// 	return 2;
 		// }
-			
-		
+
+
 		if(orient_3d(e0,e1,t1,t3)==0&&genericPoint::segmentsCross(p,q,a,c)){
 			//std::cout<<"l on ac"<<std::endl;
 			return 2;
@@ -307,8 +307,8 @@ namespace doubleccd {
 			//std::cout<<"orientation "<<orient_3d(e0,e1,t1,t2)<<std::endl;
 			return 2;
 		}
-		
-			
+
+
 		//if (genericPoint::pointInSegment(l, b, c))
 		if (orient_3d(e0,e1,t3,t2)==0&&genericPoint::segmentsCross(p,q,c,b)){
 			if (halfopen)
@@ -318,8 +318,8 @@ namespace doubleccd {
 				return 2;
 			}
 		}
-			
-				
+
+
 
 		return 0;
 	}
@@ -392,12 +392,6 @@ namespace doubleccd {
 		return colinear_point_on_segment(pt, s0, s1);
 	}
 
-int ind_orient_3d(const Vector3d&p, const Vector3d&q, const Vector3d&r, const Vector3d& s){
-	return -orient3d(p[0], p[1], p[2], q[0], q[1], q[2], r[0], r[1], r[2], s[0], s[1], s[2]);
-}
-int ind_orient_2d(const Vector2d&p, const Vector2d&q, const Vector2d&r){
-	return orient2d(p[0], p[1], q[0], q[1], r[0], r[1]);
-}
 	bool point_on_segment_2d(const Vector2d&p, const Vector2d&s0, const Vector2d&s1, bool need_check_colinear) {
 		if (need_check_colinear) {
 			if (orient_2d(p, s0, s1) != 0)
@@ -666,7 +660,7 @@ int ind_orient_2d(const Vector2d&p, const Vector2d&q, const Vector2d&r){
 		}
 		return 0;
 
-		
+
 	}
 	// pt is not on the plane
 	bool is_ray_intersect_plane(
@@ -748,7 +742,7 @@ int ind_orient_2d(const Vector2d&p, const Vector2d&q, const Vector2d&r){
 			return 0;
 		}
 
-		
+
 		// the rest of cases are point not on plane and triangle not degenerated
 		//3 point or ray shoot t2-t3 edge, -1 shoot on border, 0 not intersected, 1 intersect interior
 		int ori12=orient_3d(pt1,pt,t1,t2);
@@ -757,10 +751,10 @@ int ind_orient_2d(const Vector2d&p, const Vector2d&q, const Vector2d&r){
 		//if(ori12*ori23<0||ori12*ori31<0||ori23*ori31<0) return 0;//ray triangle not intersected;
 		int oris=orient_3d(t3,pt,t1,t2);// if ray shoot triangle, oris should have same sign with the three oritations
 		if(oris*ori12<0||oris*ori23<0||oris*ori31<0) return 0;//ray triangle not intersected;
-		
+
 		// bool in1=is_ray_intersect_plane(pt, dir, t1, t2, t3);
 		// if (!in1) return 0;//ray triangle not intersected;
-		
+
 		if(ori12==ori23&&ori12==ori31) return 1;//
 		if(ori12==ori23&&ori31==0) return -1;
 		if(ori31==ori23&&ori12==0) return -1;
@@ -792,7 +786,7 @@ int ind_orient_2d(const Vector2d&p, const Vector2d&q, const Vector2d&r){
 			return p;
 		};
 		std::array<Vector3r, 3> tri;
-		Vector3r v0(bl.v[0][0], bl.v[0][1], bl.v[0][2]), v1(bl.v[1][0], bl.v[1][1], bl.v[1][2]), 
+		Vector3r v0(bl.v[0][0], bl.v[0][1], bl.v[0][2]), v1(bl.v[1][0], bl.v[1][1], bl.v[1][2]),
 			v2(bl.v[2][0], bl.v[2][1], bl.v[2][2]), v3(bl.v[3][0], bl.v[3][1], bl.v[3][2]);
 
 		for (int i = 0; i < n; i++) {
@@ -897,7 +891,7 @@ int ind_orient_2d(const Vector2d&p, const Vector2d&q, const Vector2d&r){
 	if (norm[0]==0&&norm[1]==0&&norm[2]==0)// triangle degeneration
 	{
 		return 0;//we already checked triangle (at least two edges)edge against cube
-		
+
 	}
 
 	int o1 = orient3d(e0, t1, t2, t3);
@@ -978,7 +972,7 @@ int lpi_in_triangle(const Vector3d& p,const Vector3d& q,const Vector3d& r,const 
 	if(o1==o3&&o1==0) return 2;//o1==o3==0
 	if(o2==o3&&o2==0) return 2;//o2==o3==0
 	return 0;
-	
+
 }
 bool lpi_rational(const Vector3d& p,const Vector3d& q,const Vector3d& r,const Vector3d& s,const Vector3d& t,
 Rational&a11,Rational&a12,Rational&a13,Rational&d){

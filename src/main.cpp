@@ -10,7 +10,7 @@
 #include <doubleCCD/doubleccd.hpp>
 #include <doubleCCD/hack.h>
 #include <fstream>
-#include<read_collision_data.hpp>
+#include "read_collision_data.hpp"
 #include<sstream>
 //#include <predicates/indirect_predicates.h>
 //#include <exact_subtraction.hpp>
@@ -362,7 +362,7 @@ void read_vf_data(const string file, std::vector<vf_pair>& vfdata) {
 			vfdata[i].x2b[j] = vertex_face_data[i](6, j);
 			vfdata[i].x3b[j] = vertex_face_data[i](7, j);
 		}
-		
+
 	}
 }
 
@@ -386,7 +386,7 @@ void read_ee_data(const string file, std::vector<ee_pair>& eedata) {
 	}
 }
 void test_more() {
-	
+
 }
 void test_edge_edge(){
     string filename="/home/bw1760/scratch/cow-head/edge-edge/edge-edge-collisions-part010.hdf5";
@@ -407,7 +407,7 @@ void test_edge_edge(){
         // std::cout << "i " << std::endl;
         timer.start();
         results[i] = edgeEdgeCCD( // double
-            eedata[i].a0, eedata[i].a1, eedata[i].b0, eedata[i].b1, 
+            eedata[i].a0, eedata[i].a1, eedata[i].b0, eedata[i].b1,
             eedata[i].a0b, eedata[i].a1b, eedata[i].b0b, eedata[i].b1b, 1e-3);
         time += timer.getElapsedTimeInSec();
         // results1[i] = ccd::vertexFaceCCD(//rational
@@ -467,17 +467,17 @@ void check_false(){
     dt.x1b=Vector3d(0.3, 0.3, 0.5);
     dt.x2b=Vector3d(0.4, -0.4, 0.5);
     dt.x3b=Vector3d(-0.2,0,0.5);
-    
+
     double ms=0.1;
     std::cout<<"ms "<<ms<<std::endl;
-    
+
     std::cout<<"\n*method double"<<std::endl;
     int r2=doubleccd::vertexFaceCCD(dt.x0,dt.x1,dt.x2,dt.x3,dt.x0b,dt.x1b,dt.x2b,dt.x3b,ms);
     //std::cout<<" exact dir "<<doubleccd::hack::getInstance().dir[0]<<" "<< doubleccd::hack::getInstance().dir[1]<<" "<< doubleccd::hack::getInstance().dir[2]<<std::endl;
     std::cout<<"*\n\nmethod rational"<<std::endl;
     int r1=ccd::vertexFaceCCD(dt.x0,dt.x1,dt.x2,dt.x3,dt.x0b,dt.x1b,dt.x2b,dt.x3b,ms);
 
-    
+
     std::cout<<"the double vf ccd result is "<<r2<<std::endl;
     std::cout<<"the rational vf ccd result is "<<r1<<std::endl;
     //std::cout<<"ori1 "<< orient_3d(dt.x0,dt.x1,dt.x2,dt.x3)<<std::endl;
@@ -538,32 +538,32 @@ Eigen::Matrix<double, 8, 3> vertex_face_data = H5Easy::load<Eigen::Matrix<double
     timer.start();
     doubleccd::edgeEdgeCCD(dt.x0,dt.x1,dt.x2,dt.x3,dt.x0b,dt.x1b,dt.x2b,dt.x3b,ms);
     time += timer.getElapsedTimeInSec();
-    
+
 }
 std::cout << "total time " << time << std::endl;
-    
+
     test();
 
     print_sub();
     ray_time();
 }
 
-void test_ori(){
-    Vector3d p0,p1,p2,p3;
-    p0=Vector3d(0,0,0);
-    p1=Vector3d(1,1,0);
-    p2=Vector3d(2,0,1);
-    p3=Vector3d(3,4,0);
-    Vector2d q0(0,0),q1(1,0),q2(0,1);
-    std::cout<<"ori ind "<<ind_orient_3d(p0,p1,p2,p3)<<std::endl;
-    std::cout<<"ori geo "<<geo_orient_3d(p0,p1,p2,p3)<<std::endl;
-    std::cout<<"ori igl "<<igl_orient_3d(p0,p1,p2,p3)<<std::endl;
-    std::cout<<"ori2d ind "<<ind_orient_2d(q0,q1,q2)<<std::endl;
-    std::cout<<"ori2d geo "<<geo_orient_2d(q0,q1,q2)<<std::endl;
-    std::cout<<"ori2d igl "<<igl_orient_2d(q0,q1,q2)<<std::endl;
+// void test_ori(){
+//     Vector3d p0,p1,p2,p3;
+//     p0=Vector3d(0,0,0);
+//     p1=Vector3d(1,1,0);
+//     p2=Vector3d(2,0,1);
+//     p3=Vector3d(3,4,0);
+//     Vector2d q0(0,0),q1(1,0),q2(0,1);
+//     std::cout<<"ori ind "<<ind_orient_3d(p0,p1,p2,p3)<<std::endl;
+//     std::cout<<"ori geo "<<geo_orient_3d(p0,p1,p2,p3)<<std::endl;
+//     std::cout<<"ori igl "<<igl_orient_3d(p0,p1,p2,p3)<<std::endl;
+//     std::cout<<"ori2d ind "<<ind_orient_2d(q0,q1,q2)<<std::endl;
+//     std::cout<<"ori2d geo "<<geo_orient_2d(q0,q1,q2)<<std::endl;
+//     std::cout<<"ori2d igl "<<igl_orient_2d(q0,q1,q2)<<std::endl;
 
 
-}
+// }
 
 int main(int argc, char* argv[])
 {
@@ -585,8 +585,8 @@ int main(int argc, char* argv[])
 //     }
    //compare_lpi_results();
    //get_multiple();
-   test_ori();
+//    test_ori();
     std::cout<<"done"<<std::endl;
-    
+
     return 1;
 }
