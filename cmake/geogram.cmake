@@ -79,8 +79,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     		target_link_libraries(OpenMP_TARGET INTERFACE Threads::Threads)
     		target_link_libraries(OpenMP_TARGET INTERFACE ${OpenMP_CXX_FLAGS})
 	endif()
-
-	target_link_libraries(geogram PUBLIC OpenMP::OpenMP_CXX)
 endif()
 
 ################################################################################
