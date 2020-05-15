@@ -433,9 +433,9 @@ void test_edge_edge(){
 
 void check_false(){
     //H5Easy::File file(root_path + path_sep +"vertex-face-collisions.hdf5");
-    H5Easy::File file("/home/zachary/Development/ccd-queries/erleben-cube-cliff-edges/edge-edge/edge-edge-collisions.hdf5");
+    H5Easy::File file("/home/zachary/Development/ccd-queries/erleben-cube-internal-edges/edge-edge/edge-edge-collisions.hdf5");
     Eigen::Matrix<double, 8, 3> vertex_face_data;
-    string test_case= "/edge_edge_0000025/shifted/points";
+    string test_case= "/edge_edge_0000416/shifted/points";
     vertex_face_data=H5Easy::load<Eigen::Matrix<double, 8, 3>>(file,test_case);
     std::cout<<test_case<<std::endl;
     vf_pair dt;
