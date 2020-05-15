@@ -341,7 +341,7 @@ namespace doubleccd {
 	// 0 not intersected; 1 intersected; 2 pt on s0
 	int point_on_ray(const Vector3d& s0, const Vector3d& e0,
 		const Vector3d& dir0, const Vector3d& pt) {
-		if (same_point(s0, pt)|| same_point(e0, pt))
+		if (same_point(s0, pt))
 			return 2;
 		if (!is_triangle_degenerated(s0, e0, pt)) return 0;
 
