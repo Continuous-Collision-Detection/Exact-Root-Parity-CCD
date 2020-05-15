@@ -29,14 +29,6 @@ function(ccd_download_libigl)
   )
 endfunction()
 
-# predicates
-function(ccd_download_indirect_predicates)
-  ccd_download_project(indirect_predicates
-    GIT_REPOSITORY https://github.com/MarcoAttene/Indirect_Predicates.git
-    GIT_TAG        1a2c56899d21fd4aed5e652e82735a494890918a
-  )
-endfunction()
-
 # Logger
 function(ccd_download_spdlog)
     ccd_download_project(spdlog

@@ -8,8 +8,6 @@ doubleccd/double_subfunctions.cpp
 doubleccd/double_Utils.cpp
 doubleccd/double_Utils.hpp
 doubleccd/Rational.hpp
-doubleccd/rayPlaneIntersection.h
-doubleccd/rayPlaneIntersection.cpp
 doubleccd/exact_subtraction.hpp
 doubleccd/hack.h
 PARENT_SCOPE

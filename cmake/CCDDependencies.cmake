@@ -22,30 +22,6 @@ if(NOT TARGET igl)
   set(ENV{EIGEN3_INCLUDE_DIR} "${CCD_EXTERNAL}/libigl/external/eigen/")
 endif()
 
-#Indirect_Predicates
-if(NOT TARGET indirect_predicates)
-  ccd_download_indirect_predicates()
-
-  set(INDIRECTPREDICATES_SOURCES
-    ${CCD_EXTERNAL}/indirect_predicates/implicit_point.cpp
-    ${CCD_EXTERNAL}/indirect_predicates/implicit_point.h
-    ${CCD_EXTERNAL}/indirect_predicates/numerics.cpp
-    ${CCD_EXTERNAL}/indirect_predicates/numerics.h
-    ${CCD_EXTERNAL}/indirect_predicates/predicates/indirect_predicates.cpp
-    ${CCD_EXTERNAL}/indirect_predicates/predicates/indirect_predicates.h
-  )
-  add_library(indirect_predicates  ${INDIRECTPREDICATES_SOURCES})
-  target_include_directories(indirect_predicates PUBLIC ${CCD_EXTERNAL}/indirect_predicates ${CCD_EXTERNAL}/indirect_predicates/predicates)
-
-  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    target_compile_options(indirect_predicates PRIVATE "/fp:strict")
-  elseif(NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-    target_compile_options(indirect_predicates PRIVATE "-frounding-math")
-  else()
-    message(WARNING "On CLang, there is no compiler flag which is required for ensuring the correctness of the algorithm.")
-  endif()
-endif()
-
 # spdlog
 if(NOT TARGET spdlog::spdlog)
   ccd_download_spdlog()

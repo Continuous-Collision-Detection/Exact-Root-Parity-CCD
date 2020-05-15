@@ -86,9 +86,6 @@ CCD_set_source_group(${DOUBLECCD_SOURCES})
 add_library(${PROJECT_NAME}_double  ${DOUBLECCD_SOURCES})
 target_include_directories(${PROJECT_NAME}_double PUBLIC ${PROJECT_BINARY_DIR}/include)
 
-#remove me?
-target_link_libraries(${PROJECT_NAME}_double PUBLIC indirect_predicates)
-
 # libigl
 target_link_libraries(${PROJECT_NAME}_double PUBLIC igl::core igl::predicates)
 

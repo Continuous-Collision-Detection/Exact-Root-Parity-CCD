@@ -288,22 +288,4 @@ int lpi_in_triangle(const Vector3d& p,const Vector3d& q,const Vector3d& r,const 
 bool lpi_rational(const Vector3d& p,const Vector3d& q,const Vector3d& r,const Vector3d& s,const Vector3d& t,
 Rational&a11,Rational&a12,Rational&a13,Rational&d);
 void compare_lpi_results();
-bool is_ray_intersect_plane_rational(const Vector3d& pt,
-		const Vector3d& dir,
-		const Vector3d& t1,
-		const Vector3d& t2,
-		const Vector3d& t3);
-bool is_ray_intersect_plane(
-		const Vector3d& pt,
-		const Vector3d& dir,
-		const Vector3d& t1,
-		const Vector3d& t2,
-		const Vector3d& t3);
-		int is_line_cut_triangle_rational(
-		const Vector3d& e0,
-		const Vector3d& e1,
-		const Vector3d& t1,
-		const Vector3d& t2,
-		const Vector3d& t3,
-		const bool halfopen);
 } // namespace ccd

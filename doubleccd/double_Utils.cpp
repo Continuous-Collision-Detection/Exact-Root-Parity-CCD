@@ -1,8 +1,6 @@
 #include <Eigen/Dense>
 #include <doubleCCD/double_Utils.hpp>
-#include <doubleCCD/rayPlaneIntersection.h>
 #include <fstream>
-#include <predicates/indirect_predicates.h>
 
 namespace doubleccd {
 	bilinear::bilinear(
@@ -241,87 +239,6 @@ namespace doubleccd {
 		// 	std::cout<<"a and b and c\n"<<t1<<"\n\n"<<t2<<"\n\n"<<t3<<std::endl;
 		// }
 		return result;
-		explicitPoint3D p(e0[0], e0[1], e0[2]);
-		explicitPoint3D q(e1[0], e1[1], e1[2]);
-		explicitPoint3D a(t1[0], t1[1], t1[2]);
-		explicitPoint3D b(t2[0], t2[1], t2[2]);
-		explicitPoint3D c(t3[0], t3[1], t3[2]);
-		implicitPoint3D_LPI l(p, q, a, b, c);
-		explicitPoint3D ppp;
-		///std::cout<<"in lpi, check if point exist"<<std::endl;
-
-		if (!l.approxExplicit(ppp)) return 0;// this is important
-		//std::cout<<"in lpi, already know point exist"<<std::endl;
-		//int o1=orient_3d(e0,t1,t2,t3);
-		//int o2=orient_3d(e1,t1,t2,t3);
-		//std::cout<<"*orient "<<o1<<" "<<o2<<std::endl;
-		//std::cout<<"orient "<<orient_3d(e0,e1,t1,t2)<<std::endl;
-		//std::cout<<"orient "<<orient_3d(e0,e1,t2,t3)<<std::endl;
-		//std::cout<<"orient "<<orient_3d(e0,e1,t1,t3)<<std::endl;
-		//std::cout<<"inter bc? "<<genericPoint::pointInSegment(l, b, c)<<std::endl;
-		{//this piece is problematic
-		if (genericPoint::pointInInnerTriangle(l, a, b, c))
-		std::cout<<"return here with l in inner"<<std::endl;
-				return 1;
-		}
-
-		{
-		// 	Vector3d ap=Vector3d::Random();
-		// while(orient_3d(ap,t1,t2,t3)==0){
-		// 	ap=Vector3d::Random();
-		// }
-		// explicitPoint3D ape(ap[0],ap[1],ap[2]);
-		// //std::cout<<"random point ori "<<orient_3d(ap,t1,t2,t3)<<std::endl;
-		// int op1=genericPoint::orient3D(l,ape,a,b);
-		// int op2=genericPoint::orient3D(l,ape,b,c);
-		// int op3=genericPoint::orient3D(l,ape,c,a);
-		// if(op1==op2&&op1==op3)//lpi in open triangle
-        //     return 1;
-		}
-
-                //std::cout<<"the orientations in double "<<op1<<" "<<op2<<" "<<op3<<std::endl;
-			//std::cout<<"l\n"<<e0<<"\n\n"<<e1<<std::endl;
-			//std::cout<<"a and b and c\n"<<t1<<"\n\n"<<t2<<"\n\n"<<t3<<std::endl;
-		// if (genericPoint::pointInSegment(l, a, c)){
-		// 	std::cout<<"l on ac"<<std::endl;
-		// 	return 2;
-		// }
-		// if (genericPoint::pointInSegment(l, b, a)){
-		// 	std::cout<<"seg seg check "<<genericPoint::segmentsCross(p,q,a,b)<<std::endl;
-		// 	std::cout<<"l on ab"<<std::endl;
-		// 	std::cout<<"l\n"<<e0<<"\n\n"<<e1<<std::endl;
-		// 	std::cout<<"a and b and c\n"<<t1<<"\n\n"<<t2<<"\n\n"<<t3<<std::endl;
-		// 	std::cout<<"orientation "<<orient_3d(e0,e1,t1,t2)<<std::endl;
-		// 	return 2;
-		// }
-
-
-		if(orient_3d(e0,e1,t1,t3)==0&&genericPoint::segmentsCross(p,q,a,c)){
-			//std::cout<<"l on ac"<<std::endl;
-			return 2;
-		}
-		if (orient_3d(e0,e1,t1,t2)==0&&genericPoint::segmentsCross(p,q,a,b)){
-			//std::cout<<"l on ab"<<std::endl;
-			//std::cout<<"l\n"<<e0<<"\n\n"<<e1<<std::endl;
-			//std::cout<<"a and b and c\n"<<t1<<"\n\n"<<t2<<"\n\n"<<t3<<std::endl;
-			//std::cout<<"orientation "<<orient_3d(e0,e1,t1,t2)<<std::endl;
-			return 2;
-		}
-
-
-		//if (genericPoint::pointInSegment(l, b, c))
-		if (orient_3d(e0,e1,t3,t2)==0&&genericPoint::segmentsCross(p,q,c,b)){
-			if (halfopen)
-				return 3;// on open edge t2-t3
-			else{
-				//std::cout<<"return the last 2"<<std::endl;
-				return 2;
-			}
-		}
-
-
-
-		return 0;
 	}
 
 	//  when lpi does not exist, return 0
@@ -593,7 +510,7 @@ namespace doubleccd {
 			p[1] = to_2d(t2, j);
 			p[2] = to_2d(t3, j);
 
-			ori = orient2d(p[0][0], p[0][1], p[1][0], p[1][1], p[2][0], p[2][1]);
+			ori = orient_2d(p[0], p[1], p[2]);
 			if (ori != 0)
 			{
 				return false;
@@ -662,31 +579,6 @@ namespace doubleccd {
 
 
 	}
-	// pt is not on the plane
-	bool is_ray_intersect_plane(
-		const Vector3d& pt,
-		const Vector3d& dir,
-		const Vector3d& t1,
-		const Vector3d& t2,
-		const Vector3d& t3) {
-		explicitPoint3D p(pt[0], pt[1], pt[2]), d(dir[0], dir[1], dir[2]);
-		explicitPoint3D T1(t1[0], t1[1], t1[2]), T2(t2[0], t2[1], t2[2]), T3(t3[0], t3[1], t3[2]);
-		return rayIntersectsPlane(p, d, T1, T2, T3);
-	}
-	Vector3r double2r(const Vector3d& pt){
-		return Vector3r(pt[0],pt[1],pt[2]);
-	}
-	bool is_ray_intersect_plane_rational(const Vector3d& pt,
-		const Vector3d& dir,
-		const Vector3d& t1,
-		const Vector3d& t2,
-		const Vector3d& t3){
-			Vector3r ptr=double2r(pt),dirr=double2r(dir),t1r=double2r(t1),
-			t2r=double2r(t2),t3r=double2r(t3),np;
-			Vector3r l=dirr,l0=ptr,p0=t1r,n=cross(t1r-t2r,t1r-t3r);
-			auto d=(p0-l0).dot(n)/(l.dot(n));
-			return d>=0;
-		}
 
 	// 0 no intersection, 1 intersect, 2 point on triangle(including two edges), 3 point or ray shoot t2-t3 edge, -1 shoot on border
 	int ray_triangle_intersection(

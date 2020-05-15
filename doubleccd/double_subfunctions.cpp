@@ -2,7 +2,6 @@
 #include <doubleCCD/double_subfunctions.h>
 #include <doubleCCD/doubleccd.hpp>
 #include <doubleCCD/exact_subtraction.hpp>
-#include <predicates/indirect_predicates.h>
 
 
 namespace doubleccd {
@@ -91,7 +90,7 @@ bool is_seg_intersect_cube(
     if (is_seg_intersect_cube_2d(eps, e0, e1, 0)
         && is_seg_intersect_cube_2d(eps, e0, e1, 1)
         && is_seg_intersect_cube_2d(eps, e0, e1, 2)) {
-        
+
         return true;
     }
 
@@ -607,7 +606,7 @@ bool have_no_truncation(const Vector3d&p1,const Vector3d&p2){
         if(xr>x||xr<x) return false;
     }
     return true;
-    
+
 
 }
 
@@ -635,7 +634,7 @@ void prism::get_prism_vertices(
     assert(have_no_truncation(x0b , x1b));
     assert(have_no_truncation(x0b , x3b));
     assert(have_no_truncation(x0b , x2b));
-    
+
 }
 prism::prism(
     const Vector3d& vs,
@@ -650,7 +649,7 @@ prism::prism(
 
    // double k;
     // these are the 6 vertices of the prism,right hand law
-    
+
     get_prism_vertices(
         vs, fs0, fs1, fs2, ve, fe0, fe1, fe2,
         p_vertices); //  before use this we need to shift all the vertices
@@ -705,7 +704,7 @@ bool prism::is_triangle_degenerated(const int up_or_bottom)
         p[1] = to_2d(p_vertices[pid + 1], j);
         p[2] = to_2d(p_vertices[pid + 2], j);
 
-        ori = orient2d(p[0][0], p[0][1], p[1][0], p[1][1], p[2][0], p[2][1]);
+        ori = orient_2d(p[0], p[1], p[2]);
         if (ori != 0) {
             return false;
         }
@@ -754,7 +753,7 @@ hex::hex(
     const Vector3d& b1b)
 {
 
-    
+
     get_hex_vertices(
         a0, a1, b0, b1, a0b, a1b, b0b, b1b,
         h_vertices); //before use this we need to shift all the vertices
@@ -869,7 +868,7 @@ bool is_cube_intersect_degenerated_bilinear(
             return true;
         return false;
     } else {
-        
+
         if (dege == BI_DEGE_XOR_02) { // triangle 0-1-2 and 0-2-3
             for (int i = 0; i < 12; i++) {
                 res = int_seg_XOR(
@@ -900,7 +899,7 @@ bool is_cube_intersect_degenerated_bilinear(
             }
             return false;
         }
-       
+
     }
     std::cout << "!! THIS CANNOT HAPPEN" << std::endl;
     return false;
@@ -1067,19 +1066,19 @@ bool get_function_find_root(
     if (t1 > 1 || t1 < 0)
         std::cout << "t is not right: exceed the limit" << std::endl;
     Rational a, b, c;
-    
+
     Vector3r dir = p1 - p0;
     get_quadratic_function(
         Rational(p0[0]), Rational(p0[1]), Rational(p0[2]), Rational(dir[0]),
         Rational(dir[1]), Rational(dir[2]), bl.v[0], bl.v[1], bl.v[2], bl.v[3],
         a, b, c);
     bool res = quadratic_function_rootfinder(a, b, c, t0, t1);
-    
+
     return res;
 }
 void print_sub()
 {
-    
+
 }
 
 bool rootfinder(
@@ -1090,9 +1089,9 @@ bool rootfinder(
     const bool p1in,
     const int pairid)
 {
-    
+
     Vector3r p0(p0d[0], p0d[1], p0d[2]), p1(p1d[0], p1d[1], p1d[2]);
-    
+
     if (p0in && p1in) {
         // t0=0, t1=1
         return get_function_find_root(bl, p0, p1, Rational(0), Rational(1));
@@ -1299,22 +1298,22 @@ bool is_cube_intersect_tet_opposite_faces(
     std::array<bool, 8>& vin,
     bool& cube_inter_tet)
 {
-    
+
     cube_inter_tet = false;
     if (!bl.is_degenerated) {
         for (int i = 0; i < 8; i++) {
             vin[i] = false;
-           
+
             if (is_point_inside_tet(bl, cube.vr[i])) {
                 cube_inter_tet = true;
                 vin[i] = true;
             }
-            
+
         }
     } else {
-        
+
         bool rst = is_cube_intersect_degenerated_bilinear(bl, cube);
-        
+
         return rst;
     }
 
@@ -1329,12 +1328,12 @@ bool is_cube_intersect_tet_opposite_faces(
             continue;
         }
         for (int j = 0; j < 4; j++) {
-            
+
             int inter = segment_triangle_intersection(
                 cube.vr[cube.edgeid[i][0]], cube.vr[cube.edgeid[i][1]],
                 bl.v[bl.facets[j][0]], bl.v[bl.facets[j][1]],
                 bl.v[bl.facets[j][2]], false);
-            
+
             if (inter > 0) {
                 cube_inter_tet = true;
                 if (j == 0 || j == 1)
