@@ -392,14 +392,12 @@ namespace doubleccd {
 		return colinear_point_on_segment(pt, s0, s1);
 	}
 
-
-	int orient_2d(const Vector2d&p, const Vector2d&q, const Vector2d&r) {
-		return orient2d(p[0], p[1], q[0], q[1], r[0], r[1]);
-	}
-	int orient_3d(const Vector3d&p, const Vector3d&q, const Vector3d&r, const Vector3d& s) {
-		return -orient3d(p[0], p[1], p[2], q[0], q[1], q[2], r[0], r[1], r[2], s[0], s[1], s[2]);
-	}
-	
+int ind_orient_3d(const Vector3d&p, const Vector3d&q, const Vector3d&r, const Vector3d& s){
+	return -orient3d(p[0], p[1], p[2], q[0], q[1], q[2], r[0], r[1], r[2], s[0], s[1], s[2]);
+}
+int ind_orient_2d(const Vector2d&p, const Vector2d&q, const Vector2d&r){
+	return orient2d(p[0], p[1], q[0], q[1], r[0], r[1]);
+}
 	bool point_on_segment_2d(const Vector2d&p, const Vector2d&s0, const Vector2d&s1, bool need_check_colinear) {
 		if (need_check_colinear) {
 			if (orient_2d(p, s0, s1) != 0)

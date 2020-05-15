@@ -81,18 +81,18 @@ add_library(${PROJECT_NAME}_double  ${DOUBLECCD_SOURCES})
 target_include_directories(${PROJECT_NAME}_double PUBLIC ${PROJECT_BINARY_DIR}/include)
 target_link_libraries(${PROJECT_NAME}_double PUBLIC indirect_predicates)
 
-target_compile_definitions(${PROJECT_NAME}_double PRIVATE "USE_GEO_PREDICATES")
-# target_compile_definitions(${PROJECT_NAME}_double PRIVATE "USE_IND_PREDICATES")
-# target_compile_definitions(${PROJECT_NAME}_double PRIVATE "USE_IGL_PREDICATES")
+target_compile_definitions(${PROJECT_NAME}_double PUBLIC MSCCD_USE_GEO_PREDICATES)
+# target_compile_definitions(${PROJECT_NAME}_double PUBLIC MSCCD_USE_IND_PREDICATES)
+# target_compile_definitions(${PROJECT_NAME}_double PUBLIC MSCCD_USE_IGL_PREDICATES)
 
 # libigl
 target_link_libraries(${PROJECT_NAME}_double PUBLIC igl::core igl::predicates)
 
 # geogram
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-  target_link_libraries(geogram PUBLIC OpenMP::OpenMP_CXX)
+  target_link_libraries(${PROJECT_NAME}_double PUBLIC OpenMP::OpenMP_CXX)
 endif()
-target_link_libraries(${PROJECT_NAME}_rational PUBLIC geogram)
+target_link_libraries(${PROJECT_NAME}_double PUBLIC geogram)
 
 
 # Logger

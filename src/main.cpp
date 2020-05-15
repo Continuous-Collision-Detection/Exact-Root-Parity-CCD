@@ -547,6 +547,24 @@ std::cout << "total time " << time << std::endl;
     print_sub();
     ray_time();
 }
+
+void test_ori(){
+    Vector3d p0,p1,p2,p3;
+    p0=Vector3d(0,0,0);
+    p1=Vector3d(1,1,0);
+    p2=Vector3d(2,0,1);
+    p3=Vector3d(3,4,0);
+    Vector2d q0(0,0),q1(1,0),q2(0,1);
+    std::cout<<"ori ind "<<ind_orient_3d(p0,p1,p2,p3)<<std::endl;
+    std::cout<<"ori geo "<<geo_orient_3d(p0,p1,p2,p3)<<std::endl;
+    std::cout<<"ori igl "<<igl_orient_3d(p0,p1,p2,p3)<<std::endl;
+    std::cout<<"ori2d ind "<<ind_orient_2d(q0,q1,q2)<<std::endl;
+    std::cout<<"ori2d geo "<<geo_orient_2d(q0,q1,q2)<<std::endl;
+    std::cout<<"ori2d igl "<<igl_orient_2d(q0,q1,q2)<<std::endl;
+
+
+}
+
 int main(int argc, char* argv[])
 {
     // TODO: Put something more relevant here
@@ -566,7 +584,8 @@ int main(int argc, char* argv[])
 //     std::cout<<"orient "<<doubleccd::orient_3d(p0,p1,p2,p3)<<" "<<ccd::orient3d(p0r,p1r,p2r,p3r)<<std::endl;
 //     }
    //compare_lpi_results();
-   get_multiple();
+   //get_multiple();
+   test_ori();
     std::cout<<"done"<<std::endl;
     
     return 1;
