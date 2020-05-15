@@ -25,8 +25,7 @@ option(LIBIGL_WITH_TETGEN            "Use Tetgen"                   OFF)
 option(LIBIGL_WITH_TRIANGLE          "Use Triangle"                 OFF)
 option(LIBIGL_WITH_VIEWER            "Use OpenGL viewer"            OFF)
 option(LIBIGL_WITH_XML               "Use XML"                      OFF)
-option(LIBIGL_WITH_PREDICATES        "Use exact predicates"         OFF)
-
+option(LIBIGL_WITH_PREDICATES        "Use exact predicates"         ON)
 ################################################################################
 
 ### Configuration
@@ -82,8 +81,15 @@ add_library(${PROJECT_NAME}_double  ${DOUBLECCD_SOURCES})
 target_include_directories(${PROJECT_NAME}_double PUBLIC ${PROJECT_BINARY_DIR}/include)
 target_link_libraries(${PROJECT_NAME}_double PUBLIC indirect_predicates)
 
+target_compile_definitions(${PROJECT_NAME}_double PRIVATE "USE_GEO_PREDICATES")
+# target_compile_definitions(${PROJECT_NAME}_double PRIVATE "USE_IND_PREDICATES")
+# target_compile_definitions(${PROJECT_NAME}_double PRIVATE "USE_IGL_PREDICATES")
+
 # libigl
-target_link_libraries(${PROJECT_NAME}_double PUBLIC igl::core)
+target_link_libraries(${PROJECT_NAME}_double PUBLIC igl::core igl::predicates)
+
+# geogram
+target_link_libraries(${PROJECT_NAME}_rational PUBLIC geogram)
 
 # Logger
 target_link_libraries(${PROJECT_NAME}_double PUBLIC spdlog::spdlog)

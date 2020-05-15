@@ -29,6 +29,15 @@ function(ccd_download_libigl)
   )
 endfunction()
 
+
+## Geogram BSD
+function(ccd_download_geogram)
+    ccd_download_project(geogram
+        GIT_REPOSITORY https://github.com/alicevision/geogram.git
+        GIT_TAG        v1.7.5
+    )
+endfunction()
+
 # predicates
 function(ccd_download_indirect_predicates)
   ccd_download_project(indirect_predicates

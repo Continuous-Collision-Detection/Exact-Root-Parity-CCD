@@ -22,6 +22,10 @@ if(NOT TARGET igl)
   set(ENV{EIGEN3_INCLUDE_DIR} "${CCD_EXTERNAL}/libigl/external/eigen/")
 endif()
 
+
+ccd_download_geogram()
+include(geogram)
+
 #Indirect_Predicates
 if(NOT TARGET indirect_predicates)
   ccd_download_indirect_predicates()
