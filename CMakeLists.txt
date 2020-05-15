@@ -63,9 +63,6 @@ if(CCD_BUILD_RATIONAL)
   # libigl
   target_link_libraries(${PROJECT_NAME}_rational PUBLIC igl::core)
 
-  # Logger
-  target_link_libraries(${PROJECT_NAME}_rational PUBLIC spdlog::spdlog)
-
   # Extra warnings
   target_link_libraries(${PROJECT_NAME}_rational PRIVATE warnings::all)
 
@@ -88,9 +85,6 @@ target_include_directories(${PROJECT_NAME}_double PUBLIC ${PROJECT_BINARY_DIR}/i
 
 # libigl
 target_link_libraries(${PROJECT_NAME}_double PUBLIC igl::core igl::predicates)
-
-# Logger
-target_link_libraries(${PROJECT_NAME}_double PUBLIC spdlog::spdlog)
 
 # Extra warnings
 target_link_libraries(${PROJECT_NAME}_double PRIVATE warnings::all)
@@ -133,6 +127,7 @@ endif()
 ################################################################################
 
 if(CCD_WITH_UNIT_TESTS)
+
   # Catch2
   if(NOT TARGET Catch2::Catch2)
       ccd_download_catch2()

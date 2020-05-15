@@ -29,14 +29,6 @@ function(ccd_download_libigl)
   )
 endfunction()
 
-# Logger
-function(ccd_download_spdlog)
-    ccd_download_project(spdlog
-       GIT_REPOSITORY https://github.com/gabime/spdlog.git
-       GIT_TAG        v1.5.0
-    )
-endfunction()
-
 # Catch2 for testing
 function(ccd_download_catch2)
     ccd_download_project(Catch2

@@ -22,14 +22,6 @@ if(NOT TARGET igl)
   set(ENV{EIGEN3_INCLUDE_DIR} "${CCD_EXTERNAL}/libigl/external/eigen/")
 endif()
 
-# spdlog
-if(NOT TARGET spdlog::spdlog)
-  ccd_download_spdlog()
-  add_library(spdlog INTERFACE)
-  add_library(spdlog::spdlog ALIAS spdlog)
-  target_include_directories(spdlog SYSTEM INTERFACE ${CCD_EXTERNAL}/spdlog/include)
-endif()
-
 # HDF5 Reader
 if(NOT TARGET HighFive::HighFive)
   option(HIGHFIVE_UNIT_TESTS "Enable unit tests" OFF)
