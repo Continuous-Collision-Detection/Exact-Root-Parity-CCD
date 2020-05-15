@@ -30,6 +30,19 @@ bool vertexFaceCCD(
         
         return false; // if bounding box not intersected, then not intersected
     }
+     bilinear bl0(
+        vfprism.p_vertices[0], vfprism.p_vertices[1], vfprism.p_vertices[4],
+        vfprism.p_vertices[3]);
+    bilinear bl1(
+        vfprism.p_vertices[1], vfprism.p_vertices[2], vfprism.p_vertices[5],
+        vfprism.p_vertices[4]);
+    bilinear bl2(
+        vfprism.p_vertices[0], vfprism.p_vertices[2], vfprism.p_vertices[5],
+        vfprism.p_vertices[3]);
+    std::array<bilinear, 3> bls = { { bl0, bl1, bl2 } };
+    bool oin=shoot_origin_ray_prism(vfprism,bls);
+    if(oin) return true;
+    if(minimum_distance==0) return false;
         
 
     // step 2. prism edges & prism bottom triangles check
@@ -72,16 +85,7 @@ bool vertexFaceCCD(
         v_tet; // cube vertices - tets positions
                // TODO one solution for v_tet is to  make a boolean which can
                // show if pt is on the border
-    bilinear bl0(
-        vfprism.p_vertices[0], vfprism.p_vertices[1], vfprism.p_vertices[4],
-        vfprism.p_vertices[3]);
-    bilinear bl1(
-        vfprism.p_vertices[1], vfprism.p_vertices[2], vfprism.p_vertices[5],
-        vfprism.p_vertices[4]);
-    bilinear bl2(
-        vfprism.p_vertices[0], vfprism.p_vertices[2], vfprism.p_vertices[5],
-        vfprism.p_vertices[3]);
-    std::array<bilinear, 3> bls = { { bl0, bl1, bl2 } };
+   
     bool cube_inter_tet[3];
     
     if (is_cube_intersect_tet_opposite_faces(
@@ -186,7 +190,22 @@ bool edgeEdgeCCD(
     
     if (!intersection)
         return false; // if bounding box not intersected, then not intersected
-
+    bilinear bl0(
+        hx.h_vertices[0], hx.h_vertices[1], hx.h_vertices[2], hx.h_vertices[3]);
+    bilinear bl1(
+        hx.h_vertices[4], hx.h_vertices[5], hx.h_vertices[6], hx.h_vertices[7]);
+    bilinear bl2(
+        hx.h_vertices[0], hx.h_vertices[1], hx.h_vertices[5], hx.h_vertices[4]);
+    bilinear bl3(
+        hx.h_vertices[1], hx.h_vertices[2], hx.h_vertices[6], hx.h_vertices[5]);
+    bilinear bl4(
+        hx.h_vertices[2], hx.h_vertices[3], hx.h_vertices[7], hx.h_vertices[6]);
+    bilinear bl5(
+        hx.h_vertices[0], hx.h_vertices[3], hx.h_vertices[7], hx.h_vertices[4]);
+    std::array<bilinear, 6> bls = { { bl0, bl1, bl2, bl3, bl4, bl5 } };
+    bool oin=shoot_origin_ray_hex(bls);
+    if(oin) return true;
+    if(minimum_distance==0) return false;
     // step 2. prism edges & prism bottom triangles check
     // prism edges test, segment degenerate cases already handled
     
@@ -210,19 +229,7 @@ bool edgeEdgeCCD(
     // step 3 tet facets- cube edges
     std::array<std::array<bool, 8>, 6> v_tet; // cube vertices - tets positions
     
-    bilinear bl0(
-        hx.h_vertices[0], hx.h_vertices[1], hx.h_vertices[2], hx.h_vertices[3]);
-    bilinear bl1(
-        hx.h_vertices[4], hx.h_vertices[5], hx.h_vertices[6], hx.h_vertices[7]);
-    bilinear bl2(
-        hx.h_vertices[0], hx.h_vertices[1], hx.h_vertices[5], hx.h_vertices[4]);
-    bilinear bl3(
-        hx.h_vertices[1], hx.h_vertices[2], hx.h_vertices[6], hx.h_vertices[5]);
-    bilinear bl4(
-        hx.h_vertices[2], hx.h_vertices[3], hx.h_vertices[7], hx.h_vertices[6]);
-    bilinear bl5(
-        hx.h_vertices[0], hx.h_vertices[3], hx.h_vertices[7], hx.h_vertices[4]);
-    std::array<bilinear, 6> bls = { { bl0, bl1, bl2, bl3, bl4, bl5 } };
+    
     
     bool cube_inter_tet[6];
     

@@ -229,18 +229,18 @@ void test_shifted_compare()
     int inside = 0;
     igl::Timer timer;
     double time = 0;
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < fn; i++) {
         if (i % 200 == 0)
             std::cout << "i " << i << std::endl;
         // std::cout << "i " << std::endl;
         timer.start();
         results[i] = vertexFaceCCD( // double
             data[i].pts, data[i].v1s, data[i].v2s, data[i].v3s, data[i].pte,
-            data[i].v1e, data[i].v2e, data[i].v3e, 1e-1);
+            data[i].v1e, data[i].v2e, data[i].v3e, 1e-8);
             if(results[1]==0){
-                std::cout<<"this case not collision "<<i<<std::endl;
-                std::cout<<"x0,\n "<<data[i].pts<<std::endl;std::cout<<"x1,\n "<<data[i].v1s<<std::endl;std::cout<<"x2,\n "<<data[i].v2s<<std::endl;std::cout<<"x3,\n "<<data[i].v3s<<std::endl;
-                std::cout<<"x0b,\n "<<data[i].pte<<std::endl;std::cout<<"x1b,\n "<<data[i].v1e<<std::endl;std::cout<<"x2b,\n "<<data[i].v2e<<std::endl;std::cout<<"x3b,\n "<<data[i].v3e<<std::endl;
+               // std::cout<<"this case not collision "<<i<<std::endl;
+               // std::cout<<"x0,\n "<<data[i].pts<<std::endl;std::cout<<"x1,\n "<<data[i].v1s<<std::endl;std::cout<<"x2,\n "<<data[i].v2s<<std::endl;std::cout<<"x3,\n "<<data[i].v3s<<std::endl;
+              //  std::cout<<"x0b,\n "<<data[i].pte<<std::endl;std::cout<<"x1b,\n "<<data[i].v1e<<std::endl;std::cout<<"x2b,\n "<<data[i].v2e<<std::endl;std::cout<<"x3b,\n "<<data[i].v3e<<std::endl;
 
             }
         time += timer.getElapsedTimeInSec();
@@ -569,7 +569,7 @@ int main(int argc, char* argv[])
 {
     // TODO: Put something more relevant here
     // ccd::test();
-   // test_shifted_compare();
+   test_shifted_compare();
     // test_rootfinder();
     //test_shift_maxerror();
 	//test_edge_edge();
