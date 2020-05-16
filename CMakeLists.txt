@@ -66,7 +66,6 @@ if(CCD_BUILD_RATIONAL)
   # Extra warnings
   target_link_libraries(${PROJECT_NAME}_rational PRIVATE warnings::all)
 
-  #GMP
   target_include_directories(${PROJECT_NAME}_rational PUBLIC ${GMP_INCLUDE_DIRS} src)
   target_link_libraries(${PROJECT_NAME}_rational PUBLIC ${GMP_LIBRARIES})
 endif()
@@ -82,6 +81,8 @@ CCD_set_source_group(${DOUBLECCD_SOURCES})
 
 add_library(${PROJECT_NAME}_double  ${DOUBLECCD_SOURCES})
 target_include_directories(${PROJECT_NAME}_double PUBLIC ${PROJECT_BINARY_DIR}/include)
+target_include_directories(${PROJECT_NAME}_double PUBLIC doubleccd)
+
 
 # libigl
 target_link_libraries(${PROJECT_NAME}_double PUBLIC igl::core igl::predicates)
@@ -90,11 +91,6 @@ target_link_libraries(${PROJECT_NAME}_double PUBLIC igl::core igl::predicates)
 target_link_libraries(${PROJECT_NAME}_double PRIVATE warnings::all)
 
 #GMP
-find_package(GMPECCD)
-IF(NOT ${GMP_FOUND})
-        MESSAGE(FATAL_ERROR "Cannot find GMP")
-ENDIF()
-target_include_directories(${PROJECT_NAME}_double PUBLIC doubleccd)
 target_include_directories(${PROJECT_NAME}_double PUBLIC ${GMP_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME}_double PUBLIC ${GMP_LIBRARIES})
 

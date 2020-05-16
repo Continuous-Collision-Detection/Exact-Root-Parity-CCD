@@ -31,3 +31,10 @@ if(NOT TARGET HighFive::HighFive)
   add_subdirectory(${CCD_EXTERNAL}/HighFive EXCLUDE_FROM_ALL)
   add_library(HighFive::HighFive ALIAS HighFive)
 endif()
+
+
+#GMP
+find_package(GMPECCD)
+IF(NOT ${GMP_FOUND})
+        MESSAGE(FATAL_ERROR "Cannot find GMP")
+ENDIF()
