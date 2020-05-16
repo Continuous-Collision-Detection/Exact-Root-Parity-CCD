@@ -63,7 +63,19 @@ void get_tet_corners(const std::array<Vector3d, 4>& p, Vector3d& min, Vector3d& 
             max[2] = p[i][2];
     }
 }
-
+void get_edge_coners(const Vector3d& e0, const Vector3d& e1, Vector3d &emin,Vector3d &emax){
+    for(int i=0;i<3;i++){
+    if(e0[i]>e1[i]){
+        emin[i]=e1[i];
+        emax[i]=e0[i];
+    }
+    else{
+        emin[i]=e0[i];
+        emax[i]=e1[i];
+    }
+    }
+    
+}
 
 Vector3d get_prism_corner_double(
     const Vector3d& vertex_start,       // x0
@@ -1313,7 +1325,7 @@ bool is_cube_edge_intersect_bilinear(
 // vin is true, this vertex has intersection with open tet
 // if tet is degenerated, just tell us if cube is intersected with the shape
 bool is_cube_intersect_tet_opposite_faces(
-    const bilinear& bl,
+    const bilinear& bl,const Vector3d &pmin, const Vector3d &pmax,
     const cube& cube,
     std::array<bool, 8>& vin,
     bool& cube_inter_tet)
@@ -1339,12 +1351,17 @@ bool is_cube_intersect_tet_opposite_faces(
 
     bool side1 = false;
     bool side2 = false;
-
+    Vector3d vmin,vmax;
     for (int i = 0; i < 12; i++) {
+       
         if (vin[cube.edgeid[i][0]]
             && vin[cube.edgeid[i][1]]) { // if two vertices are all inside, it
                                          // can not cut any edge
             cube_inter_tet = true;
+            continue;
+        }
+        get_edge_coners(cube.vr[cube.edgeid[i][0]],cube.vr[cube.edgeid[i][1]],vmin,vmax);
+        if(!box_box_intersection(pmin,pmax,vmin,vmax)){
             continue;
         }
         for (int j = 0; j < 4; j++) {

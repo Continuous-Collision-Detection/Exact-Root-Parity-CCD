@@ -88,14 +88,14 @@ bool vertexFaceCCD(
     bool cube_inter_tet[3];
     bool check_tet[3];
     //tet bounding box check
-    Vector3d pmin,pmax;
+    Vector3d pmin[3],pmax[3];
     std::array<Vector3d, 4> pvs;
     for(int i=0;i<3;i++){
         for(int j=0;j<4;j++){
             pvs[j]=bls[i].v[j];
         }
-        get_tet_corners(pvs,pmin,pmax);
-        if(!box_box_intersection(pmin,pmax,bmin,bmax)){
+        get_tet_corners(pvs,pmin[i],pmax[i]);
+        if(!box_box_intersection(pmin[i],pmax[i],bmin,bmax)){
             for(int j=0;j<8;j++){
                 v_tet[i][j]=false;
             }
@@ -114,7 +114,7 @@ bool vertexFaceCCD(
     
     if(check_tet[0]){
         if (is_cube_intersect_tet_opposite_faces(
-            bl0, cb, v_tet[0], cube_inter_tet[0])){
+            bl0,pmin[0],pmax[0], cb, v_tet[0], cube_inter_tet[0])){
                 
                 return true;
             }
@@ -122,14 +122,14 @@ bool vertexFaceCCD(
     }
     if(check_tet[1]){
     if (is_cube_intersect_tet_opposite_faces(
-            bl1, cb, v_tet[1], cube_inter_tet[1])){
+            bl1,pmin[1],pmax[1], cb, v_tet[1], cube_inter_tet[1])){
                 
                 return true;
             }
     }
     if(check_tet[2]){
     if (is_cube_intersect_tet_opposite_faces(
-            bl2, cb, v_tet[2], cube_inter_tet[2])){
+            bl2,pmin[2],pmax[2], cb, v_tet[2], cube_inter_tet[2])){
                 
                 return true;
             }
@@ -261,14 +261,14 @@ bool edgeEdgeCCD(
     
     bool check_tet[6];
     //tet bounding box check
-    Vector3d pmin,pmax;
+    Vector3d pmin[6],pmax[6];
     std::array<Vector3d, 4> pvs;
     for(int i=0;i<6;i++){
         for(int j=0;j<4;j++){
             pvs[j]=bls[i].v[j];
         }
-        get_tet_corners(pvs,pmin,pmax);
-        if(!box_box_intersection(pmin,pmax,bmin,bmax)){
+        get_tet_corners(pvs,pmin[i],pmax[i]);
+        if(!box_box_intersection(pmin[i],pmax[i],bmin,bmax)){
             for(int j=0;j<8;j++){
                 v_tet[i][j]=false;
             }
@@ -284,7 +284,7 @@ bool edgeEdgeCCD(
     for(int i=0;i<6;i++){
         if(!check_tet[i]) continue;
         if(is_cube_intersect_tet_opposite_faces(
-            bls[i], cb, v_tet[i], cube_inter_tet[i])){
+            bls[i],pmin[i],pmax[i], cb, v_tet[i], cube_inter_tet[i])){
 
             // bool rr=cube_discrete_bilinear_intersection(cb,bls[i],5);
             // if(!rr){

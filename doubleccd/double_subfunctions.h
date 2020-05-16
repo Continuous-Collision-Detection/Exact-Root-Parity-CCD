@@ -130,6 +130,8 @@ bool is_cube_edges_intersect_triangle(
 // segment and triangle are coplanar, check intersection
 
 void get_corners(const Eigen::MatrixX3d& p, Vector3d& min, Vector3d& max);
+void get_tet_corners(const std::array<Vector3d, 4>& p, Vector3d& min, Vector3d& max);
+void get_edge_coners(const Vector3d& e0, const Vector3d& e1, Vector3d &emin,Vector3d &emax);
 template <typename T>
 void get_bbd_corners(const std::array<T, 6>& p, T& min, T& max)
 {
@@ -261,8 +263,9 @@ private:
         const Vector3d& b1b,
         std::array<Vector3d, 8>& h_vertices);
 };
+//pmin and pmax are the bounding box corners of bilinear bl
 bool is_cube_intersect_tet_opposite_faces(
-    const bilinear& bl,
+    const bilinear& bl,const Vector3d &pmin, const Vector3d &pmax,
     const cube& cube,
     std::array<bool, 8>& vin,
     bool& cube_inter_tet);
@@ -284,5 +287,5 @@ bool rootfinder(
 bool cube_discrete_bilinear_intersection(
     const cube& cb, const bilinear& bl, int n);
 bool is_point_inside_tet(const bilinear& bl, const Vector3d& p);
-void get_tet_corners(const std::array<Vector3d, 4>& p, Vector3d& min, Vector3d& max);
+
 } // namespace doubleccd

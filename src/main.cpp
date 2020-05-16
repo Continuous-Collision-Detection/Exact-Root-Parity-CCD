@@ -569,7 +569,7 @@ int main(int argc, char* argv[])
 {
     // TODO: Put something more relevant here
     // ccd::test();
-   //test_shifted_compare();
+   test_shifted_compare();
     // test_rootfinder();
     //test_shift_maxerror();
 	//test_edge_edge();
@@ -584,7 +584,7 @@ int main(int argc, char* argv[])
 //     std::cout<<"orient "<<doubleccd::orient_3d(p0,p1,p2,p3)<<" "<<ccd::orient3d(p0r,p1r,p2r,p3r)<<std::endl;
 //     }
    //compare_lpi_results();
-   get_multiple();
+   //get_multiple();
 //    test_ori();
     std::cout<<"done"<<std::endl;
 
