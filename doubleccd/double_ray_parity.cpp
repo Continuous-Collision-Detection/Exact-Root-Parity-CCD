@@ -18,6 +18,11 @@ namespace doubleccd {
 				pt, pt1, dir, bl.v[0], bl.v[1],
 				bl.v[2], true);
 				//std::cout<<"inter t1, "<<r1<<"\n"<<std::endl;
+				//std::cout<<"v0 "<<bl.v[0][0]<<", "<<bl.v[0][1]<<", "<<bl.v[0][2]<<std::endl;
+				//std::cout<<"v1 "<<bl.v[1][0]<<", "<<bl.v[1][1]<<", "<<bl.v[1][2]<<std::endl;
+				//std::cout<<"v2 "<<bl.v[2][0]<<", "<<bl.v[2][1]<<", "<<bl.v[2][2]<<std::endl;
+				//std::cout<<"dir "<<dir[0]<<", "<<dir[1]<<", "<<dir[2]<<std::endl;
+				//ray_triangle_intersection_rational
 			if (r1 == 2)
 				return 2;
 			if (r1 == -1)
@@ -137,7 +142,7 @@ namespace doubleccd {
 			if (!is_point_in_tet) { // p out of tet,or on the border
 				int r1, r2;
 				//we need to know: if shoot on any edge?(two edges return -1, one edge return 1)
-				
+				//std::cout<<"is dege "<<is_degenerated<<std::endl;
 				
 				r1 = ray_triangle_intersection(
 					pt, pt1, dir, bl.v[bl.facets[0][0]], bl.v[bl.facets[0][1]],
@@ -145,7 +150,7 @@ namespace doubleccd {
 				r2 = ray_triangle_intersection(
 					pt, pt1, dir, bl.v[bl.facets[1][0]], bl.v[bl.facets[1][1]],
 					bl.v[bl.facets[1][2]], true);
-					
+				//std::cout<<"r1 "<<r1<<" r2 "<<r2<<std::endl;
 				// idea is: if -1
 				if (r1 == -1 || r2 == -1)
 					return -1;
@@ -295,6 +300,8 @@ namespace doubleccd {
 
 			int is_ray_patch = ray_bilinear_parity(
 				bls[patch], pt, pt1, dir, bls[patch].is_degenerated, is_pt_in_tet[patch]);
+			//std::cout<<"\nis ray parity "<<is_ray_patch<<" is pt in tet "<<is_pt_in_tet[patch]<<std::endl;
+			//std::cout<<"bilinear ori, "<<orient_3d(bls[patch].v[0],bls[patch].v[1],bls[patch].v[2],bls[patch].v[3])<<"this bilinear finished\n"<<std::endl;
 
 			if (is_ray_patch == 2)
 				return 1;
@@ -338,6 +345,46 @@ namespace doubleccd {
 		
 		
 	}
+	bool shoot_origin_ray_prism(prism& psm, std::array<bilinear, 3>& bls){
+			static const int max_trials = 8;
+
+		// if a/2<=b<=2*a, then a-b is exact.
+		std::vector<bool> is_pt_in_tet;
+		is_pt_in_tet.resize(3);
+		for(int i=0;i<3;i++){
+			if(bls[i].is_degenerated)
+				is_pt_in_tet[i]=false;
+			else
+				is_pt_in_tet[i]=is_point_inside_tet(bls[i],ORIGIN);
+		}
+		
+		
+		Vector3d  dir(1,0,0);
+		Vector3d pt2=dir;
+		
+		int res = -1;
+		int trials;
+		
+		
+		for (trials = 0; trials < max_trials; ++trials) {
+			res = point_inside_prism(psm, bls, ORIGIN,pt2, dir, is_pt_in_tet);
+
+			if (res >= 0)
+				break;
+
+			dir=Vector3d::Random();
+			pt2=dir;
+		}
+
+		if (trials == max_trials) {
+
+			std::cout << "All rays are on edges, increase trials" << std::endl;
+			throw "All rays are on edges, increase trials";
+			return false;
+		}
+
+		return res >= 1; // >=1 means point inside of prism
+		}
 	bool retrial_ccd(
 		prism& psm, std::array<bilinear, 3>& bls,
 		const Vector3d& pt,
@@ -374,6 +421,43 @@ namespace doubleccd {
 
 		return res >= 1; // >=1 means point inside of prism
 	}
+	bool shoot_origin_ray_hex( std::array<bilinear, 6>& bls){
+			static const int max_trials = 8;
+
+		// if a/2<=b<=2*a, then a-b is exact.
+		std::vector<bool> is_pt_in_tet;
+		is_pt_in_tet.resize(6);
+		for(int i=0;i<6;i++){
+			if(bls[i].is_degenerated)
+				is_pt_in_tet[i]=false;
+			else
+				is_pt_in_tet[i]=is_point_inside_tet(bls[i],ORIGIN);
+		}
+		Vector3d  dir(1,0,0);
+		Vector3d pt2=dir;
+
+		int res = -1;
+		int trials;
+
+		for (trials = 0; trials < max_trials; ++trials) {
+			res = point_inside_hex(bls, ORIGIN, pt2, dir, is_pt_in_tet);
+			
+			if (res >= 0)
+				break;
+
+			dir=Vector3d::Random();
+			pt2=dir;
+		}
+
+		if (trials == max_trials) {
+
+			std::cout << "All rays are on edges, increase trials" << std::endl;
+			throw "All rays are on edges, increase trials";
+			return false;
+		}
+
+		return res >= 1; // >=1 means point inside of prism
+		}
 	bool retrial_ccd_hex(
 		 std::array<bilinear, 6>& bls,
 		const Vector3d& pt,

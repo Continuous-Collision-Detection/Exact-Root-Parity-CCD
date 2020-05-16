@@ -153,8 +153,8 @@ namespace doubleccd {
 		int ori23=orient_3d(e0,e1,t2,t3);
 		int ori31=orient_3d(e0,e1,t3,t1);
 		if(ori12==ori23&&ori12==ori31) return 1;
-		if(ori12==ori23&&ori31==0) return 2;
-		if(ori31==ori23&&ori12==0) return 2;
+		if(ori12*ori23>=0&&ori31==0) return 2;
+		if(ori31*ori23>=0&&ori12==0) return 2;
 		if(ori12==ori31&&ori23==0){
 			if(halfopen) return 3;
 			else return 2;
@@ -341,7 +341,7 @@ namespace doubleccd {
 	// 0 not intersected; 1 intersected; 2 pt on s0
 	int point_on_ray(const Vector3d& s0, const Vector3d& e0,
 		const Vector3d& dir0, const Vector3d& pt) {
-		if (same_point(s0, pt)|| same_point(e0, pt))
+		if (same_point(s0, pt))
 			return 2;
 		if (!is_triangle_degenerated(s0, e0, pt)) return 0;
 
@@ -569,8 +569,8 @@ namespace doubleccd {
 		int ori23=orient_3d(e0,e1,t2,t3);
 		int ori31=orient_3d(e0,e1,t3,t1);
 		if(ori12==ori23&&ori12==ori31) return 1;
-		if(ori12==ori23&&ori31==0) return 2;
-		if(ori31==ori23&&ori12==0) return 2;
+		if(ori12*ori23>=0&&ori31==0) return 2;
+		if(ori31*ori23>=0&&ori12==0) return 2;
 		if(ori12==ori31&&ori23==0){
 			if(halfopen) return 3;
 			else return 2;
@@ -646,10 +646,11 @@ namespace doubleccd {
 
 		// bool in1=is_ray_intersect_plane(pt, dir, t1, t2, t3);
 		// if (!in1) return 0;//ray triangle not intersected;
-
+		//std::cout<<"before return 1"<<std::endl;
 		if(ori12==ori23&&ori12==ori31) return 1;//
-		if(ori12==ori23&&ori31==0) return -1;
-		if(ori31==ori23&&ori12==0) return -1;
+		//std::cout<<"after return 1"<<std::endl;
+		if(ori12*ori23>=0&&ori31==0) return -1;
+		if(ori31*ori23>=0&&ori12==0) return -1;
 		if(ori12==ori31&&ori23==0){
 			if(halfopen) return 3;
 			else return -1;

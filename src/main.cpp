@@ -229,18 +229,18 @@ void test_shifted_compare()
     int inside = 0;
     igl::Timer timer;
     double time = 0;
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < fn; i++) {
         if (i % 200 == 0)
             std::cout << "i " << i << std::endl;
         // std::cout << "i " << std::endl;
         timer.start();
         results[i] = vertexFaceCCD( // double
             data[i].pts, data[i].v1s, data[i].v2s, data[i].v3s, data[i].pte,
-            data[i].v1e, data[i].v2e, data[i].v3e, 1e-1);
+            data[i].v1e, data[i].v2e, data[i].v3e, 1e-8);
             if(results[1]==0){
-                std::cout<<"this case not collision "<<i<<std::endl;
-                std::cout<<"x0,\n "<<data[i].pts<<std::endl;std::cout<<"x1,\n "<<data[i].v1s<<std::endl;std::cout<<"x2,\n "<<data[i].v2s<<std::endl;std::cout<<"x3,\n "<<data[i].v3s<<std::endl;
-                std::cout<<"x0b,\n "<<data[i].pte<<std::endl;std::cout<<"x1b,\n "<<data[i].v1e<<std::endl;std::cout<<"x2b,\n "<<data[i].v2e<<std::endl;std::cout<<"x3b,\n "<<data[i].v3e<<std::endl;
+               // std::cout<<"this case not collision "<<i<<std::endl;
+               // std::cout<<"x0,\n "<<data[i].pts<<std::endl;std::cout<<"x1,\n "<<data[i].v1s<<std::endl;std::cout<<"x2,\n "<<data[i].v2s<<std::endl;std::cout<<"x3,\n "<<data[i].v3s<<std::endl;
+              //  std::cout<<"x0b,\n "<<data[i].pte<<std::endl;std::cout<<"x1b,\n "<<data[i].v1e<<std::endl;std::cout<<"x2b,\n "<<data[i].v2e<<std::endl;std::cout<<"x3b,\n "<<data[i].v3e<<std::endl;
 
             }
         time += timer.getElapsedTimeInSec();
@@ -433,9 +433,9 @@ void test_edge_edge(){
 
 void check_false(){
     //H5Easy::File file(root_path + path_sep +"vertex-face-collisions.hdf5");
-    H5Easy::File file("/home/zachary/Development/ccd-queries/golf-ball/vertex-face/failing/vertex-face-collisions-part00007.hdf5");
+    H5Easy::File file("/home/zachary/Development/ccd-queries/erleben-cube-internal-edges/edge-edge/edge-edge-collisions.hdf5");
     Eigen::Matrix<double, 8, 3> vertex_face_data;
-    string test_case= "/vertex_face_0786036/shifted/points";
+    string test_case= "/edge_edge_0000416/shifted/points";
     vertex_face_data=H5Easy::load<Eigen::Matrix<double, 8, 3>>(file,test_case);
     std::cout<<test_case<<std::endl;
     vf_pair dt;
@@ -459,23 +459,23 @@ void check_false(){
     // dt.x2b=Vector3d(0.4, -0.1, 0.5);
     // dt.x3b=Vector3d(-0.1,-0.1,0.5);
 
-    dt.x0=Vector3d(0.1,0.1,1);
-    dt.x1=Vector3d(-0.05,-0.05,-0.05);
-    dt.x2=Vector3d(0, -0.9, 0);
-    dt.x3=Vector3d(-0.8, -0.8, 0);
-    dt.x0b=Vector3d(0.5,0.5,0.5);
-    dt.x1b=Vector3d(0.3, 0.3, 0.5);
-    dt.x2b=Vector3d(0.4, -0.4, 0.5);
-    dt.x3b=Vector3d(-0.2,0,0.5);
+    // dt.x0=Vector3d(0.1,0.1,1);
+    // dt.x1=Vector3d(-0.05,-0.05,-0.05);
+    // dt.x2=Vector3d(0, -0.9, 0);
+    // dt.x3=Vector3d(-0.8, -0.8, 0);
+    // dt.x0b=Vector3d(0.5,0.5,0.5);
+    // dt.x1b=Vector3d(0.3, 0.3, 0.5);
+    // dt.x2b=Vector3d(0.4, -0.4, 0.5);
+    // dt.x3b=Vector3d(-0.2,0,0.5);
 
-    double ms=0.1;
+    double ms=1e-8;
     std::cout<<"ms "<<ms<<std::endl;
 
     std::cout<<"\n*method double"<<std::endl;
-    int r2=doubleccd::vertexFaceCCD(dt.x0,dt.x1,dt.x2,dt.x3,dt.x0b,dt.x1b,dt.x2b,dt.x3b,ms);
+    int r2=doubleccd::edgeEdgeCCD(dt.x0,dt.x1,dt.x2,dt.x3,dt.x0b,dt.x1b,dt.x2b,dt.x3b,ms);
     //std::cout<<" exact dir "<<doubleccd::hack::getInstance().dir[0]<<" "<< doubleccd::hack::getInstance().dir[1]<<" "<< doubleccd::hack::getInstance().dir[2]<<std::endl;
     std::cout<<"*\n\nmethod rational"<<std::endl;
-    int r1=ccd::vertexFaceCCD(dt.x0,dt.x1,dt.x2,dt.x3,dt.x0b,dt.x1b,dt.x2b,dt.x3b,ms);
+    int r1=ccd::edgeEdgeCCD(dt.x0,dt.x1,dt.x2,dt.x3,dt.x0b,dt.x1b,dt.x2b,dt.x3b,ms);
 
 
     std::cout<<"the double vf ccd result is "<<r2<<std::endl;
@@ -569,7 +569,7 @@ int main(int argc, char* argv[])
 {
     // TODO: Put something more relevant here
     // ccd::test();
-   // test_shifted_compare();
+   //test_shifted_compare();
     // test_rootfinder();
     //test_shift_maxerror();
 	//test_edge_edge();
@@ -577,7 +577,7 @@ int main(int argc, char* argv[])
     // std::vector<Eigen::Matrix<double, 8, 3>> edge_edge_data;
 	// read_edge_edge_data(filename, edge_edge_data);
    // case_check();
-    //check_false();
+    check_false();
 //     for(int i=0;i<20;i++){
 //  doubleccd::Vector3d p0=Vector3d::Random(),p1=Vector3d::Random(),p2=Vector3d::Random(),p3=Vector3d::Random();
 //     ccd::Vector3r p0r(p0[0],p0[1],p0[2]),p1r(p1[0],p1[1],p1[2]),p2r(p2[0],p2[1],p2[2]),p3r(p3[0],p3[1],p3[2]);

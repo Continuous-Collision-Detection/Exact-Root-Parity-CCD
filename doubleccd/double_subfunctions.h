@@ -283,4 +283,5 @@ bool rootfinder(
     const int pairid);
 bool cube_discrete_bilinear_intersection(
     const cube& cb, const bilinear& bl, int n);
+bool is_point_inside_tet(const bilinear& bl, const Vector3d& p);
 } // namespace doubleccd
