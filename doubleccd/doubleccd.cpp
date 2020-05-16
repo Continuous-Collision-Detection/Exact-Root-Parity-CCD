@@ -80,31 +80,60 @@ bool vertexFaceCCD(
             
     }
     
-    // step 3 tet facets- cube edges
     std::array<std::array<bool, 8>, 3>
         v_tet; // cube vertices - tets positions
                // TODO one solution for v_tet is to  make a boolean which can
                // show if pt is on the border
-   
+
     bool cube_inter_tet[3];
+    bool check_tet[3];
+    //tet bounding box check
+    Vector3d pmin,pmax;
+    std::array<Vector3d, 4> pvs;
+    for(int i=0;i<3;i++){
+        for(int j=0;j<4;j++){
+            pvs[j]=bls[i].v[j];
+        }
+        get_tet_corners(pvs,pmin,pmax);
+        if(!box_box_intersection(pmin,pmax,bmin,bmax)){
+            for(int j=0;j<8;j++){
+                v_tet[i][j]=false;
+            }
+            cube_inter_tet[i]=false;
+            check_tet[i]=false;
+        }
+        else{
+            check_tet[i]=true;
+        }
+    }
+
+
+    // step 3 tet facets- cube edges
     
-    if (is_cube_intersect_tet_opposite_faces(
+   
+    
+    if(check_tet[0]){
+        if (is_cube_intersect_tet_opposite_faces(
             bl0, cb, v_tet[0], cube_inter_tet[0])){
                 
                 return true;
             }
         
+    }
+    if(check_tet[1]){
     if (is_cube_intersect_tet_opposite_faces(
             bl1, cb, v_tet[1], cube_inter_tet[1])){
                 
                 return true;
             }
+    }
+    if(check_tet[2]){
     if (is_cube_intersect_tet_opposite_faces(
             bl2, cb, v_tet[2], cube_inter_tet[2])){
                 
                 return true;
             }
-
+    }
     // if cube intersect any tet, need check if intersect bilinear;
     // if cube not intersect any tet, shoot a ray
     // TODO we can also have some information about the edge-face intersection
@@ -228,15 +257,32 @@ bool edgeEdgeCCD(
 
     // step 3 tet facets- cube edges
     std::array<std::array<bool, 8>, 6> v_tet; // cube vertices - tets positions
-    
-    
-    
     bool cube_inter_tet[6];
     
-    
-    int discrete=5;
+    bool check_tet[6];
+    //tet bounding box check
+    Vector3d pmin,pmax;
+    std::array<Vector3d, 4> pvs;
     for(int i=0;i<6;i++){
-        
+        for(int j=0;j<4;j++){
+            pvs[j]=bls[i].v[j];
+        }
+        get_tet_corners(pvs,pmin,pmax);
+        if(!box_box_intersection(pmin,pmax,bmin,bmax)){
+            for(int j=0;j<8;j++){
+                v_tet[i][j]=false;
+            }
+            cube_inter_tet[i]=false;
+            check_tet[i]=false;
+        }
+        else{
+            check_tet[i]=true;
+        }
+    }
+
+    //int discrete=5;
+    for(int i=0;i<6;i++){
+        if(!check_tet[i]) continue;
         if(is_cube_intersect_tet_opposite_faces(
             bls[i], cb, v_tet[i], cube_inter_tet[i])){
 

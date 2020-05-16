@@ -42,7 +42,27 @@ void get_corners(const Eigen::MatrixX3d& p, Vector3d& min, Vector3d& max)
     min = p.colwise().minCoeff();
     max = p.colwise().maxCoeff();
 }
+void get_tet_corners(const std::array<Vector3d, 4>& p, Vector3d& min, Vector3d& max)
+{
 
+    min = p[0];
+    max = p[0];
+    for (int i = 0; i < 4; i++) {
+        if (min[0] > p[i][0])
+            min[0] = p[i][0];
+        if (min[1] > p[i][1])
+            min[1] = p[i][1];
+        if (min[2] > p[i][2])
+            min[2] = p[i][2];
+
+        if (max[0] < p[i][0])
+            max[0] = p[i][0];
+        if (max[1] < p[i][1])
+            max[1] = p[i][1];
+        if (max[2] < p[i][2])
+            max[2] = p[i][2];
+    }
+}
 
 
 Vector3d get_prism_corner_double(
