@@ -284,4 +284,5 @@ bool rootfinder(
 bool cube_discrete_bilinear_intersection(
     const cube& cb, const bilinear& bl, int n);
 bool is_point_inside_tet(const bilinear& bl, const Vector3d& p);
+void get_tet_corners(const std::array<Vector3d, 4>& p, Vector3d& min, Vector3d& max);
 } // namespace doubleccd
