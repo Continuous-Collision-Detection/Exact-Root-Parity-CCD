@@ -1,10 +1,10 @@
 #include <Eigen/Dense>
 #include <doubleCCD/double_Utils.hpp>
 #include <fstream>
-#include<igl/Timer.h>
+
 
 namespace doubleccd {
-	double phitime=0;
+	
 	bilinear::bilinear(
 		const Vector3d& v0,
 		const Vector3d& v1,
@@ -69,8 +69,8 @@ namespace doubleccd {
 	//    return det.get_sign();
 	//}
 	Rational phi(const Vector3d xd, const std::array<Vector3d, 4>& corners)
-	{	igl::Timer timer;
-	timer.start();
+	{	
+	
 		static const std::array<int, 4> vv = { { 0, 1, 2, 3 } };
 		Vector3r x(xd[0], xd[1], xd[2]);
 		const Rational g012 = func_g(x, corners, { { vv[0], vv[1], vv[2] } });
@@ -82,7 +82,7 @@ namespace doubleccd {
 		const Rational h03 = g132 * g013;
 
 		const Rational phi = h12 - h03;
-		phitime+=timer.getElapsedTimeInSec();
+		
 		return phi;
 	}
 	Rational phi(const Vector3r x, const std::array<Vector3d, 4>& corners)
@@ -884,7 +884,7 @@ Rational&a11,Rational&a12,Rational&a13,Rational&d){
 }
 double print_phi_time(){
 	//std::cout<<"phi time "<<phitime<<std::endl;
-	return phitime;
+	return 0;
 }
 
 } // namespace ccd

@@ -2,12 +2,12 @@
 #include <doubleCCD/double_subfunctions.h>
 #include <doubleCCD/doubleccd.hpp>
 #include <doubleCCD/exact_subtraction.hpp>
-#include <igl/Timer.h>
+
 
 
 
 namespace doubleccd {
-double rftime=0;
+
 // cube
 cube::cube(double eps)
 {
@@ -1112,10 +1112,10 @@ bool get_function_find_root(
 }
 void print_sub()
 {
-    std::cout<<"time of rootfinder "<<rftime<<std::endl;
+    //std::cout<<"time of rootfinder "<<rftime<<std::endl;
 }
 double root_finder_time(){
-    return rftime;
+    return 0;
 }
 bool rootfinder(
     const bilinear& bl,
@@ -1190,7 +1190,7 @@ bool is_seg_intersect_not_degenerated_bilinear(
     // first compare phi, if phis are different, intersected;
     // then check if the line intersect two opposite facets of bilinear, if so,
     // use rootfinder, else, not intersected
-    igl::Timer timer;
+    
     if (pin0 && pin1) { // two points are all inside
 
         Rational phi0 = phi(p0, bl.v);
@@ -1199,16 +1199,16 @@ bool is_seg_intersect_not_degenerated_bilinear(
             return true;
         if (line_shoot_same_pair_tet(p0, p1, phi1.get_sign(), bl)) {
             if (phi1.get_sign() == bl.phi_f[0]){
-                timer.start();
+                
                 bool rf=rootfinder(bl, p0, p1, pin0, pin1, 0);
-                rftime+=timer.getElapsedTimeInSec();
+                
                 return rf;
             }
                 
             else{
-                timer.start();
+                
                 bool rf=rootfinder(bl, p0, p1, pin0, pin1, 1);
-                rftime+=timer.getElapsedTimeInSec();
+                
                 return rf;
             }
                 
@@ -1251,16 +1251,16 @@ bool is_seg_intersect_not_degenerated_bilinear(
         else {
             if (line_shoot_same_pair_tet(p0, p1, phi0.get_sign(), bl)) {
                 if (phi0.get_sign() == bl.phi_f[0]){
-                    timer.start();
+                    
                     bool rf= rootfinder(bl, p0, p1, pin0, pin1, 0);
-                    rftime+=timer.getElapsedTimeInSec();
+                    
                     return rf;
                 }
                     
                 else{
-                    timer.start();
+                    
                     bool rf=rootfinder(bl, p0, p1, pin0, pin1, 1);
-                    rftime+=timer.getElapsedTimeInSec();
+                    
                     return rf;
                 }
                      
@@ -1300,16 +1300,16 @@ bool is_seg_intersect_not_degenerated_bilinear(
         else {
             if (line_shoot_same_pair_tet(p0, p1, phi1.get_sign(), bl)) {
                 if (phi1.get_sign() == bl.phi_f[0]){
-                    timer.start();
+                    
                     bool rf=rootfinder(bl, p0, p1, pin0, pin1, 0);
-                    rftime+=timer.getElapsedTimeInSec();
+                    
                     return rf;
                 }
 
                 else{
-                    timer.start();
+                    
                     bool rf=  rootfinder(bl, p0, p1, pin0, pin1, 1);
-                    rftime+=timer.getElapsedTimeInSec();
+                    
                     return rf;
                 }
                    
@@ -1324,16 +1324,16 @@ bool is_seg_intersect_not_degenerated_bilinear(
 
         if (line_shoot_same_pair_tet(p0, p1, 1, bl)) {
             if (1 == bl.phi_f[0]){
-                timer.start();
+                
                 bool rf= rootfinder(bl, p0, p1, pin0, pin1, 0);
-                rftime+=timer.getElapsedTimeInSec();
+                
                 return rf;
             }
                 
             else{
-                timer.start();
+                
                 bool rf= rootfinder(bl, p0, p1, pin0, pin1, 1);
-                rftime+=timer.getElapsedTimeInSec();
+                
                 return rf;
             }
                 
@@ -1341,16 +1341,16 @@ bool is_seg_intersect_not_degenerated_bilinear(
 
         else if (line_shoot_same_pair_tet(p0, p1, -1, bl)) {
             if (-1 == bl.phi_f[0]){
-                timer.start();
+                
                 bool rf= rootfinder(bl, p0, p1, pin0, pin1, 0);
-                rftime+=timer.getElapsedTimeInSec();
+                
                 return rf;
             }
                 
             else{
-                timer.start();
+                
                 bool rf= rootfinder(bl, p0, p1, pin0, pin1, 1);
-                rftime+=timer.getElapsedTimeInSec();
+                
                 return rf;
             }
                 
