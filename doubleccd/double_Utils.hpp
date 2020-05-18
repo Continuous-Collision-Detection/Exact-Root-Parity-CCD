@@ -288,4 +288,5 @@ int lpi_in_triangle(const Vector3d& p,const Vector3d& q,const Vector3d& r,const 
 bool lpi_rational(const Vector3d& p,const Vector3d& q,const Vector3d& r,const Vector3d& s,const Vector3d& t,
 Rational&a11,Rational&a12,Rational&a13,Rational&d);
 void compare_lpi_results();
+double print_phi_time();
 } // namespace ccd

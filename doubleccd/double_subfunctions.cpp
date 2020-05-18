@@ -2,10 +2,12 @@
 #include <doubleCCD/double_subfunctions.h>
 #include <doubleCCD/doubleccd.hpp>
 #include <doubleCCD/exact_subtraction.hpp>
+#include <igl/Timer.h>
+
 
 
 namespace doubleccd {
-
+double rftime=0;
 // cube
 cube::cube(double eps)
 {
@@ -1110,9 +1112,11 @@ bool get_function_find_root(
 }
 void print_sub()
 {
-
+    std::cout<<"time of rootfinder "<<rftime<<std::endl;
 }
-
+double root_finder_time(){
+    return rftime;
+}
 bool rootfinder(
     const bilinear& bl,
     const Vector3d& p0d,
@@ -1186,6 +1190,7 @@ bool is_seg_intersect_not_degenerated_bilinear(
     // first compare phi, if phis are different, intersected;
     // then check if the line intersect two opposite facets of bilinear, if so,
     // use rootfinder, else, not intersected
+    igl::Timer timer;
     if (pin0 && pin1) { // two points are all inside
 
         Rational phi0 = phi(p0, bl.v);
@@ -1193,10 +1198,20 @@ bool is_seg_intersect_not_degenerated_bilinear(
         if (phi0 == 0 || phi1 == 0 || phi0.get_sign() != phi1.get_sign())
             return true;
         if (line_shoot_same_pair_tet(p0, p1, phi1.get_sign(), bl)) {
-            if (phi1.get_sign() == bl.phi_f[0])
-                return rootfinder(bl, p0, p1, pin0, pin1, 0);
-            else
-                return rootfinder(bl, p0, p1, pin0, pin1, 1);
+            if (phi1.get_sign() == bl.phi_f[0]){
+                timer.start();
+                bool rf=rootfinder(bl, p0, p1, pin0, pin1, 0);
+                rftime+=timer.getElapsedTimeInSec();
+                return rf;
+            }
+                
+            else{
+                timer.start();
+                bool rf=rootfinder(bl, p0, p1, pin0, pin1, 1);
+                rftime+=timer.getElapsedTimeInSec();
+                return rf;
+            }
+                
         }
 
         else
@@ -1235,10 +1250,20 @@ bool is_seg_intersect_not_degenerated_bilinear(
 
         else {
             if (line_shoot_same_pair_tet(p0, p1, phi0.get_sign(), bl)) {
-                if (phi0.get_sign() == bl.phi_f[0])
-                    return rootfinder(bl, p0, p1, pin0, pin1, 0);
-                else
-                    return rootfinder(bl, p0, p1, pin0, pin1, 1);
+                if (phi0.get_sign() == bl.phi_f[0]){
+                    timer.start();
+                    bool rf= rootfinder(bl, p0, p1, pin0, pin1, 0);
+                    rftime+=timer.getElapsedTimeInSec();
+                    return rf;
+                }
+                    
+                else{
+                    timer.start();
+                    bool rf=rootfinder(bl, p0, p1, pin0, pin1, 1);
+                    rftime+=timer.getElapsedTimeInSec();
+                    return rf;
+                }
+                     
             }
 
             else
@@ -1274,10 +1299,20 @@ bool is_seg_intersect_not_degenerated_bilinear(
 
         else {
             if (line_shoot_same_pair_tet(p0, p1, phi1.get_sign(), bl)) {
-                if (phi1.get_sign() == bl.phi_f[0])
-                    return rootfinder(bl, p0, p1, pin0, pin1, 0);
-                else
-                    return rootfinder(bl, p0, p1, pin0, pin1, 1);
+                if (phi1.get_sign() == bl.phi_f[0]){
+                    timer.start();
+                    bool rf=rootfinder(bl, p0, p1, pin0, pin1, 0);
+                    rftime+=timer.getElapsedTimeInSec();
+                    return rf;
+                }
+
+                else{
+                    timer.start();
+                    bool rf=  rootfinder(bl, p0, p1, pin0, pin1, 1);
+                    rftime+=timer.getElapsedTimeInSec();
+                    return rf;
+                }
+                   
             } else
                 return false; // if the phis are the same, and shoot same pair,
                               // need to use rootfinder
@@ -1288,17 +1323,37 @@ bool is_seg_intersect_not_degenerated_bilinear(
                     // finder) or intersect diff side(checked before)
 
         if (line_shoot_same_pair_tet(p0, p1, 1, bl)) {
-            if (1 == bl.phi_f[0])
-                return rootfinder(bl, p0, p1, pin0, pin1, 0);
-            else
-                return rootfinder(bl, p0, p1, pin0, pin1, 1);
+            if (1 == bl.phi_f[0]){
+                timer.start();
+                bool rf= rootfinder(bl, p0, p1, pin0, pin1, 0);
+                rftime+=timer.getElapsedTimeInSec();
+                return rf;
+            }
+                
+            else{
+                timer.start();
+                bool rf= rootfinder(bl, p0, p1, pin0, pin1, 1);
+                rftime+=timer.getElapsedTimeInSec();
+                return rf;
+            }
+                
         }
 
         else if (line_shoot_same_pair_tet(p0, p1, -1, bl)) {
-            if (-1 == bl.phi_f[0])
-                return rootfinder(bl, p0, p1, pin0, pin1, 0);
-            else
-                return rootfinder(bl, p0, p1, pin0, pin1, 1);
+            if (-1 == bl.phi_f[0]){
+                timer.start();
+                bool rf= rootfinder(bl, p0, p1, pin0, pin1, 0);
+                rftime+=timer.getElapsedTimeInSec();
+                return rf;
+            }
+                
+            else{
+                timer.start();
+                bool rf= rootfinder(bl, p0, p1, pin0, pin1, 1);
+                rftime+=timer.getElapsedTimeInSec();
+                return rf;
+            }
+                
         }
         return false; // if the phis are the same, and shoot same pair,
                       // need to use rootfinder

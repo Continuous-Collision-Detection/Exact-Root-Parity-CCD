@@ -230,13 +230,13 @@ void test_shifted_compare()
     igl::Timer timer;
     double time = 0;
     for (int i = 0; i < fn; i++) {
-        if (i % 200 == 0)
+        if (i % 2000 == 0)
             std::cout << "i " << i << std::endl;
         // std::cout << "i " << std::endl;
         timer.start();
-        results[i] = vertexFaceCCD( // double
+        results[i] = edgeEdgeCCD( // double
             data[i].pts, data[i].v1s, data[i].v2s, data[i].v3s, data[i].pte,
-            data[i].v1e, data[i].v2e, data[i].v3e, 1e-8);
+            data[i].v1e, data[i].v2e, data[i].v3e, 1e-30);
             if(results[1]==0){
                // std::cout<<"this case not collision "<<i<<std::endl;
                // std::cout<<"x0,\n "<<data[i].pts<<std::endl;std::cout<<"x1,\n "<<data[i].v1s<<std::endl;std::cout<<"x2,\n "<<data[i].v2s<<std::endl;std::cout<<"x3,\n "<<data[i].v3s<<std::endl;
@@ -266,6 +266,8 @@ void test_shifted_compare()
 
     print_sub();
     ray_time();
+    double phit=print_phi_time();
+    std::cout<<"percentage "<<phit/time<<"\n"<<std::endl;
 }
 
 void test_rootfinder()
@@ -507,18 +509,22 @@ void case_check(){
     dt.x3b = Vector3d(-0.25,-0.5,-0.25);
     std::cout<<"the vf ccd result is "<<doubleccd::vertexFaceCCD(dt.x0,dt.x1,dt.x2,dt.x3,dt.x0b,dt.x1b,dt.x2b,dt.x3b,1e-300)<<std::endl;
 }
-void get_multiple(){
-double ms=1e-8;
+void get_multiple(string data,string method, string part, double ms){
+//double ms=1e-30;
     std::cout<<"ms "<<ms<<std::endl;
-
-    H5Easy::File file("/home/zachary/Development/ccd-queries/erleben-cube-cliff-edges/edge-edge/edge-edge-collisions.hdf5");
+    std::cout<<"data "<<data<<std::endl;
+     std::cout<<"method "<<method<<std::endl;
+     std::cout<<"part "<<part<<std::endl;
+    //string method="vertex-face";
+    //string method="edge-edge";
+    H5Easy::File file("/home/zachary/Development/ccd-queries/"+data+"/"+method+"/"+method+"-"+part+".hdf5");
 const auto query_names = file.getGroup("/").listObjectNames();
 std::cout<<"data size "<<query_names.size()<<std::endl;
 igl::Timer timer;
     double time = 0;
 for (size_t i = 0; i < query_names.size(); i++) {
-    if (i % 1000 == 0)
-            std::cout << "i " << i << std::endl;
+    // if (i % 1000 == 0)
+    //         std::cout << "i " << i << std::endl;
 std::stringstream ss;
 ss << query_names[i] << "/shifted/points";
 Eigen::Matrix<double, 8, 3> vertex_face_data = H5Easy::load<Eigen::Matrix<double, 8, 3>>(
@@ -535,10 +541,19 @@ Eigen::Matrix<double, 8, 3> vertex_face_data = H5Easy::load<Eigen::Matrix<double
 			dt.x2b[j] = vertex_face_data(6, j);
 			dt.x3b[j] = vertex_face_data(7, j);
 	}
+    if(method=="vertex-face"){
     timer.start();
+    doubleccd::vertexFaceCCD(dt.x0,dt.x1,dt.x2,dt.x3,dt.x0b,dt.x1b,dt.x2b,dt.x3b,ms);
+    time += timer.getElapsedTimeInSec();
+
+    }
+    else{
+        timer.start();
     doubleccd::edgeEdgeCCD(dt.x0,dt.x1,dt.x2,dt.x3,dt.x0b,dt.x1b,dt.x2b,dt.x3b,ms);
     time += timer.getElapsedTimeInSec();
 
+    }
+    
 }
 std::cout << "total time " << time << std::endl;
 
@@ -546,8 +561,40 @@ std::cout << "total time " << time << std::endl;
 
     print_sub();
     ray_time();
+    double phit=print_phi_time();
+    std::cout<<"percentage "<<phit/time<<"\n"<<std::endl;
 }
+void call_multi(){
+    std::vector<string> data,method,part;
+    //data.push_back("chain");
+    data.push_back("cow-heads");
+    method.push_back("vertex-face");
+    method.push_back("edge-edge");
+    //part.push_back("collisions");
+    for(int i=30;i<35;i++){
+        part.push_back("collisions-part000"+to_string(i));
+    }
+    // part.push_back("collisions-part00000");
+    // part.push_back("collisions-part00001");
+    // part.push_back("collisions-part00002");
+    // part.push_back("collisions-part00003");
+    // part.push_back("collisions-part00004");
+    std::vector<double> ms;
+    ms.push_back(1e-8);
+    ms.push_back(1e-30);
+    for(int i=0;i<data.size();i++){
+        for(int j=0;j<method.size();j++){
+            for (int k=0;k<part.size();k++){
+                for (int r=0;r<ms.size();r++){
+                    get_multiple(data[i],method[j],part[k],ms[r]);
+                    
+                }
+            }
+        }
+    }
+   
 
+}
 // void test_ori(){
 //     Vector3d p0,p1,p2,p3;
 //     p0=Vector3d(0,0,0);
@@ -569,7 +616,7 @@ int main(int argc, char* argv[])
 {
     // TODO: Put something more relevant here
     // ccd::test();
-   test_shifted_compare();
+    test_shifted_compare();
     // test_rootfinder();
     //test_shift_maxerror();
 	//test_edge_edge();
@@ -584,7 +631,7 @@ int main(int argc, char* argv[])
 //     std::cout<<"orient "<<doubleccd::orient_3d(p0,p1,p2,p3)<<" "<<ccd::orient3d(p0r,p1r,p2r,p3r)<<std::endl;
 //     }
    //compare_lpi_results();
-   //get_multiple();
+   //call_multi();
 //    test_ori();
     std::cout<<"done"<<std::endl;
 
