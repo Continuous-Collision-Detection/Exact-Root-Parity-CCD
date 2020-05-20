@@ -434,8 +434,8 @@ void test_edge_edge(){
 }
 
 void check_false(){
-    //H5Easy::File file(root_path + path_sep +"vertex-face-collisions.hdf5");
-    H5Easy::File file("/home/zachary/Development/ccd-queries/erleben-cube-internal-edges/edge-edge/edge-edge-collisions.hdf5");
+    H5Easy::File file(root_path + path_sep +"vertex-face-collisions.hdf5");
+    //H5Easy::File file("/home/zachary/Development/ccd-queries/erleben-cube-internal-edges/edge-edge/edge-edge-collisions.hdf5");
     Eigen::Matrix<double, 8, 3> vertex_face_data;
     string test_case= "/edge_edge_0000416/shifted/points";
     vertex_face_data=H5Easy::load<Eigen::Matrix<double, 8, 3>>(file,test_case);
@@ -616,10 +616,10 @@ int main(int argc, char* argv[])
 {
     // TODO: Put something more relevant here
     // ccd::test();
-    test_shifted_compare();
+   // test_shifted_compare();
     // test_rootfinder();
     //test_shift_maxerror();
-	//test_edge_edge();
+	test_edge_edge();
     // const string filename="/home/bw1760/scratch/cow-head/edge-edge/edge-edge-collisions-part004.hdf5";
     // std::vector<Eigen::Matrix<double, 8, 3>> edge_edge_data;
 	// read_edge_edge_data(filename, edge_edge_data);

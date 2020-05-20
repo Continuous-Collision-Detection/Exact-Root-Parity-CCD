@@ -41,6 +41,6 @@ endfunction()
 function(ccd_download_high_five)
   ccd_download_project(HighFive
     GIT_REPOSITORY https://github.com/BlueBrain/HighFive.git
-    GIT_TAG        v2.2.1
+    GIT_TAG        67f5b3a67ec04e021f5f86b3993d2edf0d223fef
   )
 endfunction()
