@@ -6,7 +6,7 @@
 #include <vector>
 
 #include <Eigen/Core>
-#include <boost/filesystem.hpp>
+//#include <boost/filesystem.hpp>
 #include <highfive/H5Easy.hpp>
 
 void read_vertex_face_data(
@@ -15,8 +15,8 @@ void read_vertex_face_data(
 {
     vertex_face_data.clear();
 
-    for (auto& entry : boost::filesystem::directory_iterator(data_dir)) {
-        H5Easy::File file(entry.path().string());
+    //for (auto& entry : boost::filesystem::directory_iterator(data_dir)) {
+        H5Easy::File file(data_dir);
 
         HighFive::Group root = file.getGroup("/");
 
@@ -25,7 +25,7 @@ void read_vertex_face_data(
             vertex_face_data.push_back(
                 H5Easy::load<Eigen::Matrix<double, 8, 3>>(file, query_name));
         }
-    }
+    //}
 }
 
 void read_edge_edge_data(

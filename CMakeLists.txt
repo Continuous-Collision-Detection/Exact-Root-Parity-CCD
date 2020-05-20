@@ -107,10 +107,7 @@ if(CCD_TOPLEVEL_PROJECT AND CCD_BUILD_RATIONAL)
 
   target_link_libraries(${PROJECT_NAME}_bin PUBLIC HighFive::HighFive)
 
-  # Boost
-  set(Boost_USE_MULTITHREADED TRUE)
-  find_package(Boost COMPONENTS filesystem REQUIRED)
-  target_link_libraries(${PROJECT_NAME}_bin PUBLIC Boost::filesystem)
+
 
   target_link_libraries(${PROJECT_NAME}_bin PUBLIC ${PROJECT_NAME}_rational)
   target_link_libraries(${PROJECT_NAME}_bin PUBLIC ${PROJECT_NAME}_double)
