@@ -151,7 +151,11 @@ bool vertexFaceCCD(
     if (cube_inter_tet[2]) {
 
         bool cit2 = is_cube_edge_intersect_bilinear(bl2, cb, v_tet[2]);
+        if (cit2) {
 
+            return true;
+        }
+    }
 
     /*int min_v = 3;
     int curr_v;
