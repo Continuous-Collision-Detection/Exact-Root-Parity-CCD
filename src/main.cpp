@@ -314,6 +314,21 @@ void test_rootfinder()
     }*/
     save_obj("D:\\vs\\collision\\test_rootfinder.obj", tris);
 }
+
+void testing_difference(Vector3d p, Vector3d q){
+    double x,y,z;    
+    x=(q[0]-p[0]);
+    y=(q[1]-p[1]);
+    z=(q[2]-p[2]);
+    Rational xr=Rational(q[0])-Rational(p[0]);
+    Rational yr=Rational(q[1])-Rational(p[1]);
+    Rational zr=Rational(q[2])-Rational(p[2]);
+    
+
+    if(xr!=x) std::cout<<"this x is not 0"<<std::endl;
+    if(yr!=y) std::cout<<"this y is not 0"<<std::endl;
+    if(zr!=z) std::cout<<"this z is not 0"<<std::endl;
+}
 void test_shift_maxerror()
 {
     std::vector<sccd> data;
@@ -354,6 +369,19 @@ void test_shift_maxerror()
     get_corners(vertices,pmin,pmax);
     get_whole_mesh_shifted(vertices3,pmin,pmax);
     compare_whole_mesh_err(vertices3,vertices);
+    int count=0;
+    for(int i=0;i<vertices3.rows();i++){
+        for(int j=0;j<vertices3.rows();j++){
+            count++;
+            if (count>=1000000) return;
+            Vector3d p,q;
+            for(int k=0;k<3;k++){
+                p[k]=vertices3(i,k);
+                q[k]=vertices3(j,k);
+            }
+            testing_difference(p,q);
+        }
+    }
 
 }
 void read_vf_data(const string file, std::vector<vf_pair>& vfdata) {
