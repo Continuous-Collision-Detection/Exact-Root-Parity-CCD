@@ -372,7 +372,49 @@ void push_vers_into_subtract_pair(
         }
     }
 }
+// void push_single_subtraction(const Vector3d& p, const Vector3d &q,
+// std::vector<std::pair<double, double>>& sub_x,
+//     std::vector<std::pair<double, double>>& sub_y,
+//     std::vector<std::pair<double, double>>& sub_z ){
+//         std::pair<double, double> temp;
+//         temp.first=p[0];
+//         temp.second=q[0];
+//         sub_x.emplace_back(temp);
 
+//         temp.first=p[1];
+//         temp.second=q[1];
+//         sub_y.emplace_back(temp);
+
+//         temp.first=p[2];
+//         temp.second=q[2];
+//         sub_z.emplace_back(temp);
+//     }
+// void push_VF_vers_into_subtract_pair(
+//     const std::vector<vf_pair>& data1,
+    
+//     std::vector<std::pair<double, double>>& sub_x,
+//     std::vector<std::pair<double, double>>& sub_y,
+//     std::vector<std::pair<double, double>>& sub_z)
+// {
+//     sub_x.clear();sub_y.clear();sub_z.clear();
+//     sub_x.reserve(data1.size()*6);
+//     sub_y.reserve(data1.size()*6);
+//     sub_z.reserve(data1.size()*6);
+    
+//     std::pair<double, double> temp;
+
+//     for (int j = 0; j < data1.size(); j++) {
+//         push_single_subtraction(data1[j].x0,data1[j].x1,sub_x,sub_y,sub_z);
+//         push_single_subtraction(data1[j].x0,data1[j].x3,sub_x,sub_y,sub_z);
+//         push_single_subtraction(data1[j].x0,data1[j].x2,sub_x,sub_y,sub_z);
+
+//         push_single_subtraction(data1[j].x0b,data1[j].x1b,sub_x,sub_y,sub_z);
+//         push_single_subtraction(data1[j].x0b,data1[j].x3b,sub_x,sub_y,sub_z);
+//         push_single_subtraction(data1[j].x0b,data1[j].x2b,sub_x,sub_y,sub_z);
+        
+        
+//     }
+// }
 double vf_shift_error(const vf_pair& d1, const vf_pair& d2)
 {
     double err = 0;
@@ -433,11 +475,29 @@ void push_mesh_vers_into_sub_pair(
         }
     }
 }
+void push_mesh_vers_into_sub_pair(
+    const Eigen::MatrixX3d& V, 
+    std::vector<std::pair<double, double>>& sub_x,
+    std::vector<std::pair<double, double>>& sub_y,
+    std::vector<std::pair<double, double>>& sub_z)
+{   sub_x.clear();
+    sub_y.clear();
+    sub_z.clear();
+    sub_x.resize(V.rows());
+    sub_y.resize(V.rows());
+    sub_z.resize(V.rows());
+    for (int i = 0; i < V.rows(); i++) {
+        sub_x[i].first=V(i,0);sub_x[i].second=0;
+        sub_y[i].first=V(i,1);sub_y[i].second=0;
+        sub_z[i].first=V(i,2);sub_z[i].second=0;  
+    }
+}
+
 
 void convert_sub_pairs_to_mesh_vers(
     const std::vector<std::pair<double, double>>& sub, Eigen::MatrixX3d& V)
 {
-    assert(sub.size() % 3 == 0 && V.size() == sub.size());
+    //assert(sub.size() % 3 == 0 && V.size() == sub.size());
     V.resize(sub.size() / 3, 3);
     for (int i = 0; i < V.rows(); i++) {
         for (int j = 0; j < 3; j++) {
@@ -445,6 +505,47 @@ void convert_sub_pairs_to_mesh_vers(
         }
     }
 }
+void convert_sub_pairs_to_mesh_vers(
+    const std::vector<std::pair<double, double>>& sub_x,
+    const std::vector<std::pair<double, double>>& sub_y,
+    const std::vector<std::pair<double, double>>& sub_z, Eigen::MatrixX3d& V){
+    V.resize(sub_x.size(),3);
+    for(int i=0;i<sub_x.size();i++){
+        V(i,0)=sub_x[i].first;
+        V(i,1)=sub_y[i].first;
+        V(i,2)=sub_z[i].first;
+    }
+    
+}
+
+void get_whole_mesh_shifted(
+    Eigen::MatrixX3d& vertices,
+    const Vector3d &pmin, const Vector3d& pmax){
+    std::vector<std::pair<double, double>> box_x(1), box_y(1), box_z(1),whole_x,whole_y,whole_z;
+    box_x[0].first=pmax[0];box_x[0].second=pmin[0];
+    box_y[0].first=pmax[1];box_y[0].second=pmin[1];
+    box_z[0].first=pmax[2];box_z[0].second=pmin[2];
+    push_mesh_vers_into_sub_pair(vertices,whole_x,whole_y,whole_z);
+    perturbSubtractions(whole_x,box_x);
+    perturbSubtractions(whole_y,box_y);
+    perturbSubtractions(whole_z,box_z);
+    convert_sub_pairs_to_mesh_vers(whole_x,whole_y,whole_z,vertices);
+}
+void compare_whole_mesh_err(const Eigen::MatrixX3d& vertices,const Eigen::MatrixX3d& vertices1){
+    double ex=0,ey=0,ez=0;
+    for(int i=0;i<vertices.rows();i++){
+        if(fabs(vertices(i,0)-vertices1(i,0))>ex)
+            ex=fabs(vertices(i,0)-vertices1(i,0));
+
+        if(fabs(vertices(i,1)-vertices1(i,1))>ey)
+            ey=fabs(vertices(i,1)-vertices1(i,1));
+
+        if(fabs(vertices(i,2)-vertices1(i,2))>ez)
+            ez=fabs(vertices(i,2)-vertices1(i,2));
+    }
+    std::cout<<"vertices diff x, "<<ex<<" y, "<<ey<<" z, "<<ez<<std::endl;
+}
+
 // x0 is the point, x1, x2, x3 is the triangle
 double get_whole_mesh_shifted(
     const std::vector<vf_pair>& data1,

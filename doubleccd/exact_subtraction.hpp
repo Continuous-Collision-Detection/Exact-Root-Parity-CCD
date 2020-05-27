@@ -79,6 +79,27 @@ static void perturbSubtractions(std::vector<std::pair<double, double>>& subtract
 
 	_setFPUModeToRoundNEAR();
 }
+
+// use sub1 to set the shift distance
+static void perturbSubtractions(std::vector<std::pair<double, double>>& subtractions,std::vector<std::pair<double, double>>& sub1)
+{
+	_setFPUModeToRoundUP();
+
+	double z = maxCommonDisplacement(sub1);
+	for (std::pair<double, double>& p : subtractions)
+	{
+		p.first += z;
+		p.second += z;
+	}
+
+	for (std::pair<double, double>& p : subtractions)
+	{
+		p.first -= z;
+		p.second -= z;
+	}
+
+	_setFPUModeToRoundNEAR();
+}
 static double displaceSubtractions_double(std::vector<std::pair<double, double>>& subtractions)
 {
     _setFPUModeToRoundUP();

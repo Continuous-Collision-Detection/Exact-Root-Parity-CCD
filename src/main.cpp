@@ -317,7 +317,7 @@ void test_rootfinder()
 void test_shift_maxerror()
 {
     std::vector<sccd> data;
-    Eigen::MatrixX3d vertices, vertices1, vertices2;
+    Eigen::MatrixX3d vertices, vertices1, vertices2,vertices3;
     read_CSV(root_path + path_sep + "cow-head-collisions.csv", data);
     std::vector<vf_pair> vfs, shifted_vfs;
     std::vector<ee_pair> ees, shifted_ees;
@@ -344,9 +344,17 @@ void test_shift_maxerror()
     }
     vertices1 = vertices;
     vertices2 = vertices;
-    double k;
+    vertices3=vertices;
+    
     get_whole_mesh_shifted(vfs, ees, shifted_vfs, shifted_ees, vertices1);
     get_whole_mesh_shifted(vfs, ees, vertices2);
+
+    // shift accroding to the bounding box
+    Vector3d pmin, pmax;
+    get_corners(vertices,pmin,pmax);
+    get_whole_mesh_shifted(vertices3,pmin,pmax);
+    compare_whole_mesh_err(vertices3,vertices);
+
 }
 void read_vf_data(const string file, std::vector<vf_pair>& vfdata) {
 	std::vector<Eigen::Matrix<double, 8, 3>> vertex_face_data;
@@ -618,8 +626,8 @@ int main(int argc, char* argv[])
     // ccd::test();
    // test_shifted_compare();
     // test_rootfinder();
-    //test_shift_maxerror();
-	test_edge_edge();
+    test_shift_maxerror();
+	//test_edge_edge();
     // const string filename="/home/bw1760/scratch/cow-head/edge-edge/edge-edge-collisions-part004.hdf5";
     // std::vector<Eigen::Matrix<double, 8, 3>> edge_edge_data;
 	// read_edge_edge_data(filename, edge_edge_data);

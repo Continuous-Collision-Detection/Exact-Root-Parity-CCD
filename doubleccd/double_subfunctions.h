@@ -85,6 +85,12 @@ double get_whole_mesh_shifted(
     const std::vector<ee_pair>& data2,
     Eigen::MatrixX3d& vertices);
 
+//print out difference between 2 vertices lists;
+void compare_whole_mesh_err(const Eigen::MatrixX3d& vertices,const Eigen::MatrixX3d& vertices1);
+// shift the mesh accroding to the bounding box
+void get_whole_mesh_shifted(
+    Eigen::MatrixX3d& vertices,
+    const Vector3d &pmin, const Vector3d& pmax);
 // Convenience function that just wrap get_whole_mesh_shifted(...)
 double
 shift_vertex_face(const vf_pair& input_vf_pair, vf_pair& shifted_vf_pair);
