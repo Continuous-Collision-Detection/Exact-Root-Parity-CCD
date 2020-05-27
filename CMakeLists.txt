@@ -33,7 +33,7 @@ option(LIBIGL_WITH_TETGEN            "Use Tetgen"                   OFF)
 option(LIBIGL_WITH_TRIANGLE          "Use Triangle"                 OFF)
 option(LIBIGL_WITH_VIEWER            "Use OpenGL viewer"            OFF)
 option(LIBIGL_WITH_XML               "Use XML"                      OFF)
-option(LIBIGL_WITH_PREDICATES        "Use exact predicates"         ON)
+option(LIBIGL_WITH_PREDICATES        "Use exact predicates"         ON )
 ################################################################################
 
 
