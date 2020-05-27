@@ -170,7 +170,7 @@ bool vertexFaceCCD(
     }
     // down here is the last part of the algorithm
 
-    int min_v = 3;
+    /*int min_v = 3;
     int curr_v;
     int target = 0;
     for (int i = 0; i < 8; i++) {
@@ -188,8 +188,8 @@ bool vertexFaceCCD(
     p_tet[2] = v_tet[2][target];
     
     bool rtccd = retrial_ccd(vfprism, bls, cb.vr[target], p_tet);
-    
-    return rtccd;
+    */
+    return false;
 }
 
 // Detect collisions between two edges as they move.
@@ -312,7 +312,7 @@ bool edgeEdgeCCD(
     }
 
     
-    int min_v = 6;
+    /*int min_v = 6;
     int curr_v;
     int target = 0;
     for (int i = 0; i < 8; i++) {
@@ -335,7 +335,7 @@ bool edgeEdgeCCD(
 
     bool rtccd = retrial_ccd_hex(bls, cb.vr[target], p_tet);
     
-    return rtccd;
+    return rtccd;*/
     return false;
 }
 
