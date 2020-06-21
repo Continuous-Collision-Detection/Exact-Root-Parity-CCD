@@ -94,6 +94,27 @@ target_link_libraries(${PROJECT_NAME}_double PRIVATE warnings::all)
 target_include_directories(${PROJECT_NAME}_double PUBLIC ${GMP_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME}_double PUBLIC ${GMP_LIBRARIES})
 
+###############################################################################
+
+# interval CCD
+add_subdirectory(interval_ccd)
+prepend_current_path(INTERVAL_SOURCES)
+intervalCCD_copy_headers(${INTERVAL_SOURCES})
+CCD_set_source_group(${INTERVAL_SOURCES})
+add_library(${PROJECT_NAME}_interval ${INTERVAL_SOURCES})
+target_include_directories(${PROJECT_NAME}_interval PUBLIC ${PROJECT_BINARY_DIR}/include)
+target_include_directories(${PROJECT_NAME}_interval PUBLIC interval_ccd)
+
+# boost
+find_package(Boost REQUIRED)
+target_link_libraries(${PROJECT_NAME}_interval PUBLIC Boost::boost)
+
+# libigl
+target_link_libraries(${PROJECT_NAME}_interval PUBLIC igl::core igl::predicates)
+
+# Extra warnings
+target_link_libraries(${PROJECT_NAME}_interval PRIVATE warnings::all)
+
 
 ################################################################################
 # Executable
@@ -111,6 +132,7 @@ if(CCD_TOPLEVEL_PROJECT AND CCD_BUILD_RATIONAL)
 
   target_link_libraries(${PROJECT_NAME}_bin PUBLIC ${PROJECT_NAME}_rational)
   target_link_libraries(${PROJECT_NAME}_bin PUBLIC ${PROJECT_NAME}_double)
+  target_link_libraries(${PROJECT_NAME}_bin PUBLIC ${PROJECT_NAME}_interval)
   set(DATA_PATH "${CMAKE_CURRENT_SOURCE_DIR}/data/")
   target_compile_definitions(${PROJECT_NAME}_bin PUBLIC -DCCD_DATA_PATH=\"${DATA_PATH}\")
 endif()

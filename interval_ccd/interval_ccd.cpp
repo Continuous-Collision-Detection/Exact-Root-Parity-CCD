@@ -1,4 +1,4 @@
-#include "interval_cccd.hpp"
+#include "interval_ccd.hpp"
 
 #include "interval_root_finder.hpp"
 

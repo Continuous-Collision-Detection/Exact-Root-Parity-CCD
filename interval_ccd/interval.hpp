@@ -45,6 +45,11 @@ typedef Matrix<ccd::Interval, 2, 1> Vector2I;
 typedef Matrix<ccd::Interval, 3, 1> Vector3I;
 typedef Matrix<ccd::Interval, Dynamic, 1> VectorXI;
 typedef Matrix<ccd::Interval, Dynamic, 1, ColMajor, 3, 1> VectorX3I;
+typedef Matrix<double, 3, 1> Vector3d;
+typedef Matrix<double, Dynamic, 1, ColMajor, 3, 1> VectorX3d;
+
+template <typename T, int dim, int max_dim = dim>
+using Vector = Matrix<T, dim, 1, ColMajor, max_dim, 1>;
 
 #if EIGEN_MAJOR_VERSION >= 3
 namespace internal {
