@@ -240,19 +240,19 @@ bool edgeEdgeCCD(
        Interval edge1_alpha = params(2);
 
        Eigen::Vector3I edge0_vertex0
-           = (edge0_vertex0_end - edge0_vertex0_start).cast<Interval>() * t
+           = (edge0_vertex0_end.cast<Interval>() - edge0_vertex0_start.cast<Interval>()) * t
            + edge0_vertex0_start.cast<Interval>();
        Eigen::Vector3I edge0_vertex1
-           = (edge0_vertex1_end - edge0_vertex1_start).cast<Interval>() * t
+           = (edge0_vertex1_end.cast<Interval>() - edge0_vertex1_start.cast<Interval>()) * t
            + edge0_vertex1_start.cast<Interval>();
        Eigen::Vector3I edge0_vertex
            = (edge0_vertex1 - edge0_vertex0) * edge0_alpha + edge0_vertex0;
 
        Eigen::Vector3I edge1_vertex0
-           = (edge1_vertex0_end - edge1_vertex0_start).cast<Interval>() * t
+           = (edge1_vertex0_end.cast<Interval>() - edge1_vertex0_start.cast<Interval>()) * t
            + edge1_vertex0_start.cast<Interval>();
        Eigen::Vector3I edge1_vertex1
-           = (edge1_vertex1_end - edge1_vertex1_start).cast<Interval>() * t
+           = (edge1_vertex1_end.cast<Interval>() - edge1_vertex1_start.cast<Interval>()) * t
            + edge1_vertex1_start.cast<Interval>();
        Eigen::Vector3I edge1_vertex
            = (edge1_vertex1 - edge1_vertex0) * edge1_alpha + edge1_vertex0;
