@@ -45,10 +45,10 @@ bool interval_root_finder(
     const std::function<Eigen::VectorX3I(const Eigen::VectorX3I&)>& f,
     const Eigen::VectorX3I& x0,
     const Eigen::VectorX3d& tol,
-    Eigen::VectorX3I& x)
+    Eigen::VectorX3I& x, const bool check_vf)
 {
     return interval_root_finder(
-        f, [](const Eigen::VectorX3I&) { return true; }, x0, tol, x);
+        f, [](const Eigen::VectorX3I&) { return true; }, x0, tol, x,check_vf);
 }
 
 inline Eigen::VectorX3d width(const Eigen::VectorX3I& x)
@@ -71,13 +71,24 @@ inline bool zero_in(Eigen::Vector<Interval, dim, max_dim> X)
     }
     return true;
 }
+// check if (i1,i2) overlaps {(u,v)|u+v<1,u>=0,v>=0}
+// by checking if i1.lower()+i2.lower()<=1
+bool interval_satisfy_constrain(const Interval &i1, const Interval &i2){
+    Interval l1(i1.lower(),i1.lower());
+    Interval l2(i2.lower(),i2.lower());
+    Interval sum=l1+l2;
+    if(sum.lower()>1)
+    return false;
+    else return true;
+    }
+
 
 bool interval_root_finder(
     const std::function<Eigen::VectorX3I(const Eigen::VectorX3I&)>& f,
     const std::function<bool(const Eigen::VectorX3I&)>& constraint_predicate,
     const Eigen::VectorX3I& x0,
     const Eigen::VectorX3d& tol,
-    Eigen::VectorX3I& x)
+    Eigen::VectorX3I& x,const bool check_vf)
 {
     // Stack of intervals and the last split dimension
     std::stack<std::pair<Eigen::VectorX3I, int>> xs;
@@ -112,12 +123,51 @@ bool interval_root_finder(
         std::pair<Interval, Interval> halves = bisect(x(split_i));
         Eigen::VectorX3I x1 = x;
         // Push the second half on first so it is examined after the first half
-        x(split_i) = halves.second;
-        xs.emplace(x, split_i);
-        x(split_i) = halves.first;
-        xs.emplace(x, split_i);
+        if(check_vf){
+            if(split_i==1){
+                if(interval_satisfy_constrain(halves.second,x(2))){
+                    x(split_i) = halves.second;
+                    xs.emplace(x, split_i);
+                }
+                if(interval_satisfy_constrain(halves.first,x(2))){
+                    x(split_i) = halves.first;
+                    xs.emplace(x, split_i);
+                }
+            }
+            if(split_i==2){
+                if(interval_satisfy_constrain(halves.second,x(1))){
+                    x(split_i) = halves.second;
+                    xs.emplace(x, split_i);
+                }
+                if(interval_satisfy_constrain(halves.first,x(1))){
+                    x(split_i) = halves.first;
+                    xs.emplace(x, split_i);
+                }
+            }
+            if(split_i==0){
+                x(split_i) = halves.second;
+                xs.emplace(x, split_i);
+                x(split_i) = halves.first;
+                xs.emplace(x, split_i);
+            }
+        }
+        else{
+            x(split_i) = halves.second;
+            xs.emplace(x, split_i);
+            x(split_i) = halves.first;
+            xs.emplace(x, split_i);
+        }
+        
+        
     }
     return false;
 }
-
+bool interval_root_finder(
+    const std::function<Eigen::VectorX3I(const Eigen::VectorX3I&)>& f,
+    const std::function<bool(const Eigen::VectorX3I&)>& constraint_predicate,
+    const Eigen::VectorX3I& x0,
+    const Eigen::VectorX3d& tol,
+    Eigen::VectorX3I& x){
+        return interval_root_finder(f,constraint_predicate,x0,tol,x,false);
+    }
 } // namespace ccd

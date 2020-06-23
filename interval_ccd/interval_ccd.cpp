@@ -65,7 +65,7 @@ bool edgeVertexCCD(
 
     Eigen::VectorX3I toi_interval;
     bool is_impacting = interval_root_finder(
-        distance, Eigen::VectorX3I::Constant(2, Interval(0, 1)),tol, toi_interval);
+        distance, Eigen::VectorX3I::Constant(2, Interval(0, 1)),tol, toi_interval,false);
 
     // Return a conservative time-of-impact
     if (is_impacting) {
@@ -97,6 +97,36 @@ double compute_face_vertex_tolerance(
             (face_vertex2_end - face_vertex2_start).norm()));
 
     return CCD_LENGTH_TOL / dl;
+}
+
+Eigen::Vector3d compute_face_vertex_tolerance_3d(
+   const Eigen::Vector3d& vs,
+   const Eigen::Vector3d& f0s,
+   const Eigen::Vector3d& f1s,
+   const Eigen::Vector3d& f2s,
+   const Eigen::Vector3d& ve,
+   const Eigen::Vector3d& f0e,
+   const Eigen::Vector3d& f1e,
+   const Eigen::Vector3d& f2e)
+{
+   // Compute the maximum trajectory length of all the vertices
+   double dl = std::max(
+       std::max(
+           (ve - vs).norm(),
+           (f0e - f0s).norm()),
+       std::max(
+           (f1e - f1s).norm(),
+           (f2e - f2s).norm()));
+
+   double edge0_length = std::max(
+       (f1s - f0s).norm(),
+       (f1e - f0e).norm());
+   double edge1_length = std::max(
+       (f2s - f0s).norm(),
+       (f2e - f0e).norm());
+   //double edge_length = std::max(edge0_length, edge1_length);
+
+   return Eigen::Vector3d(CCD_LENGTH_TOL / dl, CCD_LENGTH_TOL / edge0_length, CCD_LENGTH_TOL / edge1_length);
 }
 // Eigen::Vector3I cross(const Eigen::Vector3I&v1, const Eigen::Vector3I&v2){
 //     Eigen::Vector3I res;
@@ -145,6 +175,49 @@ bool vertexFaceCCD(
     const Eigen::Vector3d& face_vertex2_end,
     double& toi)
 {
+    const auto distance = [&](const Eigen::VectorX3I& params) {
+       assert(params.size() == 3);
+       Interval t = params(0);
+       Interval u = params(1);
+       Interval v = params(2);
+
+        Eigen::Vector3I vertex=vertex_start.cast<Interval>()+(vertex_end.cast<Interval>()-vertex_start.cast<Interval>())*t;
+
+        Eigen::Vector3I face0=face_vertex0_start.cast<Interval>()+
+        (face_vertex0_end.cast<Interval>()-face_vertex0_start.cast<Interval>())*t;
+
+        Eigen::Vector3I face1=face_vertex1_start.cast<Interval>()+
+        (face_vertex1_end.cast<Interval>()-face_vertex1_start.cast<Interval>())*t;
+
+        Eigen::Vector3I face2=face_vertex2_start.cast<Interval>()+
+        (face_vertex2_end.cast<Interval>()-face_vertex2_start.cast<Interval>())*t;
+
+        Eigen::Vector3I face_vertex=face0.cast<Interval>()+u*(face1.cast<Interval>()-face0.cast<Interval>())
+        +v*(face2.cast<Interval>()-face0.cast<Interval>());
+
+        return (vertex-face_vertex).eval();
+       
+   };
+
+   Eigen::Vector3d tol = compute_face_vertex_tolerance_3d(
+        vertex_start, face_vertex0_start, face_vertex1_start,
+        face_vertex2_start, vertex_end, face_vertex0_end, face_vertex1_end,
+        face_vertex2_end);
+    Eigen::VectorX3I toi_interval;
+   bool is_impacting = interval_root_finder(
+       distance, Eigen::Vector3I::Constant(Interval(0, 1)), tol, toi_interval,true);
+
+   // Return a conservative time-of-impact
+   if (is_impacting) {
+       toi = toi_interval(0).lower();
+   }
+   // This time of impact is very dangerous for convergence
+   // assert(!is_impacting || toi > 0);
+   return is_impacting;
+   
+    return 0;
+    
+    
     // const auto distance = [&](const Interval& t) {
     //     // Get the vertex at time t
     //     Eigen::Vector3I vertex = (vertex_end - vertex_start).cast<Interval>() * t + vertex_start.cast<Interval>();
@@ -224,7 +297,7 @@ Eigen::Vector3d compute_edge_edge_tolerance(
    double edge1_length = std::max(
        (edge1_vertex1_start - edge1_vertex0_start).norm(),
        (edge1_vertex1_end - edge1_vertex0_end).norm());
-   double edge_length = std::max(edge0_length, edge1_length);
+   //double edge_length = std::max(edge0_length, edge1_length);
 
    return Eigen::Vector3d(CCD_LENGTH_TOL / dl, CCD_LENGTH_TOL / edge0_length, CCD_LENGTH_TOL / edge1_length);
 }
@@ -274,7 +347,7 @@ bool edgeEdgeCCD(
 
    Eigen::VectorX3I toi_interval;
    bool is_impacting = interval_root_finder(
-       distance, Eigen::Vector3I::Constant(Interval(0, 1)), tol, toi_interval);
+       distance, Eigen::Vector3I::Constant(Interval(0, 1)), tol, toi_interval,false);
 
    // Return a conservative time-of-impact
    if (is_impacting) {
