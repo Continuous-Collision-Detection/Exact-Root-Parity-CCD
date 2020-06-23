@@ -6,7 +6,7 @@
 #include <Eigen/Core>
 #include <boost/numeric/interval.hpp>
 
-namespace ccd {
+namespace intervalccd {
 
 namespace interval_options {
     typedef boost::numeric::interval_lib::checking_base<double> CheckingPolicy;
@@ -41,10 +41,10 @@ typedef boost::numeric::interval<
 } // namespace ccd
 
 namespace Eigen {
-typedef Matrix<ccd::Interval, 2, 1> Vector2I;
-typedef Matrix<ccd::Interval, 3, 1> Vector3I;
-typedef Matrix<ccd::Interval, Dynamic, 1> VectorXI;
-typedef Matrix<ccd::Interval, Dynamic, 1, ColMajor, 3, 1> VectorX3I;
+typedef Matrix<intervalccd::Interval, 2, 1> Vector2I;
+typedef Matrix<intervalccd::Interval, 3, 1> Vector3I;
+typedef Matrix<intervalccd::Interval, Dynamic, 1> VectorXI;
+typedef Matrix<intervalccd::Interval, Dynamic, 1, ColMajor, 3, 1> VectorX3I;
 typedef Matrix<double, 3, 1> Vector3d;
 typedef Matrix<double, Dynamic, 1, ColMajor, 3, 1> VectorX3d;
 

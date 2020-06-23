@@ -3,7 +3,7 @@
 
 #include <stack>
 
-namespace ccd {
+namespace intervalccd {
 
 bool interval_root_finder(
     const std::function<Interval(const Interval&)>& f,

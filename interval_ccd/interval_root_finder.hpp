@@ -5,7 +5,7 @@
 
 #include "interval.hpp"
 
-namespace ccd {
+namespace intervalccd {
 
 /// Find the first root of a function f: I ↦ I
 bool interval_root_finder(

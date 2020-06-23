@@ -2,7 +2,7 @@
 
 #include "interval_root_finder.hpp"
 
-namespace ccd {
+namespace intervalccd {
 
 static double CCD_LENGTH_TOL = 1e-6;
 
