@@ -98,7 +98,14 @@ double compute_face_vertex_tolerance(
 
     return CCD_LENGTH_TOL / dl;
 }
+// Eigen::Vector3I cross(const Eigen::Vector3I&v1, const Eigen::Vector3I&v2){
+//     Eigen::Vector3I res;
+//     res[0] = v1[1] * v2[2] - v1[2] * v2[1];
+//     res[1] = v1[2] * v2[0] - v1[0] * v2[2];
+//     res[2] = v1[0] * v2[1] - v1[1] * v2[0];
 
+//     return res;
+// }
 inline Eigen::Vector3I triangle_normal(
     const Eigen::Vector3I& face_vertex0,
     const Eigen::Vector3I& face_vertex1,
@@ -113,17 +120,17 @@ bool is_point_inside_triangle(
     const Eigen::Vector3I& triangle_vertex1,
     const Eigen::Vector3I& triangle_vertex2)
 {
-    Eigen::Vector3I normal0
-        = triangle_normal(triangle_vertex0, triangle_vertex1, point);
-    Eigen::Vector3I normal1
-        = triangle_normal(triangle_vertex0, point, triangle_vertex2);
-    Eigen::Vector3I normal2
-        = triangle_normal(triangle_vertex1, triangle_vertex2, point);
-    for (int i = 0; i < normal0.size(); i++) {
-        if (!overlap(intersect(normal0(i), normal1(i)), normal2(i))) {
-            return false;
-        }
-    }
+    // Eigen::Vector3I normal0
+    //     = triangle_normal(triangle_vertex0, triangle_vertex1, point);
+    // Eigen::Vector3I normal1
+    //     = triangle_normal(triangle_vertex0, point, triangle_vertex2);
+    // Eigen::Vector3I normal2
+    //     = triangle_normal(triangle_vertex1, triangle_vertex2, point);
+    // for (int i = 0; i < normal0.size(); i++) {
+    //     if (!overlap(intersect(normal0(i), normal1(i)), normal2(i))) {
+    //         return false;
+    //     }
+    // }
     return true;
 }
 //
@@ -138,55 +145,55 @@ bool vertexFaceCCD(
     const Eigen::Vector3d& face_vertex2_end,
     double& toi)
 {
-    const auto distance = [&](const Interval& t) {
-        // Get the vertex at time t
-        Eigen::Vector3I vertex = (vertex_end - vertex_start).cast<Interval>() * t + vertex_start.cast<Interval>();
+    // const auto distance = [&](const Interval& t) {
+    //     // Get the vertex at time t
+    //     Eigen::Vector3I vertex = (vertex_end - vertex_start).cast<Interval>() * t + vertex_start.cast<Interval>();
 
-        // Get the vertex of the face at time t
-        Eigen::Vector3I face_vertex0
-            = (face_vertex0_end - face_vertex0_start).cast<Interval>() * t + face_vertex0_start.cast<Interval>();
-        Eigen::Vector3I face_vertex1
-            = (face_vertex1_end - face_vertex1_start).cast<Interval>() * t + face_vertex1_start.cast<Interval>();
-        Eigen::Vector3I face_vertex2
-            = (face_vertex2_end - face_vertex2_start).cast<Interval>() * t + face_vertex2_start.cast<Interval>();
+    //     // Get the vertex of the face at time t
+    //     Eigen::Vector3I face_vertex0
+    //         = (face_vertex0_end - face_vertex0_start).cast<Interval>() * t + face_vertex0_start.cast<Interval>();
+    //     Eigen::Vector3I face_vertex1
+    //         = (face_vertex1_end - face_vertex1_start).cast<Interval>() * t + face_vertex1_start.cast<Interval>();
+    //     Eigen::Vector3I face_vertex2
+    //         = (face_vertex2_end - face_vertex2_start).cast<Interval>() * t + face_vertex2_start.cast<Interval>();
 
-        const auto result=(vertex - face_vertex0)
-            .dot(triangle_normal(face_vertex0, face_vertex1, face_vertex2));
-        return result;
-       // return ccd::Interval(0,1);
-    };
+    //     const auto result=(vertex - face_vertex0)
+    //         .dot(triangle_normal(face_vertex0, face_vertex1, face_vertex2));
+    //     return result;
+    //    // return ccd::Interval(0,1);
+    // };
 
-    const auto is_point_in_triangle = [&](const Interval& t) {
-        // Get the vertex at time t
-        Eigen::Vector3I vertex = (vertex_end - vertex_start).cast<Interval>() * t + vertex_start.cast<Interval>();
+    // const auto is_point_in_triangle = [&](const Interval& t) {
+    //     // Get the vertex at time t
+    //     Eigen::Vector3I vertex = (vertex_end - vertex_start).cast<Interval>() * t + vertex_start.cast<Interval>();
 
-        // Get the vertex of the face at time t
-        Eigen::Vector3I face_vertex0
-            = (face_vertex0_end - face_vertex0_start).cast<Interval>() * t + face_vertex0_start.cast<Interval>();
-        Eigen::Vector3I face_vertex1
-            = (face_vertex1_end - face_vertex1_start).cast<Interval>() * t + face_vertex1_start.cast<Interval>();
-        Eigen::Vector3I face_vertex2
-            = (face_vertex2_end - face_vertex2_start).cast<Interval>() * t + face_vertex2_start.cast<Interval>();
+    //     // Get the vertex of the face at time t
+    //     Eigen::Vector3I face_vertex0
+    //         = (face_vertex0_end - face_vertex0_start).cast<Interval>() * t + face_vertex0_start.cast<Interval>();
+    //     Eigen::Vector3I face_vertex1
+    //         = (face_vertex1_end - face_vertex1_start).cast<Interval>() * t + face_vertex1_start.cast<Interval>();
+    //     Eigen::Vector3I face_vertex2
+    //         = (face_vertex2_end - face_vertex2_start).cast<Interval>() * t + face_vertex2_start.cast<Interval>();
 
-        return is_point_inside_triangle(
-            vertex, face_vertex0, face_vertex1, face_vertex2);
-    };
+    //     return is_point_inside_triangle(
+    //         vertex, face_vertex0, face_vertex1, face_vertex2);
+    // };
 
-    double tol = compute_face_vertex_tolerance(
-        vertex_start, face_vertex0_start, face_vertex1_start,
-        face_vertex2_start, vertex_end, face_vertex0_end, face_vertex1_end,
-        face_vertex2_end);
+    // double tol = compute_face_vertex_tolerance(
+    //     vertex_start, face_vertex0_start, face_vertex1_start,
+    //     face_vertex2_start, vertex_end, face_vertex0_end, face_vertex1_end,
+    //     face_vertex2_end);
 
-    Interval toi_interval;
-    bool is_impacting = interval_root_finder(
-        distance, is_point_in_triangle, Interval(0, 1), tol, toi_interval);
+    // Interval toi_interval;
+    // bool is_impacting = interval_root_finder(
+    //     distance, is_point_in_triangle, Interval(0, 1), tol, toi_interval);
 
-    // Return a conservative time-of-impact
-    toi = toi_interval.lower();
+    // // Return a conservative time-of-impact
+    // toi = toi_interval.lower();
 
-    return is_impacting;
+    // return is_impacting;
 
-    //return 0;
+    return 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
