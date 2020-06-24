@@ -171,6 +171,49 @@ bool interval_root_finder(
         return interval_root_finder(f,constraint_predicate,x0,tol,x,false);
     }
 
+bool interval_bounding_box_check(const Eigen::Vector3I&in, std::array<bool,6>& flag){
+    int count=0;
+    for(int i=0;i<3;i++){
+        if(!flag[2*i]){
+            if(in(i).lower()<=0){
+                flag[2*i]=true;
+            }
+        }
+        if(!flag[2*i+1]){
+            if(in(i).upper()>=0){
+                flag[2*i+1]=true;
+            }
+        }
+    }
+    if(flag[0]&&flag[1]&&flag[2]&&flag[3]&&flag[4]&&flag[5]) 
+    return true;
+    else return false;
+}
+bool evaluate_function_bounding_box(const Interval3& paras,
+const std::function<Eigen::VectorX3I(const Numccd&, const Numccd&, const Numccd&)>& f){
+    std::array<Numccd,2> t,u,v;
+    t[0]=paras[0].first;
+    t[1]=paras[0].second;
+    u[0]=paras[1].first;
+    u[1]=paras[1].second;
+    v[0]=paras[2].first;
+    v[1]=paras[2].second;
+    Eigen::Vector3I result;
+    std::array<bool,6> flag;// when all flags are true, return true;
+    for(int i=0;i<6;i++){
+        flag[i]=false;
+    }
+    int count=0;
+    for(int i=0;i<2;i++){
+        for(int j=0;j<2;j++){
+            for(int k=0;k<2;k++){
+                result=f(t[i],u[j],v[k]);
+                if(result(0).lower<=)
+            }
+        }
+    }
+}
+
 bool interval_root_finder_opt(const std::function<Eigen::VectorX3I(const Paraccd&)>& f,
     const std::function<bool(const Eigen::VectorX3I&)>& constraint_predicate,
     const Eigen::VectorX3I& x0,// initial interval, must be [0,1]x[0,1]x[0,1]
@@ -192,11 +235,14 @@ bool interval_root_finder_opt(const std::function<Eigen::VectorX3I(const Paraccd
     // current interval
     Interval3 current;
     while(!istack.empty()){
-        
+        current=istack.top().first;
+        int last_split=istack.top().second;
+        istack.pop();
+
+        Eigen::VectorX3I y = f(x);
     }
 
     std::stack<std::pair<Eigen::VectorX3d, int>> xs;
-    std::stack<std::pair<std::array<Paraccd,6>, int>> xs;
     xs.emplace(x0, -1);
     while (!xs.empty()) {
         x = xs.top().first;
