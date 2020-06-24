@@ -12,6 +12,7 @@
 #include <fstream>
 #include "read_collision_data.hpp"
 #include<sstream>
+#include<interval_ccd/interval_ccd.hpp>
 //#include <predicates/indirect_predicates.h>
 //#include <exact_subtraction.hpp>
 //#include<subfunctions.h>
@@ -534,16 +535,27 @@ void check_false(){
 }
 void case_check(){
     vf_pair dt;
-    dt.x0 = Vector3d(5.06670675754481e-17,0.571825903784439,1);
-    dt.x1 = Vector3d(0,0.5,1);
-    dt.x2 = Vector3d(0,0.5,0);
-    dt.x3 = Vector3d(-0.25,-0.5,-0.25);
+    // dt.x0 = Vector3d(-0.300222, 0.0236258, 0.00165247);
+    // dt.x1 = Vector3d(-0.3234785, 0.0831238, -0.01151003);
+    // dt.x2 = Vector3d(-0.303199, 0.0314875, 0.0);
+    // dt.x3 = Vector3d(-0.285488, 0.00900349, 0.0);
 
-    dt.x0b = Vector3d(1.26333711630941e-16,0.277626403784438,1);
-    dt.x1b = Vector3d(0,0.5,1);
-    dt.x2b = Vector3d(0,0.5,0);
-    dt.x3b = Vector3d(-0.25,-0.5,-0.25);
-    std::cout<<"the vf ccd result is "<<doubleccd::vertexFaceCCD(dt.x0,dt.x1,dt.x2,dt.x3,dt.x0b,dt.x1b,dt.x2b,dt.x3b,1e-300)<<std::endl;
+    // dt.x0b = Vector3d(-0.289956, 0.00345838, 0.0063858);
+    // dt.x1b = Vector3d(-0.3171693, 0.06104858, -0.0071334);
+    // dt.x2b = Vector3d(-0.303199, 0.0314875, 0.0);
+    // dt.x3b = Vector3d(-0.285488, 0.00900349, 0.0);
+
+    dt.x0 = Vector3d(0,0,1);
+    dt.x1 = Vector3d(0,1,1);
+    dt.x2 = Vector3d(0.1, 0.2, 2);
+    dt.x3 = Vector3d(0.1, 0.2, -1);
+
+    dt.x0b = Vector3d(1,1,0);
+    dt.x1b = Vector3d(0,0,0);
+    dt.x2b = Vector3d(0.1, 0.2, 2);
+    dt.x3b = Vector3d(0.1, 0.2, -1);
+    double toi;
+    std::cout<<"the ee ccd result is "<<intervalccd::edgeEdgeCCD(dt.x0,dt.x1,dt.x2,dt.x3,dt.x0b,dt.x1b,dt.x2b,dt.x3b,toi)<<std::endl;
 }
 void get_multiple(string data,string method, string part, double ms){
 //double ms=1e-30;
@@ -654,12 +666,12 @@ int main(int argc, char* argv[])
     // ccd::test();
    // test_shifted_compare();
     // test_rootfinder();
-    test_shift_maxerror();
+    //test_shift_maxerror();
 	//test_edge_edge();
     // const string filename="/home/bw1760/scratch/cow-head/edge-edge/edge-edge-collisions-part004.hdf5";
     // std::vector<Eigen::Matrix<double, 8, 3>> edge_edge_data;
 	// read_edge_edge_data(filename, edge_edge_data);
-   // case_check();
+    //case_check();
     //check_false();
 //     for(int i=0;i<20;i++){
 //  doubleccd::Vector3d p0=Vector3d::Random(),p1=Vector3d::Random(),p2=Vector3d::Random(),p3=Vector3d::Random();
@@ -669,6 +681,8 @@ int main(int argc, char* argv[])
    //compare_lpi_results();
    //call_multi();
 //    test_ori();
+//std::cout<<"pwr,"<<2^3<<std::endl;
+
     std::cout<<"done"<<std::endl;
 
     return 1;

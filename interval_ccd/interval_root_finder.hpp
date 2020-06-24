@@ -42,5 +42,10 @@ bool interval_root_finder(
     const Eigen::VectorX3I& x0,
     const Eigen::VectorX3d& tol,
     Eigen::VectorX3I& x);
+bool interval_root_finder_opt(const std::function<Eigen::VectorX3I(const Paraccd&)>& f,
+    const std::function<bool(const Eigen::VectorX3I&)>& constraint_predicate,
+    const Eigen::VectorX3I& x0,
+    const Eigen::VectorX3d& tol,
+    Eigen::VectorX3I& x,const bool check_vf);
 
 } // namespace ccd

@@ -217,56 +217,6 @@ bool vertexFaceCCD(
    
     return 0;
     
-    
-    // const auto distance = [&](const Interval& t) {
-    //     // Get the vertex at time t
-    //     Eigen::Vector3I vertex = (vertex_end - vertex_start).cast<Interval>() * t + vertex_start.cast<Interval>();
-
-    //     // Get the vertex of the face at time t
-    //     Eigen::Vector3I face_vertex0
-    //         = (face_vertex0_end - face_vertex0_start).cast<Interval>() * t + face_vertex0_start.cast<Interval>();
-    //     Eigen::Vector3I face_vertex1
-    //         = (face_vertex1_end - face_vertex1_start).cast<Interval>() * t + face_vertex1_start.cast<Interval>();
-    //     Eigen::Vector3I face_vertex2
-    //         = (face_vertex2_end - face_vertex2_start).cast<Interval>() * t + face_vertex2_start.cast<Interval>();
-
-    //     const auto result=(vertex - face_vertex0)
-    //         .dot(triangle_normal(face_vertex0, face_vertex1, face_vertex2));
-    //     return result;
-    //    // return ccd::Interval(0,1);
-    // };
-
-    // const auto is_point_in_triangle = [&](const Interval& t) {
-    //     // Get the vertex at time t
-    //     Eigen::Vector3I vertex = (vertex_end - vertex_start).cast<Interval>() * t + vertex_start.cast<Interval>();
-
-    //     // Get the vertex of the face at time t
-    //     Eigen::Vector3I face_vertex0
-    //         = (face_vertex0_end - face_vertex0_start).cast<Interval>() * t + face_vertex0_start.cast<Interval>();
-    //     Eigen::Vector3I face_vertex1
-    //         = (face_vertex1_end - face_vertex1_start).cast<Interval>() * t + face_vertex1_start.cast<Interval>();
-    //     Eigen::Vector3I face_vertex2
-    //         = (face_vertex2_end - face_vertex2_start).cast<Interval>() * t + face_vertex2_start.cast<Interval>();
-
-    //     return is_point_inside_triangle(
-    //         vertex, face_vertex0, face_vertex1, face_vertex2);
-    // };
-
-    // double tol = compute_face_vertex_tolerance(
-    //     vertex_start, face_vertex0_start, face_vertex1_start,
-    //     face_vertex2_start, vertex_end, face_vertex0_end, face_vertex1_end,
-    //     face_vertex2_end);
-
-    // Interval toi_interval;
-    // bool is_impacting = interval_root_finder(
-    //     distance, is_point_in_triangle, Interval(0, 1), tol, toi_interval);
-
-    // // Return a conservative time-of-impact
-    // toi = toi_interval.lower();
-
-    // return is_impacting;
-
-    return 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -357,5 +307,54 @@ bool edgeEdgeCCD(
    // assert(!is_impacting || toi > 0);
    return is_impacting;
 }
+bool edgeEdgeCCD_opt(
+    const Eigen::Vector3d& a0s,
+    const Eigen::Vector3d& a1s,
+    const Eigen::Vector3d& b0s,
+    const Eigen::Vector3d& b1s,
+    const Eigen::Vector3d& a0e,
+    const Eigen::Vector3d& a1e,
+    const Eigen::Vector3d& b0e,
+    const Eigen::Vector3d& b1e, double &toi){
+    const auto distance = [&](const Paraccd& params) {
+       
+       int tu = params[0].first, td=params[0].second;// t=tu/(2^td)
+       int uu = params[1].first, ud=params[1].second;
+       int vu = params[2].first, vd=params[2].second;
 
+       Eigen::Vector3I edge0_vertex0
+           = (a0e.cast<Interval>() - a0s.cast<Interval>()) * tu/pow(2,td)
+           + a0s.cast<Interval>();
+       Eigen::Vector3I edge0_vertex1
+           = (a1e.cast<Interval>() - a1s.cast<Interval>()) * tu/pow(2,td)
+           + a1s.cast<Interval>();
+       Eigen::Vector3I edge0_vertex
+           = (edge0_vertex1 - edge0_vertex0) * uu/pow(2,ud) + edge0_vertex0;
+
+       Eigen::Vector3I edge1_vertex0
+           = (b0e.cast<Interval>() - b0s.cast<Interval>()) * tu/pow(2,td)
+           + b0s.cast<Interval>();
+       Eigen::Vector3I edge1_vertex1
+           = (b1e.cast<Interval>() - b1s.cast<Interval>()) * tu/pow(2,td)
+           + b1s.cast<Interval>();
+       Eigen::Vector3I edge1_vertex
+           = (edge1_vertex1 - edge1_vertex0) * vu/pow(2,vd) + edge1_vertex0;
+
+       return (edge1_vertex - edge0_vertex).eval();
+   };
+    Eigen::Vector3d tol = compute_edge_edge_tolerance(a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
+
+    Eigen::VectorX3I toi_interval;
+   bool is_impacting = interval_root_finder_opt(
+       distance, Eigen::Vector3I::Constant(Interval(0, 1)), tol, toi_interval,false);
+
+   // Return a conservative time-of-impact
+   if (is_impacting) {
+       toi = toi_interval(0).lower();
+   }
+   // This time of impact is very dangerous for convergence
+   // assert(!is_impacting || toi > 0);
+   return is_impacting;
+   return false;
+}
 } // namespace ccd
