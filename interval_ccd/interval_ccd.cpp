@@ -316,11 +316,11 @@ bool edgeEdgeCCD_opt(
     const Eigen::Vector3d& a1e,
     const Eigen::Vector3d& b0e,
     const Eigen::Vector3d& b1e, double &toi){
-    const auto distance = [&](const Paraccd& params) {
+    const auto distance = [&](const Numccd&tpara, const Numccd&upara, const Numccd&vpara) {
        
-       int tu = params[0].first, td=params[0].second;// t=tu/(2^td)
-       int uu = params[1].first, ud=params[1].second;
-       int vu = params[2].first, vd=params[2].second;
+       int tu = tpara.first, td=tpara.second;// t=tu/(2^td)
+       int uu = upara.first, ud=upara.second;
+       int vu = vpara.first, vd=vpara.second;
 
        Eigen::Vector3I edge0_vertex0
            = (a0e.cast<Interval>() - a0s.cast<Interval>()) * tu/pow(2,td)
@@ -344,17 +344,17 @@ bool edgeEdgeCCD_opt(
    };
     Eigen::Vector3d tol = compute_edge_edge_tolerance(a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
 
-    Eigen::VectorX3I toi_interval;
-//    bool is_impacting = interval_root_finder_opt(
-//        distance, Eigen::Vector3I::Constant(Interval(0, 1)), tol, toi_interval,false);
+    Interval3 toi_interval;
+   bool is_impacting = interval_root_finder_opt(
+       distance, tol,toi_interval,false);
 
-//    // Return a conservative time-of-impact
-//    if (is_impacting) {
-//        toi = toi_interval(0).lower();
-//    }
-//    // This time of impact is very dangerous for convergence
-//    // assert(!is_impacting || toi > 0);
-//    return is_impacting;
+   // Return a conservative time-of-impact
+   if (is_impacting) {
+       toi = double(toi_interval[0].first.first)/pow(2,toi_interval[0].first.second);
+   }
+   // This time of impact is very dangerous for convergence
+   // assert(!is_impacting || toi > 0);
+   return is_impacting;
    return false;
 }
 } // namespace ccd

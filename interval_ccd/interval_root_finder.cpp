@@ -275,10 +275,11 @@ std::pair<Singleinterval, Singleinterval> bisect(const Singleinterval& inter){
 }
 bool interval_root_finder_opt(
     const std::function<Eigen::VectorX3I(const Numccd&, const Numccd&, const Numccd&)>& f,
-    const std::function<bool(const Eigen::VectorX3I&)>& constraint_predicate,
-    const Eigen::VectorX3I& x0,// initial interval, must be [0,1]x[0,1]x[0,1]
+    //const std::function<bool(const Eigen::VectorX3I&)>& constraint_predicate,
+    //const Eigen::VectorX3I& x0,// initial interval, must be [0,1]x[0,1]x[0,1]
     const Eigen::VectorX3d& tol,
     //Eigen::VectorX3I& x,// result interval
+    Interval3& final,
     const bool check_vf){
     
     Numccd low_number; low_number.first=0; low_number.second=0;// low_number=0;
@@ -304,6 +305,7 @@ bool interval_root_finder_opt(
 
         Eigen::VectorX3d widths = width(current);
         if ((widths.array() <= tol.array()).all()) {
+            final=current;
                 return true;
         }
 

@@ -13,6 +13,8 @@
 #include "read_collision_data.hpp"
 #include<sstream>
 #include<interval_ccd/interval_ccd.hpp>
+#include<interval_ccd/interval_root_finder.hpp>
+
 //#include <predicates/indirect_predicates.h>
 //#include <exact_subtraction.hpp>
 //#include<subfunctions.h>
@@ -659,9 +661,20 @@ void call_multi(){
 
 
 // }
+void test_small(){
+    using namespace intervalccd;
+    int a;
+    std::cout<<"reduction power "<<intervalccd::reduction(6,a)<<std::endl;
+    std::cout<<"result, "<<a<<std::endl;
 
+    intervalccd::Numccd low(1,3), up(1,2), mid;
+    intervalccd::Singleinterval oi(low,up);
+    std::pair<Singleinterval,Singleinterval> bi=bisect(oi);
+    std::cout<<"new midpoint,"<<bi.first.second.first<<" "<<bi.first.second.second<<std::endl;
+}
 int main(int argc, char* argv[])
 {
+    test_small();
     // TODO: Put something more relevant here
     // ccd::test();
    // test_shifted_compare();

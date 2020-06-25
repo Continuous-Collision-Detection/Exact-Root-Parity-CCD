@@ -42,10 +42,13 @@ bool interval_root_finder(
     const Eigen::VectorX3I& x0,
     const Eigen::VectorX3d& tol,
     Eigen::VectorX3I& x);
-bool interval_root_finder_opt(const std::function<Eigen::VectorX3I(const Paraccd&)>& f,
-    const std::function<bool(const Eigen::VectorX3I&)>& constraint_predicate,
-    const Eigen::VectorX3I& x0,
+bool interval_root_finder_opt(
+    const std::function<Eigen::VectorX3I(const Numccd&, const Numccd&, const Numccd&)>& f,
     const Eigen::VectorX3d& tol,
-    Eigen::VectorX3I& x,const bool check_vf);
+    Interval3& final,
+    const bool check_vf);
+// return power t. n=result*2^t
+int reduction(const int n, int& result);
+std::pair<Singleinterval, Singleinterval> bisect(const Singleinterval& inter);
 
 } // namespace ccd
