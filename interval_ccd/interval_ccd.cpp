@@ -345,16 +345,16 @@ bool edgeEdgeCCD_opt(
     Eigen::Vector3d tol = compute_edge_edge_tolerance(a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
 
     Eigen::VectorX3I toi_interval;
-   bool is_impacting = interval_root_finder_opt(
-       distance, Eigen::Vector3I::Constant(Interval(0, 1)), tol, toi_interval,false);
+//    bool is_impacting = interval_root_finder_opt(
+//        distance, Eigen::Vector3I::Constant(Interval(0, 1)), tol, toi_interval,false);
 
-   // Return a conservative time-of-impact
-   if (is_impacting) {
-       toi = toi_interval(0).lower();
-   }
-   // This time of impact is very dangerous for convergence
-   // assert(!is_impacting || toi > 0);
-   return is_impacting;
+//    // Return a conservative time-of-impact
+//    if (is_impacting) {
+//        toi = toi_interval(0).lower();
+//    }
+//    // This time of impact is very dangerous for convergence
+//    // assert(!is_impacting || toi > 0);
+//    return is_impacting;
    return false;
 }
 } // namespace ccd
