@@ -2,9 +2,10 @@
 #include "interval_root_finder.hpp"
 
 #include <stack>
-
+#include<igl/Timer.h>
+#include<iostream>
 namespace intervalccd {
-
+double time20=0,time21=0,time22=0, time23=0,time24=0,time25=0;;
 bool interval_root_finder(
     const std::function<Interval(const Interval&)>& f,
     const Interval& x0,
@@ -66,6 +67,7 @@ double Numccd2double(const Numccd& n){
 }
 Eigen::VectorX3d width(const Interval3&x){
     Eigen::VectorX3d w;
+    w.resize(3);
     for(int i=0;i<3;i++){
         w[i]=Numccd2double(x[i].second)-Numccd2double(x[i].first);
         assert(w[i]>=0);
@@ -206,7 +208,9 @@ bool interval_bounding_box_check(const Eigen::Vector3I&in, std::array<bool,6>& f
 bool Origin_in_function_bounding_box(
     const Interval3& paras,
     const std::function<Eigen::VectorX3I(const Numccd&, const Numccd&, const Numccd&)>& f){
+    igl::Timer timer;
     std::array<Numccd,2> t,u,v;
+    
     t[0]=paras[0].first;
     t[1]=paras[0].second;
     u[0]=paras[1].first;
@@ -222,8 +226,15 @@ bool Origin_in_function_bounding_box(
     for(int i=0;i<2;i++){
         for(int j=0;j<2;j++){
             for(int k=0;k<2;k++){
+                timer.start();
                 result=f(t[i],u[j],v[k]);
-                if(interval_bounding_box_check(result,flag))
+                timer.stop();
+                time23+=timer.getElapsedTimeInMicroSec();
+                timer.start();
+                bool check=interval_bounding_box_check(result,flag);
+                timer.stop();
+                time24+=timer.getElapsedTimeInMicroSec();
+                if(check)
                     return true;
             }
         }
@@ -299,11 +310,16 @@ bool interval_root_finder_opt(
         current=istack.top().first;
         int last_split=istack.top().second;
         istack.pop();
-
+        igl::Timer timer;
+        timer.start();
         bool zero_in = Origin_in_function_bounding_box(current,f);
+        timer.stop();
+        time20+=timer.getElapsedTimeInMicroSec();
         if(!zero_in) continue;
-
+        timer.start();
         Eigen::VectorX3d widths = width(current);
+        timer.stop();
+        time21+=timer.getElapsedTimeInMicroSec();
         if ((widths.array() <= tol.array()).all()) {
             final=current;
                 return true;
@@ -317,11 +333,14 @@ bool interval_root_finder_opt(
                 break;
             }
         }
+        timer.start();
         std::pair<Singleinterval, Singleinterval> halves = bisect(current[split_i]);
         current[split_i] = halves.second;
         istack.emplace(current, split_i);
         current[split_i] = halves.first;
         istack.emplace(current, split_i);
+        timer.stop();
+        time22+=timer.getElapsedTimeInMicroSec();
 
     }
     return false;
@@ -396,5 +415,49 @@ bool interval_root_finder_opt(
     // }
     // return false;
     
+}
+// calculate the sign of f. dim is the dimension we are evaluating.
+template<typename T>
+int function_f (
+const Numccd&tpara, const Numccd&upara, const Numccd&vpara,const T& type, const int dim,
+const Eigen::Vector3d& a0s,
+    const Eigen::Vector3d& a1s,
+    const Eigen::Vector3d& b0s,
+    const Eigen::Vector3d& b1s,
+    const Eigen::Vector3d& a0e,
+    const Eigen::Vector3d& a1e,
+    const Eigen::Vector3d& b0e,
+    const Eigen::Vector3d& b1e ) {
+       
+       int tu = tpara.first, td=tpara.second;// t=tu/(2^td)
+       int uu = upara.first, ud=upara.second;
+       int vu = vpara.first, vd=vpara.second;
+
+       T edge0_vertex0
+           = (T(a0e[dim]) - T(a0s[dim])) * tu/int(pow(2,td))
+           + T(a0s[dim]);
+       T edge0_vertex1
+           = (T(a1e[dim]) - T(a1s[dim])) * tu/int(pow(2,td))
+           + T(a1s[dim]);
+       T edge0_vertex
+           = (edge0_vertex1 - edge0_vertex0) * uu/int(pow(2,ud)) + edge0_vertex0;
+
+       T edge1_vertex0
+           = (T(b0e[dim]) - T(b0s[dim])) * tu/int(pow(2,td))
+           + T(b0s[dim]);
+       T edge1_vertex1
+           = (T(b1e[dim]) - T(b1s[dim])) * tu/int(pow(2,td))
+           + T(b1s[dim]);
+       T edge1_vertex
+           = (edge1_vertex1 - edge1_vertex0) * vu/int(pow(2,vd)) + edge1_vertex0;
+
+       return (edge1_vertex - edge0_vertex).eval();
+};
+void print_time_2(){
+    std::cout<<"origin predicates, "<<time20<<std::endl;
+    std::cout<<"width, "<<time21<<std::endl;
+    std::cout<<"bisect, "<<time22<<std::endl;
+    std::cout<<"origin part1, "<<time23<<std::endl;
+    std::cout<<"origin part2, "<<time24<<std::endl;
 }
 } // namespace ccd

@@ -1,9 +1,10 @@
 #include "interval_ccd.hpp"
 
 #include "interval_root_finder.hpp"
-
+#include<igl/Timer.h>
+#include<iostream>
 namespace intervalccd {
-
+double time0=0,time1=0,time2=0;
 static double CCD_LENGTH_TOL = 1e-6;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -323,31 +324,33 @@ bool edgeEdgeCCD_opt(
        int vu = vpara.first, vd=vpara.second;
 
        Eigen::Vector3I edge0_vertex0
-           = (a0e.cast<Interval>() - a0s.cast<Interval>()) * tu/pow(2,td)
+           = (a0e.cast<Interval>() - a0s.cast<Interval>()) * tu/int(pow(2,td))
            + a0s.cast<Interval>();
        Eigen::Vector3I edge0_vertex1
-           = (a1e.cast<Interval>() - a1s.cast<Interval>()) * tu/pow(2,td)
+           = (a1e.cast<Interval>() - a1s.cast<Interval>()) * tu/int(pow(2,td))
            + a1s.cast<Interval>();
        Eigen::Vector3I edge0_vertex
-           = (edge0_vertex1 - edge0_vertex0) * uu/pow(2,ud) + edge0_vertex0;
+           = (edge0_vertex1 - edge0_vertex0) * uu/int(pow(2,ud)) + edge0_vertex0;
 
        Eigen::Vector3I edge1_vertex0
-           = (b0e.cast<Interval>() - b0s.cast<Interval>()) * tu/pow(2,td)
+           = (b0e.cast<Interval>() - b0s.cast<Interval>()) * tu/int(pow(2,td))
            + b0s.cast<Interval>();
        Eigen::Vector3I edge1_vertex1
-           = (b1e.cast<Interval>() - b1s.cast<Interval>()) * tu/pow(2,td)
+           = (b1e.cast<Interval>() - b1s.cast<Interval>()) * tu/int(pow(2,td))
            + b1s.cast<Interval>();
        Eigen::Vector3I edge1_vertex
-           = (edge1_vertex1 - edge1_vertex0) * vu/pow(2,vd) + edge1_vertex0;
+           = (edge1_vertex1 - edge1_vertex0) * vu/int(pow(2,vd)) + edge1_vertex0;
 
        return (edge1_vertex - edge0_vertex).eval();
    };
     Eigen::Vector3d tol = compute_edge_edge_tolerance(a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
 
     Interval3 toi_interval;
+    igl::Timer timer;
+    timer.start();
    bool is_impacting = interval_root_finder_opt(
        distance, tol,toi_interval,false);
-
+    time0+=timer.getElapsedTimeInMicroSec();
    // Return a conservative time-of-impact
    if (is_impacting) {
        toi = double(toi_interval[0].first.first)/pow(2,toi_interval[0].first.second);
@@ -356,5 +359,40 @@ bool edgeEdgeCCD_opt(
    // assert(!is_impacting || toi > 0);
    return is_impacting;
    return false;
+}
+
+bool edgeEdgeCCD_double(
+    const Eigen::Vector3d& a0s,
+    const Eigen::Vector3d& a1s,
+    const Eigen::Vector3d& b0s,
+    const Eigen::Vector3d& b1s,
+    const Eigen::Vector3d& a0e,
+    const Eigen::Vector3d& a1e,
+    const Eigen::Vector3d& b0e,
+    const Eigen::Vector3d& b1e, double &toi){
+   
+    Eigen::Vector3d tol = compute_edge_edge_tolerance(a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
+
+    Interval3 toi_interval;
+    igl::Timer timer;
+    timer.start();
+   bool is_impacting = interval_root_finder_opt(
+       distance, tol,toi_interval,false);
+    time0+=timer.getElapsedTimeInMicroSec();
+   // Return a conservative time-of-impact
+   if (is_impacting) {
+       toi = double(toi_interval[0].first.first)/pow(2,toi_interval[0].first.second);
+   }
+   // This time of impact is very dangerous for convergence
+   // assert(!is_impacting || toi > 0);
+   return is_impacting;
+   return false;
+}
+
+
+
+
+void print_time_1(){
+    std::cout<<"time of root finder, "<<time0<<std::endl;
 }
 } // namespace ccd
