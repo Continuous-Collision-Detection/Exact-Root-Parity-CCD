@@ -205,6 +205,44 @@ bool interval_bounding_box_check(const Eigen::Vector3I&in, std::array<bool,6>& f
         return true;
     else return false;
 }
+
+bool evaluate_bbox_one_dimension(
+    const std::array<Numccd,2>& t,
+    const std::array<Numccd,2>& u,
+    const std::array<Numccd,2>& v,
+    const Eigen::Vector3d& a0s,
+    const Eigen::Vector3d& a1s,
+    const Eigen::Vector3d& b0s,
+    const Eigen::Vector3d& b1s,
+    const Eigen::Vector3d& a0e,
+    const Eigen::Vector3d& a1e,
+    const Eigen::Vector3d& b0e,
+    const Eigen::Vector3d& b1e,
+    const int dimension){
+    
+    double tp;
+    bool flag0=false, flag1=false;
+    for(int i=0;i<2;i++){
+        for(int j=0;j<2;j++){
+            for(int k=0;k<2;k++){
+                int eva=function_f(t[i],u[j],v[k],tp,dimension,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
+                if(eva<=0){
+                    flag0=true;
+                }
+                if(eva>=0){
+                    flag1=true;
+                }
+                if(flag0&&flag1){
+                    return true;
+                }
+            }
+        }
+    }
+    if(flag0&&flag1)
+    return true;
+    return false;
+        
+}
 bool Origin_in_function_bounding_box(
     const Interval3& paras,
     const std::function<Eigen::VectorX3I(const Numccd&, const Numccd&, const Numccd&)>& f){
@@ -240,6 +278,36 @@ bool Origin_in_function_bounding_box(
         }
     }
     return false;
+}
+
+bool Origin_in_function_bounding_box_double(
+    const Interval3& paras,
+    const Eigen::Vector3d& a0s,
+    const Eigen::Vector3d& a1s,
+    const Eigen::Vector3d& b0s,
+    const Eigen::Vector3d& b1s,
+    const Eigen::Vector3d& a0e,
+    const Eigen::Vector3d& a1e,
+    const Eigen::Vector3d& b0e,
+    const Eigen::Vector3d& b1e){
+    //igl::Timer timer;
+    std::array<Numccd,2> t,u,v;
+    
+    t[0]=paras[0].first;
+    t[1]=paras[0].second;
+    u[0]=paras[1].first;
+    u[1]=paras[1].second;
+    v[0]=paras[2].first;
+    v[1]=paras[2].second;
+    //bool zero_0=false, zer0_1=false, zero_2=false;
+    if(!evaluate_bbox_one_dimension(t,u,v,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,0))
+        return false;
+    if(!evaluate_bbox_one_dimension(t,u,v,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,1))
+        return false;
+    if(!evaluate_bbox_one_dimension(t,u,v,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,2))
+        return false;
+    return true;
+    
 }
 // return power t. n=result*2^t
 int reduction(const int n, int& result){
@@ -344,76 +412,6 @@ bool interval_root_finder_opt(
 
     }
     return false;
-    // std::stack<std::pair<Eigen::VectorX3d, int>> xs;
-    // xs.emplace(x0, -1);
-    // while (!xs.empty()) {
-    //     x = xs.top().first;
-    //     int last_split = xs.top().second;
-    //     xs.pop();
-
-    //     Eigen::VectorX3I y = f(x);
-
-    //     if (!zero_in(y)) {
-    //         continue;
-    //     }
-
-    //     Eigen::VectorX3d widths = width(x);
-    //     if ((widths.array() <= tol.array()).all()) {
-    //         if (constraint_predicate(x)) {
-    //             return true;
-    //         }
-    //         continue;
-    //     }
-
-    //     // Bisect the next dimension that is greater than its tolerance
-    //     int split_i;
-    //     for (int i = 1; i <= x.size(); i++) {
-    //         split_i = (last_split + i) % x.size();
-    //         if (widths(split_i) > tol(split_i)) {
-    //             break;
-    //         }
-    //     }
-    //     std::pair<Interval, Interval> halves = bisect(x(split_i));
-    //     Eigen::VectorX3I x1 = x;
-    //     // Push the second half on first so it is examined after the first half
-    //     if(check_vf){
-    //         if(split_i==1){
-    //             if(interval_satisfy_constrain(halves.second,x(2))){
-    //                 x(split_i) = halves.second;
-    //                 xs.emplace(x, split_i);
-    //             }
-    //             if(interval_satisfy_constrain(halves.first,x(2))){
-    //                 x(split_i) = halves.first;
-    //                 xs.emplace(x, split_i);
-    //             }
-    //         }
-    //         if(split_i==2){
-    //             if(interval_satisfy_constrain(halves.second,x(1))){
-    //                 x(split_i) = halves.second;
-    //                 xs.emplace(x, split_i);
-    //             }
-    //             if(interval_satisfy_constrain(halves.first,x(1))){
-    //                 x(split_i) = halves.first;
-    //                 xs.emplace(x, split_i);
-    //             }
-    //         }
-    //         if(split_i==0){
-    //             x(split_i) = halves.second;
-    //             xs.emplace(x, split_i);
-    //             x(split_i) = halves.first;
-    //             xs.emplace(x, split_i);
-    //         }
-    //     }
-    //     else{
-    //         x(split_i) = halves.second;
-    //         xs.emplace(x, split_i);
-    //         x(split_i) = halves.first;
-    //         xs.emplace(x, split_i);
-    //     }
-        
-        
-    // }
-    // return false;
     
 }
 // calculate the sign of f. dim is the dimension we are evaluating.
@@ -451,8 +449,78 @@ const Eigen::Vector3d& a0s,
        T edge1_vertex
            = (edge1_vertex1 - edge1_vertex0) * vu/int(pow(2,vd)) + edge1_vertex0;
 
-       return (edge1_vertex - edge0_vertex).eval();
+       
+       if(edge1_vertex>edge0_vertex) return 1;
+       if(edge1_vertex<edge0_vertex) return -1;
+       return 0;
 };
+bool interval_root_finder_double(
+    const Eigen::VectorX3d& tol,
+    //Eigen::VectorX3I& x,// result interval
+    Interval3& final,
+    const bool check_vf,
+    const Eigen::Vector3d& a0s,
+    const Eigen::Vector3d& a1s,
+    const Eigen::Vector3d& b0s,
+    const Eigen::Vector3d& b1s,
+    const Eigen::Vector3d& a0e,
+    const Eigen::Vector3d& a1e,
+    const Eigen::Vector3d& b0e,
+    const Eigen::Vector3d& b1e){
+    
+    Numccd low_number; low_number.first=0; low_number.second=0;// low_number=0;
+    Numccd up_number; up_number.first=1; up_number.second=0;// up_number=1;
+    // initial interval [0,1]
+    Singleinterval init_interval;init_interval.first=low_number;init_interval.second=up_number;
+    //build interval set [0,1]x[0,1]x[0,1]
+    Interval3 iset;
+    iset[0]=init_interval;iset[1]=init_interval;iset[2]=init_interval;
+    // Stack of intervals and the last split dimension
+    std::stack<std::pair<Interval3,int>> istack;
+    istack.emplace(iset,-1);
+
+    // current intervals
+    Interval3 current;
+    while(!istack.empty()){
+        current=istack.top().first;
+        int last_split=istack.top().second;
+        istack.pop();
+        igl::Timer timer;
+        timer.start();
+        bool zero_in = Origin_in_function_bounding_box_double(current,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
+        timer.stop();
+        time20+=timer.getElapsedTimeInMicroSec();
+        if(!zero_in) continue;
+        timer.start();
+        Eigen::VectorX3d widths = width(current);
+        timer.stop();
+        time21+=timer.getElapsedTimeInMicroSec();
+        if ((widths.array() <= tol.array()).all()) {
+            final=current;
+                return true;
+        }
+
+        // Bisect the next dimension that is greater than its tolerance
+        int split_i;
+        for (int i = 1; i <= 3; i++) {
+            split_i = (last_split + i) % 3;
+            if (widths(split_i) > tol(split_i)) {
+                break;
+            }
+        }
+        timer.start();
+        std::pair<Singleinterval, Singleinterval> halves = bisect(current[split_i]);
+        current[split_i] = halves.second;
+        istack.emplace(current, split_i);
+        current[split_i] = halves.first;
+        istack.emplace(current, split_i);
+        timer.stop();
+        time22+=timer.getElapsedTimeInMicroSec();
+
+    }
+    return false;
+    
+}
 void print_time_2(){
     std::cout<<"origin predicates, "<<time20<<std::endl;
     std::cout<<"width, "<<time21<<std::endl;

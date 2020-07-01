@@ -376,8 +376,8 @@ bool edgeEdgeCCD_double(
     Interval3 toi_interval;
     igl::Timer timer;
     timer.start();
-   bool is_impacting = interval_root_finder_opt(
-       distance, tol,toi_interval,false);
+   bool is_impacting = interval_root_finder_double(
+        tol,toi_interval,false,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
     time0+=timer.getElapsedTimeInMicroSec();
    // Return a conservative time-of-impact
    if (is_impacting) {

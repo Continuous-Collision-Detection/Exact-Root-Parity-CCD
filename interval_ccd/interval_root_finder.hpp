@@ -47,6 +47,20 @@ bool interval_root_finder_opt(
     const Eigen::VectorX3d& tol,
     Interval3& final,
     const bool check_vf);
+
+bool interval_root_finder_double(
+    const Eigen::VectorX3d& tol,
+    //Eigen::VectorX3I& x,// result interval
+    Interval3& final,
+    const bool check_vf,
+    const Eigen::Vector3d& a0s,
+    const Eigen::Vector3d& a1s,
+    const Eigen::Vector3d& b0s,
+    const Eigen::Vector3d& b1s,
+    const Eigen::Vector3d& a0e,
+    const Eigen::Vector3d& a1e,
+    const Eigen::Vector3d& b0e,
+    const Eigen::Vector3d& b1e);
 // return power t. n=result*2^t
 int reduction(const int n, int& result);
 std::pair<Singleinterval, Singleinterval> bisect(const Singleinterval& inter);
