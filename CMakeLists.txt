@@ -114,8 +114,9 @@ target_link_libraries(${PROJECT_NAME}_interval PUBLIC igl::core igl::predicates)
 
 # Extra warnings
 target_link_libraries(${PROJECT_NAME}_interval PRIVATE warnings::all)
-
-
+#GMP
+target_include_directories(${PROJECT_NAME}_interval PUBLIC ${GMP_INCLUDE_DIRS} src)
+target_link_libraries(${PROJECT_NAME}_interval PUBLIC ${GMP_LIBRARIES})
 ################################################################################
 # Executable
 ################################################################################

@@ -4,6 +4,7 @@
 #include <stack>
 #include<igl/Timer.h>
 #include<iostream>
+#include<interval_ccd/Rational.hpp>
 namespace intervalccd {
 double time20=0,time21=0,time22=0, time23=0,time24=0,time25=0;;
 bool interval_root_finder(
@@ -206,6 +207,7 @@ bool interval_bounding_box_check(const Eigen::Vector3I&in, std::array<bool,6>& f
     else return false;
 }
 
+template<typename T>
 bool evaluate_bbox_one_dimension(
     const std::array<Numccd,2>& t,
     const std::array<Numccd,2>& u,
@@ -218,9 +220,9 @@ bool evaluate_bbox_one_dimension(
     const Eigen::Vector3d& a1e,
     const Eigen::Vector3d& b0e,
     const Eigen::Vector3d& b1e,
-    const int dimension){
+    const int dimension,T tp){
     
-    double tp;
+    
     bool flag0=false, flag1=false;
     for(int i=0;i<2;i++){
         for(int j=0;j<2;j++){
@@ -300,11 +302,42 @@ bool Origin_in_function_bounding_box_double(
     v[0]=paras[2].first;
     v[1]=paras[2].second;
     //bool zero_0=false, zer0_1=false, zero_2=false;
-    if(!evaluate_bbox_one_dimension(t,u,v,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,0))
+    double input_type;
+    if(!evaluate_bbox_one_dimension(t,u,v,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,0,input_type))
         return false;
-    if(!evaluate_bbox_one_dimension(t,u,v,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,1))
+    if(!evaluate_bbox_one_dimension(t,u,v,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,1,input_type))
         return false;
-    if(!evaluate_bbox_one_dimension(t,u,v,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,2))
+    if(!evaluate_bbox_one_dimension(t,u,v,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,2,input_type))
+        return false;
+    return true;
+    
+}
+bool Origin_in_function_bounding_box_Rational(xx
+    const Interval3& paras,
+    const Eigen::Vector3d& a0s,
+    const Eigen::Vector3d& a1s,
+    const Eigen::Vector3d& b0s,
+    const Eigen::Vector3d& b1s,
+    const Eigen::Vector3d& a0e,
+    const Eigen::Vector3d& a1e,
+    const Eigen::Vector3d& b0e,
+    const Eigen::Vector3d& b1e){
+    //igl::Timer timer;
+    std::array<Numccd,2> t,u,v;
+    
+    t[0]=paras[0].first;
+    t[1]=paras[0].second;
+    u[0]=paras[1].first;
+    u[1]=paras[1].second;
+    v[0]=paras[2].first;
+    v[1]=paras[2].second;
+    //bool zero_0=false, zer0_1=false, zero_2=false;
+    Rational input_type;
+    if(!evaluate_bbox_one_dimension(t,u,v,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,0,input_type))
+        return false;
+    if(!evaluate_bbox_one_dimension(t,u,v,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,1,input_type))
+        return false;
+    if(!evaluate_bbox_one_dimension(t,u,v,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,2,input_type))
         return false;
     return true;
     
