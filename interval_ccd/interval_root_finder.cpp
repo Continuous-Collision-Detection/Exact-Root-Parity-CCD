@@ -6,7 +6,7 @@
 #include<iostream>
 #include<interval_ccd/Rational.hpp>
 namespace intervalccd {
-double time20=0,time21=0,time22=0, time23=0,time24=0,time25=0;;
+double time20=0,time21=0,time22=0, time23=0,time24=0,time25=0,time_rational=0;
 bool interval_root_finder(
     const std::function<Interval(const Interval&)>& f,
     const Interval& x0,
@@ -245,6 +245,51 @@ bool evaluate_bbox_one_dimension(
     return false;
         
 }
+Vector3r function_f_Rational (
+const Numccd&tpara, const Numccd&upara, const Numccd&vpara, 
+const Eigen::Vector3d& a0sd,
+    const Eigen::Vector3d& a1sd,
+    const Eigen::Vector3d& b0sd,
+    const Eigen::Vector3d& b1sd,
+    const Eigen::Vector3d& a0ed,
+    const Eigen::Vector3d& a1ed,
+    const Eigen::Vector3d& b0ed,
+    const Eigen::Vector3d& b1ed ) {
+       
+       int tu = tpara.first, td=tpara.second;// t=tu/(2^td)
+       int uu = upara.first, ud=upara.second;
+       int vu = vpara.first, vd=vpara.second;
+        Vector3r 
+        a0s(a0sd[0],a0sd[1],a0sd[2]), 
+        a1s(a1sd[0],a1sd[1],a1sd[2]),
+        b0s(b0sd[0],b0sd[1],b0sd[2]),
+        b1s(b1sd[0],b1sd[1],b1sd[2]),
+        a0e(a0ed[0],a0ed[1],a0ed[2]),
+        a1e(a1ed[0],a1ed[1],a1ed[2]),
+        b0e(b0ed[0],b0ed[1],b0ed[2]),
+        b1e(b1ed[0],b1ed[1],b1ed[2]);
+       Vector3r edge0_vertex0
+           = (a0e - a0s) * tu/int(pow(2,td))
+           + a0s;
+       Vector3r edge0_vertex1
+           = (a1e - a1s) * tu/int(pow(2,td))
+           + a1s;
+       Vector3r edge0_vertex
+           = (edge0_vertex1 - edge0_vertex0) * uu/int(pow(2,ud)) + edge0_vertex0;
+
+       Vector3r edge1_vertex0
+           = (b0e - b0s) * tu/int(pow(2,td))
+           + b0s;
+       Vector3r edge1_vertex1
+           = (b1e - b1s) * tu/int(pow(2,td))
+           + b1s;
+       Vector3r edge1_vertex
+           = (edge1_vertex1 - edge1_vertex0) * vu/int(pow(2,vd)) + edge1_vertex0;
+
+       
+       return edge1_vertex-edge0_vertex;
+       
+};
 bool Origin_in_function_bounding_box(
     const Interval3& paras,
     const std::function<Eigen::VectorX3I(const Numccd&, const Numccd&, const Numccd&)>& f){
@@ -312,7 +357,7 @@ bool Origin_in_function_bounding_box_double(
     return true;
     
 }
-bool Origin_in_function_bounding_box_Rational(xx
+bool Origin_in_function_bounding_box_Rational(
     const Interval3& paras,
     const Eigen::Vector3d& a0s,
     const Eigen::Vector3d& a1s,
@@ -331,15 +376,46 @@ bool Origin_in_function_bounding_box_Rational(xx
     u[1]=paras[1].second;
     v[0]=paras[2].first;
     v[1]=paras[2].second;
-    //bool zero_0=false, zer0_1=false, zero_2=false;
-    Rational input_type;
-    if(!evaluate_bbox_one_dimension(t,u,v,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,0,input_type))
-        return false;
-    if(!evaluate_bbox_one_dimension(t,u,v,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,1,input_type))
-        return false;
-    if(!evaluate_bbox_one_dimension(t,u,v,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,2,input_type))
-        return false;
-    return true;
+    Vector3r minv, maxv;
+    std::array<Vector3r,8> pts;
+    int c=0;
+    for(int i=0;i<2;i++){
+        for(int j=0;j<2;j++){
+            for(int k=0;k<2;k++){
+                pts[c]=function_f_Rational(t[i],u[j],v[k],a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
+                c++;
+            }
+        }
+    }
+    minv=pts[0]; maxv=pts[0];
+    for(int i=0;i<8;i++){
+        if(minv[0]>pts[i][0]){
+            minv[0]=pts[i][0];
+        }
+        if(minv[1]>pts[i][1]){
+            minv[1]=pts[i][1];
+        }
+        if(minv[2]>pts[i][2]){
+            minv[2]=pts[i][2];
+        }
+        if(maxv[0]<pts[i][0]){
+            maxv[0]=pts[i][0];
+        }
+        if(maxv[1]<pts[i][1]){
+            maxv[1]=pts[i][1];
+        }
+        if(maxv[2]<pts[i][2]){
+            maxv[2]=pts[i][2];
+        }
+    }
+    if(minv[0]<=0&&minv[1]<=0&&minv[2]<=0)
+    {
+        if(maxv[0]>=0&&maxv[1]>=0&&maxv[2]>=0){
+            return true;
+        }
+    }
+    return false;
+    
     
 }
 // return power t. n=result*2^t
@@ -519,10 +595,15 @@ bool interval_root_finder_double(
         int last_split=istack.top().second;
         istack.pop();
         igl::Timer timer;
+
         timer.start();
         bool zero_in = Origin_in_function_bounding_box_double(current,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
         timer.stop();
         time20+=timer.getElapsedTimeInMicroSec();
+        timer.start();
+        zero_in=Origin_in_function_bounding_box_Rational(current,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
+        timer.stop();
+        time_rational+=timer.getElapsedTimeInMicroSec();
         if(!zero_in) continue;
         timer.start();
         Eigen::VectorX3d widths = width(current);
@@ -560,5 +641,8 @@ void print_time_2(){
     std::cout<<"bisect, "<<time22<<std::endl;
     std::cout<<"origin part1, "<<time23<<std::endl;
     std::cout<<"origin part2, "<<time24<<std::endl;
+}
+double print_time_rational(){
+    return time_rational;
 }
 } // namespace ccd

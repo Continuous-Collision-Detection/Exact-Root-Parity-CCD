@@ -77,5 +77,6 @@ const Eigen::Vector3d& a0s,
     const Eigen::Vector3d& b0e,
     const Eigen::Vector3d& b1e );
 void print_time_2();
+double print_time_rational();
 
 } // namespace ccd

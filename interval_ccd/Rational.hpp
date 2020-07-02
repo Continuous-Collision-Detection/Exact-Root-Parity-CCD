@@ -3,7 +3,7 @@
 #include <gmp.h>
 #include <iostream>
 
-namespace doubleccd {
+namespace intervalccd {
 
 class
     Rational { // https://cs.nyu.edu/acsys/cvc3/releases/1.5/doc/rational-gmp_8cpp-source.html
