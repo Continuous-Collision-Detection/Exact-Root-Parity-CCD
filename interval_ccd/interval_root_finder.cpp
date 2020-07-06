@@ -645,4 +645,36 @@ void print_time_2(){
 double print_time_rational(){
     return time_rational;
 }
+
+std::array<double, 3> get_numerical_error(const std::vector<Eigen::Vector3d> &vertices,const bool& check_vf){
+    double xmax=fabs(vertices[0][0]);
+    double ymax=fabs(vertices[0][1]);
+    double zmax=fabs(vertices[0][2]);
+    for(int i=0;i<vertices.size();i++){
+        if(xmax<fabs(vertices[i][0])){
+            xmax=fabs(vertices[i][0]);
+        }
+        if(ymax<fabs(vertices[i][1])){
+            ymax=fabs(vertices[i][1]);
+        }
+        if(zmax<fabs(vertices[i][2])){
+            zmax=fabs(vertices[i][2]);
+        }
+    }
+    double delta_x=xmax>1?xmax:1;
+    double delta_y=ymax>1?ymax:1;
+    double delta_z=zmax>1?zmax:1;
+    std::array<double, 3> result;
+    if(!check_vf){
+        result[0]=delta_x*delta_x*delta_x*6.217248937900877e-15;
+        result[1]=delta_y*delta_y*delta_y*6.217248937900877e-15;
+        result[2]=delta_z*delta_z*delta_z*6.217248937900877e-15;
+    }
+    else{
+        result[0]=delta_x*delta_x*delta_x*6.661338147750939e-15;
+        result[1]=delta_y*delta_y*delta_y*6.661338147750939e-15;
+        result[2]=delta_z*delta_z*delta_z*6.661338147750939e-15;
+    }
+    return result;
+}
 } // namespace ccd

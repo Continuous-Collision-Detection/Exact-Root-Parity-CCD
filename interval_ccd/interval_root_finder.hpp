@@ -4,6 +4,7 @@
 #include <functional>
 
 #include "interval.hpp"
+#include<vector>
 
 namespace intervalccd {
 
@@ -78,5 +79,5 @@ const Eigen::Vector3d& a0s,
     const Eigen::Vector3d& b1e );
 void print_time_2();
 double print_time_rational();
-
+std::array<double, 3> get_numerical_error(const std::vector<Eigen::Vector3d> &vertices,const bool& check_vf);
 } // namespace ccd
