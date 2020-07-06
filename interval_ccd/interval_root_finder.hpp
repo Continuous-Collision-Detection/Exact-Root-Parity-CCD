@@ -67,7 +67,7 @@ int reduction(const int n, int& result);
 std::pair<Singleinterval, Singleinterval> bisect(const Singleinterval& inter);
 // calculate the sign of f. dim is the dimension we are evaluating.
 template<typename T>
-int function_f (
+int function_f_ee (
 const Numccd&tpara, const Numccd&upara, const Numccd&vpara,const T& type, const int dim,
 const Eigen::Vector3d& a0s,
     const Eigen::Vector3d& a1s,

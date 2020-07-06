@@ -5,6 +5,10 @@
 #include<igl/Timer.h>
 #include<iostream>
 #include<interval_ccd/Rational.hpp>
+
+#define COMPARE_WITH_RATIONAL
+
+
 namespace intervalccd {
 double time20=0,time21=0,time22=0, time23=0,time24=0,time25=0,time_rational=0;
 bool interval_root_finder(
@@ -220,14 +224,20 @@ bool evaluate_bbox_one_dimension(
     const Eigen::Vector3d& a1e,
     const Eigen::Vector3d& b0e,
     const Eigen::Vector3d& b1e,
-    const int dimension,T tp){
+    const int dimension,T tp,const bool check_vf){
     
-    
+    int eva;
     bool flag0=false, flag1=false;
     for(int i=0;i<2;i++){
         for(int j=0;j<2;j++){
             for(int k=0;k<2;k++){
-                int eva=function_f(t[i],u[j],v[k],tp,dimension,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
+                if(!check_vf){
+                    eva=function_f_ee(t[i],u[j],v[k],tp,dimension,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
+                }
+                else{
+                    eva=function_f_vf()
+                }
+                 
                 if(eva<=0){
                     flag0=true;
                 }
@@ -245,7 +255,7 @@ bool evaluate_bbox_one_dimension(
     return false;
         
 }
-Vector3r function_f_Rational (
+Vector3r function_f_ee_Rational (
 const Numccd&tpara, const Numccd&upara, const Numccd&vpara, 
 const Eigen::Vector3d& a0sd,
     const Eigen::Vector3d& a1sd,
@@ -336,7 +346,8 @@ bool Origin_in_function_bounding_box_double(
     const Eigen::Vector3d& a0e,
     const Eigen::Vector3d& a1e,
     const Eigen::Vector3d& b0e,
-    const Eigen::Vector3d& b1e){
+    const Eigen::Vector3d& b1e,
+    const bool check_vf){
     //igl::Timer timer;
     std::array<Numccd,2> t,u,v;
     
@@ -348,11 +359,11 @@ bool Origin_in_function_bounding_box_double(
     v[1]=paras[2].second;
     //bool zero_0=false, zer0_1=false, zero_2=false;
     double input_type;
-    if(!evaluate_bbox_one_dimension(t,u,v,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,0,input_type))
+    if(!evaluate_bbox_one_dimension(t,u,v,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,0,input_type,check_vf))
         return false;
-    if(!evaluate_bbox_one_dimension(t,u,v,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,1,input_type))
+    if(!evaluate_bbox_one_dimension(t,u,v,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,1,input_type,check_vf))
         return false;
-    if(!evaluate_bbox_one_dimension(t,u,v,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,2,input_type))
+    if(!evaluate_bbox_one_dimension(t,u,v,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,2,input_type,check_vf))
         return false;
     return true;
     
@@ -366,7 +377,7 @@ bool Origin_in_function_bounding_box_Rational(
     const Eigen::Vector3d& a0e,
     const Eigen::Vector3d& a1e,
     const Eigen::Vector3d& b0e,
-    const Eigen::Vector3d& b1e){
+    const Eigen::Vector3d& b1e,const bool check_vf){
     //igl::Timer timer;
     std::array<Numccd,2> t,u,v;
     
@@ -382,7 +393,13 @@ bool Origin_in_function_bounding_box_Rational(
     for(int i=0;i<2;i++){
         for(int j=0;j<2;j++){
             for(int k=0;k<2;k++){
-                pts[c]=function_f_Rational(t[i],u[j],v[k],a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
+                if(check_vf){
+                    pts[c]=function_f_ee_Rational(t[i],u[j],v[k],a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
+                }
+                else{
+                    pts[c]=function_f_vf_Rational()
+                }
+                
                 c++;
             }
         }
@@ -461,6 +478,29 @@ std::pair<Singleinterval, Singleinterval> bisect(const Singleinterval& inter){
     result.first=i1;result.second=i2;
     return result;
 }
+bool sum_no_larger_1(const Numccd& num1, const Numccd& num2){
+    int k1=num1.first;
+    int n1=num1.second;
+    int k2=num2.first;
+    int n2=num2.second;
+    int k,n;
+    if(n1==n2){
+        k=k1+k2;
+        n=n1;
+    }
+    if(n1<n2){
+        k=pow(2,n2-n1)*k1+k2;
+        n=n2;
+    }
+    if(n1>n2){
+        k=pow(2,n1-n2)*k2+k1;
+        n=n1;
+    }
+    assert(k>=0&&n>=0);
+    if(k>n) return false;
+    else return true;
+
+}
 bool interval_root_finder_opt(
     const std::function<Eigen::VectorX3I(const Numccd&, const Numccd&, const Numccd&)>& f,
     //const std::function<bool(const Eigen::VectorX3I&)>& constraint_predicate,
@@ -480,9 +520,13 @@ bool interval_root_finder_opt(
     // Stack of intervals and the last split dimension
     std::stack<std::pair<Interval3,int>> istack;
     istack.emplace(iset,-1);
-
+    
     // current intervals
     Interval3 current;
+    if(check_vf){
+        std::cout<<"NOT IMPLEMENTED, DO NOT USE THIS FUNCTION"<<std::endl;
+        return false;
+    }
     while(!istack.empty()){
         current=istack.top().first;
         int last_split=istack.top().second;
@@ -490,6 +534,7 @@ bool interval_root_finder_opt(
         igl::Timer timer;
         timer.start();
         bool zero_in = Origin_in_function_bounding_box(current,f);
+        // TODO need to add vf function check here 
         timer.stop();
         time20+=timer.getElapsedTimeInMicroSec();
         if(!zero_in) continue;
@@ -510,22 +555,53 @@ bool interval_root_finder_opt(
                 break;
             }
         }
-        timer.start();
         std::pair<Singleinterval, Singleinterval> halves = bisect(current[split_i]);
-        current[split_i] = halves.second;
-        istack.emplace(current, split_i);
-        current[split_i] = halves.first;
-        istack.emplace(current, split_i);
-        timer.stop();
-        time22+=timer.getElapsedTimeInMicroSec();
 
+        if(check_vf){
+            if(split_i==1){
+                if(sum_no_larger_1(halves.first.first, current[2].first)){
+                    current[split_i]=halves.first;
+                    istack.emplace(current, split_i);
+                }
+                if(sum_no_larger_1(halves.second.first, current[2].first)){
+                    current[split_i]=halves.second;
+                    istack.emplace(current, split_i);
+                }
+                
+            }
+
+            if(split_i==2){
+
+                if(sum_no_larger_1(halves.first.first, current[1].first)){
+                    current[split_i]=halves.first;
+                    istack.emplace(current, split_i);
+                }
+                if(sum_no_larger_1(halves.second.first, current[1].first)){
+                    current[split_i]=halves.second;
+                    istack.emplace(current, split_i);
+                }
+
+            }
+            if(split_i==0){
+                current[split_i] = halves.second;
+                istack.emplace(current, split_i);
+                current[split_i] = halves.first;
+                istack.emplace(current, split_i);
+            }
+        }
+        else{
+            current[split_i] = halves.second;
+            istack.emplace(current, split_i);
+            current[split_i] = halves.first;
+            istack.emplace(current, split_i);
+        }
     }
     return false;
     
 }
 // calculate the sign of f. dim is the dimension we are evaluating.
 template<typename T>
-int function_f (
+int function_f_ee (
 const Numccd&tpara, const Numccd&upara, const Numccd&vpara,const T& type, const int dim,
 const Eigen::Vector3d& a0s,
     const Eigen::Vector3d& a1s,
@@ -562,7 +638,7 @@ const Eigen::Vector3d& a0s,
        if(edge1_vertex>edge0_vertex) return 1;
        if(edge1_vertex<edge0_vertex) return -1;
        return 0;
-};
+}
 bool interval_root_finder_double(
     const Eigen::VectorX3d& tol,
     //Eigen::VectorX3I& x,// result interval
@@ -597,13 +673,15 @@ bool interval_root_finder_double(
         igl::Timer timer;
 
         timer.start();
-        bool zero_in = Origin_in_function_bounding_box_double(current,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
+        bool zero_in = Origin_in_function_bounding_box_double(current,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,check_vf);
         timer.stop();
         time20+=timer.getElapsedTimeInMicroSec();
+#ifdef COMPARE_WITH_RATIONAL
         timer.start();
-        zero_in=Origin_in_function_bounding_box_Rational(current,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
+        zero_in=Origin_in_function_bounding_box_Rational(current,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,check_vf);
         timer.stop();
         time_rational+=timer.getElapsedTimeInMicroSec();
+#endif
         if(!zero_in) continue;
         timer.start();
         Eigen::VectorX3d widths = width(current);
@@ -622,14 +700,46 @@ bool interval_root_finder_double(
                 break;
             }
         }
-        timer.start();
         std::pair<Singleinterval, Singleinterval> halves = bisect(current[split_i]);
-        current[split_i] = halves.second;
-        istack.emplace(current, split_i);
-        current[split_i] = halves.first;
-        istack.emplace(current, split_i);
-        timer.stop();
-        time22+=timer.getElapsedTimeInMicroSec();
+
+        if(check_vf){
+            if(split_i==1){
+                if(sum_no_larger_1(halves.first.first, current[2].first)){
+                    current[split_i]=halves.first;
+                    istack.emplace(current, split_i);
+                }
+                if(sum_no_larger_1(halves.second.first, current[2].first)){
+                    current[split_i]=halves.second;
+                    istack.emplace(current, split_i);
+                }
+                
+            }
+
+            if(split_i==2){
+
+                if(sum_no_larger_1(halves.first.first, current[1].first)){
+                    current[split_i]=halves.first;
+                    istack.emplace(current, split_i);
+                }
+                if(sum_no_larger_1(halves.second.first, current[1].first)){
+                    current[split_i]=halves.second;
+                    istack.emplace(current, split_i);
+                }
+
+            }
+            if(split_i==0){
+                current[split_i] = halves.second;
+                istack.emplace(current, split_i);
+                current[split_i] = halves.first;
+                istack.emplace(current, split_i);
+            }
+        }
+        else{
+            current[split_i] = halves.second;
+            istack.emplace(current, split_i);
+            current[split_i] = halves.first;
+            istack.emplace(current, split_i);
+        }
 
     }
     return false;
