@@ -369,15 +369,35 @@ bool edgeEdgeCCD_double(
     const Eigen::Vector3d& a0e,
     const Eigen::Vector3d& a1e,
     const Eigen::Vector3d& b0e,
-    const Eigen::Vector3d& b1e, double &toi){
+    const Eigen::Vector3d& b1e, 
+    const std::array<double,3>& err,
+    const double ms,
+    double &toi){
    
     Eigen::Vector3d tol = compute_edge_edge_tolerance(a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
+
+    //////////////////////////////////////////////////////////
+    //TODO this should be the error of the whole mesh
+    std::vector<Eigen::Vector3d> vlist;
+    vlist.emplace_back(a0s);
+    vlist.emplace_back(a1s);
+    vlist.emplace_back(b0s);
+    vlist.emplace_back(b1s);
+
+    vlist.emplace_back(a0e);
+    vlist.emplace_back(a1e);
+    vlist.emplace_back(b0e);
+    vlist.emplace_back(b1e);
+
+    std::array<double,3> err1;
+    err1=get_numerical_error(vlist,false);
+    //////////////////////////////////////////////////////////
 
     Interval3 toi_interval;
     igl::Timer timer;
     timer.start();
    bool is_impacting = interval_root_finder_double(
-        tol,toi_interval,false,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
+        tol,toi_interval,false,err1,ms,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
     time0+=timer.getElapsedTimeInMicroSec();
    // Return a conservative time-of-impact
    if (is_impacting) {

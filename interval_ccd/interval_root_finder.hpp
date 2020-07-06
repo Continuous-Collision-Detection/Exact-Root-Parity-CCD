@@ -54,6 +54,8 @@ bool interval_root_finder_double(
     //Eigen::VectorX3I& x,// result interval
     Interval3& final,
     const bool check_vf,
+    const std::array<double,3> err,
+    const double ms,
     const Eigen::Vector3d& a0s,
     const Eigen::Vector3d& a1s,
     const Eigen::Vector3d& b0s,

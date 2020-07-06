@@ -224,7 +224,7 @@ bool evaluate_bbox_one_dimension(
     const Eigen::Vector3d& a1e,
     const Eigen::Vector3d& b0e,
     const Eigen::Vector3d& b1e,
-    const int dimension,T tp,const bool check_vf){
+    const int dimension,T tp,const bool check_vf,const ){
     
     int eva;
     bool flag0=false, flag1=false;
@@ -381,7 +381,8 @@ bool Origin_in_function_bounding_box_double(
     const Eigen::Vector3d& a1e,
     const Eigen::Vector3d& b0e,
     const Eigen::Vector3d& b1e,
-    const bool check_vf){
+    const bool check_vf,
+    const std::array<double,3>& box){
     //igl::Timer timer;
     std::array<Numccd,2> t,u,v;
     
@@ -705,6 +706,8 @@ bool interval_root_finder_double(
     //Eigen::VectorX3I& x,// result interval
     Interval3& final,
     const bool check_vf,
+    const std::array<double,3> err,
+    const double ms,
     const Eigen::Vector3d& a0s,
     const Eigen::Vector3d& a1s,
     const Eigen::Vector3d& b0s,
@@ -727,6 +730,10 @@ bool interval_root_finder_double(
 
     // current intervals
     Interval3 current;
+    std::array<double,3> err_and_ms;
+    err_and_ms[0]=err[0]+ms;
+    err_and_ms[1]=err[1]+ms;
+    err_and_ms[2]=err[2]+ms;
     while(!istack.empty()){
         current=istack.top().first;
         int last_split=istack.top().second;
