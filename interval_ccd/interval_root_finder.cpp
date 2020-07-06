@@ -235,7 +235,7 @@ bool evaluate_bbox_one_dimension(
                     eva=function_f_ee(t[i],u[j],v[k],tp,dimension,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
                 }
                 else{
-                    eva=function_f_vf()
+                    eva=function_f_vf(t[i],u[j],v[k],tp,dimension,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
                 }
                  
                 if(eva<=0){
@@ -298,6 +298,40 @@ const Eigen::Vector3d& a0sd,
 
        
        return edge1_vertex-edge0_vertex;
+       
+}
+Vector3r function_f_vf_Rational (
+const Numccd&tpara, const Numccd&upara, const Numccd&vpara, 
+const Eigen::Vector3d& a0sd,
+    const Eigen::Vector3d& a1sd,
+    const Eigen::Vector3d& b0sd,
+    const Eigen::Vector3d& b1sd,
+    const Eigen::Vector3d& a0ed,
+    const Eigen::Vector3d& a1ed,
+    const Eigen::Vector3d& b0ed,
+    const Eigen::Vector3d& b1ed ) {
+       
+       int tu = tpara.first, td=tpara.second;// t=tu/(2^td)
+       int uu = upara.first, ud=upara.second;
+       int vu = vpara.first, vd=vpara.second;
+        Vector3r 
+        vs(a0sd[0],a0sd[1],a0sd[2]), 
+        t0s(a1sd[0],a1sd[1],a1sd[2]),
+        t1s(b0sd[0],b0sd[1],b0sd[2]),
+        t2s(b1sd[0],b1sd[1],b1sd[2]),
+
+        ve(a0ed[0],a0ed[1],a0ed[2]),
+        t0e(a1ed[0],a1ed[1],a1ed[2]),
+        t1e(b0ed[0],b0ed[1],b0ed[2]),
+        t2e(b1ed[0],b1ed[1],b1ed[2]);
+
+        Vector3r v=(ve-vs)*tu/int(pow(2,td))+vs;
+
+        Vector3r t0=(t0e-t0s)*tu/int(pow(2,td))+t0s;
+        Vector3r t1=(t1e-t1s)*tu/int(pow(2,td))+t1s;
+        Vector3r t2=(t2e-t2s)*tu/int(pow(2,td))+t2s;
+        Vector3r p=(t1-t0)*uu/int(pow(2,ud))+(t2-t0)*vu/int(pow(2,vd))+t0;
+        return v-p;
        
 };
 bool Origin_in_function_bounding_box(
@@ -397,7 +431,7 @@ bool Origin_in_function_bounding_box_Rational(
                     pts[c]=function_f_ee_Rational(t[i],u[j],v[k],a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
                 }
                 else{
-                    pts[c]=function_f_vf_Rational()
+                    pts[c]=function_f_vf_Rational(t[i],u[j],v[k],a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
                 }
                 
                 c++;
@@ -638,6 +672,33 @@ const Eigen::Vector3d& a0s,
        if(edge1_vertex>edge0_vertex) return 1;
        if(edge1_vertex<edge0_vertex) return -1;
        return 0;
+}
+template<typename T>
+int function_f_vf (
+const Numccd&tpara, const Numccd&upara, const Numccd&vpara,const T& type, const int dim,
+    const Eigen::Vector3d& vs,
+    const Eigen::Vector3d& t0s,
+    const Eigen::Vector3d& t1s,
+    const Eigen::Vector3d& t2s,
+
+    const Eigen::Vector3d& ve,
+    const Eigen::Vector3d& t0e,
+    const Eigen::Vector3d& t1e,
+    const Eigen::Vector3d& t2e ) {
+       
+       int tu = tpara.first, td=tpara.second;// t=tu/(2^td)
+       int uu = upara.first, ud=upara.second;
+       int vu = vpara.first, vd=vpara.second;
+
+        T v= (T(ve[dim])-T(vs[dim]))* tu/int(pow(2,td))+T(vs[dim]);
+        T t0=(T(t0e[dim])-T(t0s[dim]))* tu/int(pow(2,td))+T(t0s[dim]);
+        T t1=(T(t1e[dim])-T(t1s[dim]))* tu/int(pow(2,td))+T(t1s[dim]);
+        T t2=(T(t2e[dim])-T(t2s[dim]))* tu/int(pow(2,td))+T(t2s[dim]);
+        T p=(t1-t0)*uu/int(pow(2,ud))+(t2-t0)*vu/int(pow(2,vd))+t0;
+        if(v>p) return 1;
+        if(v<p) return -1;
+        return 0;
+       
 }
 bool interval_root_finder_double(
     const Eigen::VectorX3d& tol,

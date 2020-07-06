@@ -77,6 +77,18 @@ const Eigen::Vector3d& a0s,
     const Eigen::Vector3d& a1e,
     const Eigen::Vector3d& b0e,
     const Eigen::Vector3d& b1e );
+    template<typename T>
+int function_f_vf (
+const Numccd&tpara, const Numccd&upara, const Numccd&vpara,const T& type, const int dim,
+    const Eigen::Vector3d& vs,
+    const Eigen::Vector3d& t0s,
+    const Eigen::Vector3d& t1s,
+    const Eigen::Vector3d& t2s,
+
+    const Eigen::Vector3d& ve,
+    const Eigen::Vector3d& t0e,
+    const Eigen::Vector3d& t1e,
+    const Eigen::Vector3d& t2e );
 void print_time_2();
 double print_time_rational();
 std::array<double, 3> get_numerical_error(const std::vector<Eigen::Vector3d> &vertices,const bool& check_vf);
