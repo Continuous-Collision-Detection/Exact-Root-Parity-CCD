@@ -227,7 +227,7 @@ bool evaluate_bbox_one_dimension(
     const Eigen::Vector3d& b1e,
     const int dimension,T tp,const bool check_vf,const double eps){
     
-    int eva;
+    double eva;
     bool flag0=false, flag1=false;
     for(int i=0;i<2;i++){
         for(int j=0;j<2;j++){
@@ -639,7 +639,7 @@ bool interval_root_finder_opt(
 }
 // calculate the sign of f. dim is the dimension we are evaluating.
 template<typename T>
-int function_f_ee (
+T function_f_ee (
 const Numccd&tpara, const Numccd&upara, const Numccd&vpara,const T& type, const int dim,
 const Eigen::Vector3d& a0s,
     const Eigen::Vector3d& a1s,
@@ -673,12 +673,11 @@ const Eigen::Vector3d& a0s,
            = (edge1_vertex1 - edge1_vertex0) * vu/int(pow(2,vd)) + edge1_vertex0;
 
        
-       if(edge1_vertex>edge0_vertex) return 1;
-       if(edge1_vertex<edge0_vertex) return -1;
-       return 0;
+       return edge1_vertex-edge0_vertex;
+       
 }
 template<typename T>
-int function_f_vf (
+T function_f_vf (
 const Numccd&tpara, const Numccd&upara, const Numccd&vpara,const T& type, const int dim,
     const Eigen::Vector3d& vs,
     const Eigen::Vector3d& t0s,
@@ -699,9 +698,7 @@ const Numccd&tpara, const Numccd&upara, const Numccd&vpara,const T& type, const 
         T t1=(T(t1e[dim])-T(t1s[dim]))* tu/int(pow(2,td))+T(t1s[dim]);
         T t2=(T(t2e[dim])-T(t2s[dim]))* tu/int(pow(2,td))+T(t2s[dim]);
         T p=(t1-t0)*uu/int(pow(2,ud))+(t2-t0)*vu/int(pow(2,vd))+t0;
-        if(v>p) return 1;
-        if(v<p) return -1;
-        return 0;
+        return v-p;
        
 }
 bool interval_root_finder_double(
