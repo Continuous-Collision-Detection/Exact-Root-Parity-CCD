@@ -211,6 +211,7 @@ bool interval_bounding_box_check(const Eigen::Vector3I&in, std::array<bool,6>& f
     else return false;
 }
 
+// eps is the interval [-eps,eps] we need to check
 template<typename T>
 bool evaluate_bbox_one_dimension(
     const std::array<Numccd,2>& t,
@@ -224,7 +225,7 @@ bool evaluate_bbox_one_dimension(
     const Eigen::Vector3d& a1e,
     const Eigen::Vector3d& b0e,
     const Eigen::Vector3d& b1e,
-    const int dimension,T tp,const bool check_vf,const ){
+    const int dimension,T tp,const bool check_vf,const double eps){
     
     int eva;
     bool flag0=false, flag1=false;
@@ -237,11 +238,13 @@ bool evaluate_bbox_one_dimension(
                 else{
                     eva=function_f_vf(t[i],u[j],v[k],tp,dimension,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
                 }
-                 
-                if(eva<=0){
+                if(eva<=eps&&eva>=-eps){
+                    return true;
+                }
+                if(eva<-eps){
                     flag0=true;
                 }
-                if(eva>=0){
+                if(eva>eps){
                     flag1=true;
                 }
                 if(flag0&&flag1){
@@ -394,11 +397,11 @@ bool Origin_in_function_bounding_box_double(
     v[1]=paras[2].second;
     //bool zero_0=false, zer0_1=false, zero_2=false;
     double input_type;
-    if(!evaluate_bbox_one_dimension(t,u,v,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,0,input_type,check_vf))
+    if(!evaluate_bbox_one_dimension(t,u,v,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,0,input_type,check_vf,box[0]))
         return false;
-    if(!evaluate_bbox_one_dimension(t,u,v,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,1,input_type,check_vf))
+    if(!evaluate_bbox_one_dimension(t,u,v,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,1,input_type,check_vf,box[1]))
         return false;
-    if(!evaluate_bbox_one_dimension(t,u,v,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,2,input_type,check_vf))
+    if(!evaluate_bbox_one_dimension(t,u,v,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,2,input_type,check_vf,box[2]))
         return false;
     return true;
     
@@ -741,7 +744,7 @@ bool interval_root_finder_double(
         igl::Timer timer;
 
         timer.start();
-        bool zero_in = Origin_in_function_bounding_box_double(current,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,check_vf);
+        bool zero_in = Origin_in_function_bounding_box_double(current,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,check_vf,err_and_ms);
         timer.stop();
         time20+=timer.getElapsedTimeInMicroSec();
 #ifdef COMPARE_WITH_RATIONAL
