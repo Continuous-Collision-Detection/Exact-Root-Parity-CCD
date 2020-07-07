@@ -63,7 +63,10 @@ bool edgeEdgeCCD_double(
     const Eigen::Vector3d& a0e,
     const Eigen::Vector3d& a1e,
     const Eigen::Vector3d& b0e,
-    const Eigen::Vector3d& b1e, double &toi);
+    const Eigen::Vector3d& b1e, 
+    const std::array<double,3>& err,
+    const double ms,
+    double &toi);
 bool vertexFaceCCD_double(
     const Eigen::Vector3d& vertex_start,
     const Eigen::Vector3d& face_vertex0_start,

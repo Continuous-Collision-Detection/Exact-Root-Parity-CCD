@@ -431,7 +431,7 @@ bool Origin_in_function_bounding_box_Rational(
     for(int i=0;i<2;i++){
         for(int j=0;j<2;j++){
             for(int k=0;k<2;k++){
-                if(check_vf){
+                if(!check_vf){
                     pts[c]=function_f_ee_Rational(t[i],u[j],v[k],a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
                 }
                 else{
