@@ -408,7 +408,59 @@ bool edgeEdgeCCD_double(
    return is_impacting;
    return false;
 }
+bool vertexFaceCCD_double(
+    const Eigen::Vector3d& vertex_start,
+    const Eigen::Vector3d& face_vertex0_start,
+    const Eigen::Vector3d& face_vertex1_start,
+    const Eigen::Vector3d& face_vertex2_start,
+    const Eigen::Vector3d& vertex_end,
+    const Eigen::Vector3d& face_vertex0_end,
+    const Eigen::Vector3d& face_vertex1_end,
+    const Eigen::Vector3d& face_vertex2_end,
+    const std::array<double,3>& err,
+    const double ms,
+    double& toi)
+{
+    
+   Eigen::Vector3d tol = compute_face_vertex_tolerance_3d(
+        vertex_start, face_vertex0_start, face_vertex1_start,
+        face_vertex2_start, vertex_end, face_vertex0_end, face_vertex1_end,
+        face_vertex2_end);
+     //////////////////////////////////////////////////////////
+    //TODO this should be the error of the whole mesh
+    std::vector<Eigen::Vector3d> vlist;
+    vlist.emplace_back(vertex_start);
+    vlist.emplace_back(face_vertex0_start);
+    vlist.emplace_back(face_vertex1_start);
+    vlist.emplace_back(face_vertex2_start);
 
+    vlist.emplace_back(vertex_end);
+    vlist.emplace_back(face_vertex0_end);
+    vlist.emplace_back(face_vertex1_end);
+    vlist.emplace_back(face_vertex2_end);
+
+    std::array<double,3> err1;
+    err1=get_numerical_error(vlist,false);
+    //////////////////////////////////////////////////////////
+
+    Interval3 toi_interval;
+    igl::Timer timer;
+    timer.start();
+   bool is_impacting = interval_root_finder_double(
+        tol,toi_interval,true,err1,ms,vertex_start, face_vertex0_start, face_vertex1_start,
+        face_vertex2_start, vertex_end, face_vertex0_end, face_vertex1_end,
+        face_vertex2_end);
+    time0+=timer.getElapsedTimeInMicroSec();
+   // Return a conservative time-of-impact
+   if (is_impacting) {
+       toi = double(toi_interval[0].first.first)/pow(2,toi_interval[0].first.second);
+   }
+   // This time of impact is very dangerous for convergence
+   // assert(!is_impacting || toi > 0);
+   return is_impacting;
+   return false;
+    
+}
 
 
 

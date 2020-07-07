@@ -747,7 +747,7 @@ bool interval_root_finder_double(
         bool zero_in = Origin_in_function_bounding_box_double(current,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,check_vf,err_and_ms);
         timer.stop();
         time20+=timer.getElapsedTimeInMicroSec();
-#ifdef COMPARE_WITH_RATIONAL
+#ifdef COMPARE_WITH_RATIONAL// this is defined in the begining of this file
         timer.start();
         zero_in=Origin_in_function_bounding_box_Rational(current,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,check_vf);
         timer.stop();
