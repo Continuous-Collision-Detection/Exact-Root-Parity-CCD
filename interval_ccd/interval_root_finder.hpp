@@ -91,6 +91,22 @@ const Numccd&tpara, const Numccd&upara, const Numccd&vpara,const T& type, const 
     const Eigen::Vector3d& t0e,
     const Eigen::Vector3d& t1e,
     const Eigen::Vector3d& t2e );
+
+bool interval_root_finder_Rational(
+    const Eigen::VectorX3d& tol,
+    //Eigen::VectorX3I& x,// result interval
+    std::array<std::pair<Rational,Rational>, 3>& final,
+    const bool check_vf,
+    const std::array<double,3> err,
+    const double ms,
+    const Eigen::Vector3d& a0s,
+    const Eigen::Vector3d& a1s,
+    const Eigen::Vector3d& b0s,
+    const Eigen::Vector3d& b1s,
+    const Eigen::Vector3d& a0e,
+    const Eigen::Vector3d& a1e,
+    const Eigen::Vector3d& b0e,
+    const Eigen::Vector3d& b1e);
 void print_time_2();
 double print_time_rational();
 std::array<double, 3> get_numerical_error(const std::vector<Eigen::Vector3d> &vertices,const bool& check_vf);

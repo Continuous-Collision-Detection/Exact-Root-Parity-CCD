@@ -462,8 +462,106 @@ bool vertexFaceCCD_double(
     
 }
 
+bool edgeEdgeCCD_rational(
+    const Eigen::Vector3d& a0s,
+    const Eigen::Vector3d& a1s,
+    const Eigen::Vector3d& b0s,
+    const Eigen::Vector3d& b1s,
+    const Eigen::Vector3d& a0e,
+    const Eigen::Vector3d& a1e,
+    const Eigen::Vector3d& b0e,
+    const Eigen::Vector3d& b1e, 
+    const std::array<double,3>& err,
+    const double ms,
+    double &toi){
+   
+    Eigen::Vector3d tol = compute_edge_edge_tolerance(a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
 
+    //////////////////////////////////////////////////////////
+    //TODO this should be the error of the whole mesh
+    std::vector<Eigen::Vector3d> vlist;
+    vlist.emplace_back(a0s);
+    vlist.emplace_back(a1s);
+    vlist.emplace_back(b0s);
+    vlist.emplace_back(b1s);
 
+    vlist.emplace_back(a0e);
+    vlist.emplace_back(a1e);
+    vlist.emplace_back(b0e);
+    vlist.emplace_back(b1e);
+
+    std::array<double,3> err1;
+    err1=get_numerical_error(vlist,false);
+    //////////////////////////////////////////////////////////
+
+    std::array<std::pair<Rational,Rational>, 3> toi_interval;
+    igl::Timer timer;
+    timer.start();
+   bool is_impacting = interval_root_finder_Rational(
+        tol,toi_interval,false,err1,ms,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
+    time0+=timer.getElapsedTimeInMicroSec();
+   // Return a conservative time-of-impact
+   if (is_impacting) {
+       toi = toi_interval[0].first.to_double();
+   }
+   // This time of impact is very dangerous for convergence
+   // assert(!is_impacting || toi > 0);
+   return is_impacting;
+   return false;
+}
+bool vertexFaceCCD_rational(
+    const Eigen::Vector3d& vertex_start,
+    const Eigen::Vector3d& face_vertex0_start,
+    const Eigen::Vector3d& face_vertex1_start,
+    const Eigen::Vector3d& face_vertex2_start,
+    const Eigen::Vector3d& vertex_end,
+    const Eigen::Vector3d& face_vertex0_end,
+    const Eigen::Vector3d& face_vertex1_end,
+    const Eigen::Vector3d& face_vertex2_end,
+    const std::array<double,3>& err,
+    const double ms,
+    double& toi)
+{
+    
+   Eigen::Vector3d tol = compute_face_vertex_tolerance_3d(
+        vertex_start, face_vertex0_start, face_vertex1_start,
+        face_vertex2_start, vertex_end, face_vertex0_end, face_vertex1_end,
+        face_vertex2_end);
+     //////////////////////////////////////////////////////////
+    //TODO this should be the error of the whole mesh
+    std::vector<Eigen::Vector3d> vlist;
+    vlist.emplace_back(vertex_start);
+    vlist.emplace_back(face_vertex0_start);
+    vlist.emplace_back(face_vertex1_start);
+    vlist.emplace_back(face_vertex2_start);
+
+    vlist.emplace_back(vertex_end);
+    vlist.emplace_back(face_vertex0_end);
+    vlist.emplace_back(face_vertex1_end);
+    vlist.emplace_back(face_vertex2_end);
+
+    std::array<double,3> err1;
+    err1=get_numerical_error(vlist,false);
+    //////////////////////////////////////////////////////////
+
+    std::array<std::pair<Rational,Rational>, 3> toi_interval;
+    igl::Timer timer;
+    timer.start();
+   bool is_impacting = interval_root_finder_Rational(
+        tol,toi_interval,true,err1,ms,vertex_start, face_vertex0_start, face_vertex1_start,
+        face_vertex2_start, vertex_end, face_vertex0_end, face_vertex1_end,
+        face_vertex2_end);
+    time0+=timer.getElapsedTimeInMicroSec();
+   // Return a conservative time-of-impact
+   if (is_impacting) {
+       toi = toi_interval[0].first.to_double();
+   }
+   // This time of impact is very dangerous for convergence
+   // assert(!is_impacting || toi > 0);
+   return is_impacting;
+   return false;
+    
+}
 void print_time_1(){
     std::cout<<"time of root finder, "<<time0<<std::endl;
 }
