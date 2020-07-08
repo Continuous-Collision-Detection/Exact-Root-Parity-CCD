@@ -80,6 +80,17 @@ Eigen::VectorX3d width(const Interval3&x){
     return w;
     
 }
+std::array<Rational,3> width(const std::array<std::pair<Rational,Rational>, 3>&x){
+    std::array<Rational,3> w;
+    
+    for(int i=0;i<3;i++){
+        Rational sub=x[i].first-x[i].second;
+        w[i]=sub>=0?sub:-sub;
+        assert(w[i]>=0);
+    }
+    return w;
+    
+}
 template <int dim, int max_dim = dim>
 inline bool zero_in(Eigen::Vector<Interval, dim, max_dim> X)
 {
@@ -303,6 +314,48 @@ const Eigen::Vector3d& a0sd,
        return edge1_vertex-edge0_vertex;
        
 }
+Vector3r function_f_ee_Rational (
+const Rational&tpara, const Rational&upara, const Rational&vpara, 
+const Eigen::Vector3d& a0sd,
+    const Eigen::Vector3d& a1sd,
+    const Eigen::Vector3d& b0sd,
+    const Eigen::Vector3d& b1sd,
+    const Eigen::Vector3d& a0ed,
+    const Eigen::Vector3d& a1ed,
+    const Eigen::Vector3d& b0ed,
+    const Eigen::Vector3d& b1ed ) {
+       
+        Vector3r 
+        a0s(a0sd[0],a0sd[1],a0sd[2]), 
+        a1s(a1sd[0],a1sd[1],a1sd[2]),
+        b0s(b0sd[0],b0sd[1],b0sd[2]),
+        b1s(b1sd[0],b1sd[1],b1sd[2]),
+        a0e(a0ed[0],a0ed[1],a0ed[2]),
+        a1e(a1ed[0],a1ed[1],a1ed[2]),
+        b0e(b0ed[0],b0ed[1],b0ed[2]),
+        b1e(b1ed[0],b1ed[1],b1ed[2]);
+       Vector3r edge0_vertex0
+           = (a0e - a0s) * tpara
+           + a0s;
+       Vector3r edge0_vertex1
+           = (a1e - a1s) * tpara
+           + a1s;
+       Vector3r edge0_vertex
+           = (edge0_vertex1 - edge0_vertex0) * upara + edge0_vertex0;
+
+       Vector3r edge1_vertex0
+           = (b0e - b0s) * tpara
+           + b0s;
+       Vector3r edge1_vertex1
+           = (b1e - b1s) * tpara
+           + b1s;
+       Vector3r edge1_vertex
+           = (edge1_vertex1 - edge1_vertex0) * vpara + edge1_vertex0;
+
+       
+       return edge1_vertex-edge0_vertex;
+       
+}
 Vector3r function_f_vf_Rational (
 const Numccd&tpara, const Numccd&upara, const Numccd&vpara, 
 const Eigen::Vector3d& a0sd,
@@ -336,7 +389,38 @@ const Eigen::Vector3d& a0sd,
         Vector3r p=(t1-t0)*uu/int(pow(2,ud))+(t2-t0)*vu/int(pow(2,vd))+t0;
         return v-p;
        
-};
+}
+Vector3r function_f_vf_Rational (
+const Rational&tpara, const Rational&upara, const Rational&vpara, 
+const Eigen::Vector3d& a0sd,
+    const Eigen::Vector3d& a1sd,
+    const Eigen::Vector3d& b0sd,
+    const Eigen::Vector3d& b1sd,
+    const Eigen::Vector3d& a0ed,
+    const Eigen::Vector3d& a1ed,
+    const Eigen::Vector3d& b0ed,
+    const Eigen::Vector3d& b1ed ) {
+
+        Vector3r 
+        vs(a0sd[0],a0sd[1],a0sd[2]), 
+        t0s(a1sd[0],a1sd[1],a1sd[2]),
+        t1s(b0sd[0],b0sd[1],b0sd[2]),
+        t2s(b1sd[0],b1sd[1],b1sd[2]),
+
+        ve(a0ed[0],a0ed[1],a0ed[2]),
+        t0e(a1ed[0],a1ed[1],a1ed[2]),
+        t1e(b0ed[0],b0ed[1],b0ed[2]),
+        t2e(b1ed[0],b1ed[1],b1ed[2]);
+
+        Vector3r v=(ve-vs)*tpara+vs;
+
+        Vector3r t0=(t0e-t0s)*tpara+t0s;
+        Vector3r t1=(t1e-t1s)*tpara+t1s;
+        Vector3r t2=(t2e-t2s)*tpara+t2s;
+        Vector3r p=(t1-t0)*upara+(t2-t0)*vpara+t0;
+        return v-p;
+       
+}
 bool Origin_in_function_bounding_box(
     const Interval3& paras,
     const std::function<Eigen::VectorX3I(const Numccd&, const Numccd&, const Numccd&)>& f){
@@ -473,6 +557,74 @@ bool Origin_in_function_bounding_box_Rational(
     
     
 }
+
+bool Origin_in_function_bounding_box_Rational(
+    const std::array<std::pair<Rational,Rational>, 3>& paras,
+    const Eigen::Vector3d& a0s,
+    const Eigen::Vector3d& a1s,
+    const Eigen::Vector3d& b0s,
+    const Eigen::Vector3d& b1s,
+    const Eigen::Vector3d& a0e,
+    const Eigen::Vector3d& a1e,
+    const Eigen::Vector3d& b0e,
+    const Eigen::Vector3d& b1e,const bool check_vf){
+    //igl::Timer timer;
+    std::array<Rational,2> t,u,v;
+    
+    t[0]=paras[0].first;
+    t[1]=paras[0].second;
+    u[0]=paras[1].first;
+    u[1]=paras[1].second;
+    v[0]=paras[2].first;
+    v[1]=paras[2].second;
+    Vector3r minv, maxv;
+    std::array<Vector3r,8> pts;
+    int c=0;
+    for(int i=0;i<2;i++){
+        for(int j=0;j<2;j++){
+            for(int k=0;k<2;k++){
+                if(!check_vf){
+                    pts[c]=function_f_ee_Rational(t[i],u[j],v[k],a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
+                }
+                else{
+                    pts[c]=function_f_vf_Rational(t[i],u[j],v[k],a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
+                }
+                
+                c++;
+            }
+        }
+    }
+    minv=pts[0]; maxv=pts[0];
+    for(int i=0;i<8;i++){
+        if(minv[0]>pts[i][0]){
+            minv[0]=pts[i][0];
+        }
+        if(minv[1]>pts[i][1]){
+            minv[1]=pts[i][1];
+        }
+        if(minv[2]>pts[i][2]){
+            minv[2]=pts[i][2];
+        }
+        if(maxv[0]<pts[i][0]){
+            maxv[0]=pts[i][0];
+        }
+        if(maxv[1]<pts[i][1]){
+            maxv[1]=pts[i][1];
+        }
+        if(maxv[2]<pts[i][2]){
+            maxv[2]=pts[i][2];
+        }
+    }
+    if(minv[0]<=0&&minv[1]<=0&&minv[2]<=0)
+    {
+        if(maxv[0]>=0&&maxv[1]>=0&&maxv[2]>=0){
+            return true;
+        }
+    }
+    return false;
+    
+    
+}
 // return power t. n=result*2^t
 int reduction(const int n, int& result){
     int t=0;
@@ -514,6 +666,16 @@ std::pair<Singleinterval, Singleinterval> bisect(const Singleinterval& inter){
     Numccd newnum(k,n);
     Singleinterval i1(low,newnum),i2(newnum,up);
     result.first=i1;result.second=i2;
+    return result;
+}
+std::pair<std::pair<Rational,Rational>, std::pair<Rational,Rational>> bisect(const std::pair<Rational,Rational>& inter){
+    std::pair<std::pair<Rational,Rational>, std::pair<Rational,Rational>> result;
+    std::pair<Rational,Rational> single;
+    Rational mid=(inter.first+inter.second)/2;
+    single.first=inter.first;single.second=mid;
+    result.first=single;
+    single.first=mid;single.second=inter.second;
+    result.second=single;
     return result;
 }
 bool sum_no_larger_1(const Numccd& num1, const Numccd& num2){
@@ -813,6 +975,114 @@ bool interval_root_finder_double(
     return false;
     
 }
+
+bool interval_root_finder_Rational(
+    const Eigen::VectorX3d& tol,
+    //Eigen::VectorX3I& x,// result interval
+    std::array<std::pair<Rational,Rational>, 3>& final,
+    const bool check_vf,
+    const std::array<double,3> err,
+    const double ms,
+    const Eigen::Vector3d& a0s,
+    const Eigen::Vector3d& a1s,
+    const Eigen::Vector3d& b0s,
+    const Eigen::Vector3d& b1s,
+    const Eigen::Vector3d& a0e,
+    const Eigen::Vector3d& a1e,
+    const Eigen::Vector3d& b0e,
+    const Eigen::Vector3d& b1e){
+    
+    std::pair<Rational,Rational> interval01;interval01.first=0;interval01.second=1;
+    std::array<std::pair<Rational,Rational>, 3> paracube;
+    paracube[0]=interval01;paracube[1]=interval01;paracube[2]=interval01;
+    
+    
+    // Stack of intervals and the last split dimension
+    std::stack<std::pair<std::array<std::pair<Rational,Rational>, 3>,int>> istack;
+    istack.emplace(paracube,-1);
+
+    // current intervals
+    std::array<std::pair<Rational,Rational>, 3> current;
+    std::array<double,3> err_and_ms;
+    err_and_ms[0]=err[0]+ms;
+    err_and_ms[1]=err[1]+ms;
+    err_and_ms[2]=err[2]+ms;
+    while(!istack.empty()){
+        current=istack.top().first;
+        int last_split=istack.top().second;
+        istack.pop();
+        igl::Timer timer;
+
+        timer.start();
+        bool zero_in=Origin_in_function_bounding_box_Rational(current,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,check_vf);
+        timer.stop();
+        time_rational+=timer.getElapsedTimeInMicroSec();
+
+        if(!zero_in) continue;
+        timer.start();
+        std::array<Rational,3> widths = width(current);
+        timer.stop();
+        time21+=timer.getElapsedTimeInMicroSec();
+        if (widths[0]<=tol(0)&&widths[1]<=tol(1)&&widths[2]<=tol(2)) {
+            final=current;
+                return true;
+        }
+
+        // Bisect the next dimension that is greater than its tolerance
+        int split_i;
+        for (int i = 1; i <= 3; i++) {
+            split_i = (last_split + i) % 3;
+            if (widths[split_i] > tol(split_i)) {
+                break;
+            }
+        }
+        std::pair<std::pair<Rational,Rational>, std::pair<Rational,Rational>> halves = bisect(current[split_i]);
+
+        if(check_vf){
+            if(split_i==1){
+                if(halves.first.first+current[2].first<=1){
+                    current[split_i]=halves.first;
+                    istack.emplace(current, split_i);
+                }
+                if(halves.second.first+current[2].first<=1){
+                    current[split_i]=halves.second;
+                    istack.emplace(current, split_i);
+                }
+                
+            }
+
+            if(split_i==2){
+
+                if(halves.first.first+current[1].first<=1){
+                    current[split_i]=halves.first;
+                    istack.emplace(current, split_i);
+                }
+                if(halves.second.first+current[1].first<=1){
+                    current[split_i]=halves.second;
+                    istack.emplace(current, split_i);
+                }
+
+            }
+            if(split_i==0){
+                current[split_i] = halves.second;
+                istack.emplace(current, split_i);
+                current[split_i] = halves.first;
+                istack.emplace(current, split_i);
+            }
+        }
+        else{
+            current[split_i] = halves.second;
+            istack.emplace(current, split_i);
+            current[split_i] = halves.first;
+            istack.emplace(current, split_i);
+        }
+
+    }
+    return false;
+    
+}
+
+
 void print_time_2(){
     std::cout<<"origin predicates, "<<time20<<std::endl;
     std::cout<<"width, "<<time21<<std::endl;
