@@ -1023,7 +1023,7 @@ bool interval_root_finder_Rational(
         std::array<Rational,3> widths = width(current);
         timer.stop();
         time21+=timer.getElapsedTimeInMicroSec();
-        if (widths[0]<=tol(0)&&widths[1]<=tol(1)&&widths[2]<=tol(2)) {
+        if (widths[0].to_double()<=tol(0)&&widths[1].to_double()<=tol(1)&&widths[2].to_double()<=tol(2)) {
             final=current;
                 return true;
         }
@@ -1032,7 +1032,7 @@ bool interval_root_finder_Rational(
         int split_i;
         for (int i = 1; i <= 3; i++) {
             split_i = (last_split + i) % 3;
-            if (widths[split_i] > tol(split_i)) {
+            if (widths[split_i].to_double() > tol(split_i)) {
                 break;
             }
         }
