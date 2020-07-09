@@ -697,7 +697,7 @@ bool sum_no_larger_1(const Numccd& num1, const Numccd& num2){
         n=n1;
     }
     assert(k>=0&&n>=0);
-    if(k>n) return false;
+    if(k>pow(2,n)) return false;
     else return true;
 
 }
