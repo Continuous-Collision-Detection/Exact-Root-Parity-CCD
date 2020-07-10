@@ -106,5 +106,6 @@ bool vertexFaceCCD_rational(
     const double ms,
     double& toi);
 void print_time_1();
+void print_tol();
 
 } // namespace ccd

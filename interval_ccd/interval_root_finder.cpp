@@ -6,11 +6,12 @@
 #include<iostream>
 #include<interval_ccd/Rational.hpp>
 
-#define COMPARE_WITH_RATIONAL
+// #define COMPARE_WITH_RATIONAL
 
 
 namespace intervalccd {
 double time20=0,time21=0,time22=0, time23=0,time24=0,time25=0,time_rational=0;
+int refine=0;
 bool interval_root_finder(
     const std::function<Interval(const Interval&)>& f,
     const Interval& x0,
@@ -665,6 +666,7 @@ std::pair<Singleinterval, Singleinterval> bisect(const Singleinterval& inter){
     }
     Numccd newnum(k,n);
     Singleinterval i1(low,newnum),i2(newnum,up);
+    assert(Numccd2double(newnum)>Numccd2double(low)&&Numccd2double(newnum)<Numccd2double(up));
     result.first=i1;result.second=i2;
     return result;
 }
@@ -700,6 +702,19 @@ bool sum_no_larger_1(const Numccd& num1, const Numccd& num2){
     if(k>pow(2,n)) return false;
     else return true;
 
+}
+bool sum_no_larger_1_Rational(const Numccd& num1, const Numccd& num2){
+    int k1=num1.first;
+    int n1=num1.second;
+    int k2=num2.first;
+    int n2=num2.second;
+    Rational nbr1,nbr2;
+    nbr1=Rational(k1)/Rational(pow(2,n1));
+    nbr2=Rational(k2)/Rational(pow(2,n2));
+    Rational rst=nbr1+nbr2-Rational(1);
+    if(rst>0) return false;
+    else return true;
+    
 }
 bool interval_root_finder_opt(
     const std::function<Eigen::VectorX3I(const Numccd&, const Numccd&, const Numccd&)>& f,
@@ -896,6 +911,7 @@ bool interval_root_finder_double(
     err_and_ms[0]=err[0]+ms;
     err_and_ms[1]=err[1]+ms;
     err_and_ms[2]=err[2]+ms;
+    refine=0;
     while(!istack.empty()){
         current=istack.top().first;
         int last_split=istack.top().second;
@@ -903,6 +919,7 @@ bool interval_root_finder_double(
         igl::Timer timer;
 
         timer.start();
+        refine++;
         bool zero_in = Origin_in_function_bounding_box_double(current,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,check_vf,err_and_ms);
         timer.stop();
         time20+=timer.getElapsedTimeInMicroSec();
@@ -934,6 +951,8 @@ bool interval_root_finder_double(
 
         if(check_vf){
             if(split_i==1){
+               // assert(sum_no_larger_1(halves.first.first, current[2].first)==sum_no_larger_1_Rational(halves.first.first, current[2].first));
+               // assert(sum_no_larger_1(halves.second.first, current[2].first)==sum_no_larger_1_Rational(halves.second.first, current[2].first));
                 if(sum_no_larger_1(halves.first.first, current[2].first)){
                     current[split_i]=halves.first;
                     istack.emplace(current, split_i);
@@ -946,7 +965,8 @@ bool interval_root_finder_double(
             }
 
             if(split_i==2){
-
+                //assert(sum_no_larger_1(halves.first.first, current[1].first)==sum_no_larger_1_Rational(halves.first.first, current[1].first));
+                //assert(sum_no_larger_1(halves.second.first, current[1].first)==sum_no_larger_1_Rational(halves.second.first, current[1].first));
                 if(sum_no_larger_1(halves.first.first, current[1].first)){
                     current[split_i]=halves.first;
                     istack.emplace(current, split_i);
@@ -975,7 +995,9 @@ bool interval_root_finder_double(
     return false;
     
 }
-
+int print_refine(){
+    return refine;
+}
 bool interval_root_finder_Rational(
     const Eigen::VectorX3d& tol,
     //Eigen::VectorX3I& x,// result interval

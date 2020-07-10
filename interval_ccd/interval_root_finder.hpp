@@ -109,5 +109,6 @@ bool interval_root_finder_Rational(
     const Eigen::Vector3d& b1e);
 void print_time_2();
 double print_time_rational();
+int print_refine();
 std::array<double, 3> get_numerical_error(const std::vector<Eigen::Vector3d> &vertices,const bool& check_vf);
 } // namespace ccd

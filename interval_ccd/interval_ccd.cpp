@@ -6,6 +6,8 @@
 namespace intervalccd {
 double time0=0,time1=0,time2=0;
 static double CCD_LENGTH_TOL = 1e-6;
+double tol0=0,tol1=0,tol2=0,tol0n=0,tol1n=0,tol2n=0;
+double c00,c01,c10,c11,c20,c21;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Edge-Vertex
@@ -126,7 +128,52 @@ Eigen::Vector3d compute_face_vertex_tolerance_3d(
        (f2s - f0s).norm(),
        (f2e - f0e).norm());
    //double edge_length = std::max(edge0_length, edge1_length);
+    c00=0;c10=0;c20=0;
+    c00=dl;c10=edge0_length;c20=edge1_length;
+   return Eigen::Vector3d(CCD_LENGTH_TOL / dl, CCD_LENGTH_TOL / edge0_length, CCD_LENGTH_TOL / edge1_length);
+}
+Eigen::Vector3d compute_face_vertex_tolerance_3d_new(
+   const Eigen::Vector3d& vs,
+   const Eigen::Vector3d& f0s,
+   const Eigen::Vector3d& f1s,
+   const Eigen::Vector3d& f2s,
+   const Eigen::Vector3d& ve,
+   const Eigen::Vector3d& f0e,
+   const Eigen::Vector3d& f1e,
+   const Eigen::Vector3d& f2e)
+{
+   
+    double dl=0;
+    double edge0_length=0;
+    double edge1_length=0;
+    for(int i=0;i<3;i++){
+        if(dl<fabs(ve[i]-vs[i]))
+            dl=fabs(ve[i]-vs[i]);
 
+        if(dl<fabs(f0e[i]-f0s[i]))
+            dl=fabs(f0e[i]-f0s[i]);
+
+        if(dl<fabs(f1e[i]-f1s[i]))
+            dl=fabs(f1e[i]-f1s[i]);
+
+        if(dl<fabs(f2e[i]-f2s[i]))
+            dl=fabs(f2e[i]-f2s[i]);
+
+        if(edge0_length<fabs(f1s[i] - f0s[i]))
+            edge0_length=fabs(f1s[i] - f0s[i]);
+
+        if(edge0_length<fabs(f1e[i] - f0e[i]))
+            edge0_length=fabs(f1e[i] - f0e[i]);
+
+        if(edge1_length<fabs(f2s[i]-f0s[i]))
+            edge1_length=fabs(f2s[i]-f0s[i]);
+
+        if(edge1_length<fabs(f2e[i]-f0e[i]))
+            edge1_length=fabs(f2e[i]-f0e[i]);
+    }
+   //double edge_length = std::max(edge0_length, edge1_length);
+    c00=0;c10=0;c20=0;
+    c00=dl;c10=edge0_length;c20=edge1_length;
    return Eigen::Vector3d(CCD_LENGTH_TOL / dl, CCD_LENGTH_TOL / edge0_length, CCD_LENGTH_TOL / edge1_length);
 }
 // Eigen::Vector3I cross(const Eigen::Vector3I&v1, const Eigen::Vector3I&v2){
@@ -252,7 +299,48 @@ Eigen::Vector3d compute_edge_edge_tolerance(
 
    return Eigen::Vector3d(CCD_LENGTH_TOL / dl, CCD_LENGTH_TOL / edge0_length, CCD_LENGTH_TOL / edge1_length);
 }
+Eigen::Vector3d compute_edge_edge_tolerance_new(
+   const Eigen::Vector3d& edge0_vertex0_start,
+   const Eigen::Vector3d& edge0_vertex1_start,
+   const Eigen::Vector3d& edge1_vertex0_start,
+   const Eigen::Vector3d& edge1_vertex1_start,
+   const Eigen::Vector3d& edge0_vertex0_end,
+   const Eigen::Vector3d& edge0_vertex1_end,
+   const Eigen::Vector3d& edge1_vertex0_end,
+   const Eigen::Vector3d& edge1_vertex1_end)
+{
+   
+   double dl=0;
+   double edge0_length=0;
+   double edge1_length=0;
+    for(int i=0;i<3;i++){
+        if(dl<fabs(edge0_vertex0_end[i]-edge0_vertex0_start[i]))
+            dl=fabs(edge0_vertex0_end[i]-edge0_vertex0_start[i]);
 
+        if(dl<fabs(edge0_vertex1_end[i]-edge0_vertex1_start[i]))
+            dl=fabs(edge0_vertex1_end[i]-edge0_vertex1_start[i]);
+
+        if(dl<fabs(edge1_vertex0_end[i]-edge1_vertex0_start[i]))
+            dl=fabs(edge1_vertex0_end[i]-edge1_vertex0_start[i]);
+
+        if(dl<fabs(edge1_vertex1_end[i]-edge1_vertex1_start[i]))
+            dl=fabs(edge1_vertex1_end[i]-edge1_vertex1_start[i]);
+
+        if(edge0_length<fabs(edge0_vertex1_start[i] - edge0_vertex0_start[i]))
+            edge0_length=fabs(edge0_vertex1_start[i] - edge0_vertex0_start[i]);
+
+        if(edge0_length<fabs(edge0_vertex1_end[i] - edge0_vertex0_end[i]))
+            edge0_length=fabs(edge0_vertex1_end[i] - edge0_vertex0_end[i]);
+
+
+        if(edge1_length<fabs(edge1_vertex1_start[i] - edge1_vertex0_start[i]))
+            edge1_length=fabs(edge1_vertex1_start[i] - edge1_vertex0_start[i]);
+
+        if(edge1_length<fabs(edge1_vertex1_end[i] - edge1_vertex0_end[i]))
+            edge1_length=fabs(edge1_vertex1_end[i] - edge1_vertex0_end[i]);
+    }
+   return Eigen::Vector3d(CCD_LENGTH_TOL / dl, CCD_LENGTH_TOL / edge0_length, CCD_LENGTH_TOL / edge1_length);
+}
 bool edgeEdgeCCD(
    const Eigen::Vector3d& edge0_vertex0_start,
    const Eigen::Vector3d& edge0_vertex1_start,
@@ -373,9 +461,19 @@ bool edgeEdgeCCD_double(
     const std::array<double,3>& err,
     const double ms,
     double &toi){
-   
-    Eigen::Vector3d tol = compute_edge_edge_tolerance(a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
+   tol0=0;tol1=0;tol2=0;
+    Eigen::Vector3d tol = compute_edge_edge_tolerance_new(a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
+    tol0=tol[0];
+    tol1=tol[1];
+    tol2=tol[2];
+    bool flag=false;
+    for(int i=0;i<3;i++){
+        if (tol[i]==0)
+        flag=true;
+    }
+    if(flag==true){
 
+    }
     //////////////////////////////////////////////////////////
     //TODO this should be the error of the whole mesh
     std::vector<Eigen::Vector3d> vlist;
@@ -422,10 +520,21 @@ bool vertexFaceCCD_double(
     double& toi)
 {
     
-   Eigen::Vector3d tol = compute_face_vertex_tolerance_3d(
+   Eigen::Vector3d tol = compute_face_vertex_tolerance_3d_new(
         vertex_start, face_vertex0_start, face_vertex1_start,
         face_vertex2_start, vertex_end, face_vertex0_end, face_vertex1_end,
         face_vertex2_end);
+    tol0=tol[0];
+    tol1=tol[1];
+    tol2=tol[2];
+    // Eigen::Vector3d toln=compute_face_vertex_tolerance_3d_new(
+    //     vertex_start, face_vertex0_start, face_vertex1_start,
+    //     face_vertex2_start, vertex_end, face_vertex0_end, face_vertex1_end,
+    //     face_vertex2_end);
+    // tol0n=toln[0];
+    // tol1n=toln[1];
+    // tol2n=toln[2];
+    //std::cout<<"get tolerance successfully"<<std::endl;
      //////////////////////////////////////////////////////////
     //TODO this should be the error of the whole mesh
     std::vector<Eigen::Vector3d> vlist;
@@ -527,6 +636,7 @@ bool vertexFaceCCD_rational(
         vertex_start, face_vertex0_start, face_vertex1_start,
         face_vertex2_start, vertex_end, face_vertex0_end, face_vertex1_end,
         face_vertex2_end);
+        //std::cout<<"get tolerance successfully"<<std::endl;
      //////////////////////////////////////////////////////////
     //TODO this should be the error of the whole mesh
     std::vector<Eigen::Vector3d> vlist;
@@ -542,6 +652,7 @@ bool vertexFaceCCD_rational(
 
     std::array<double,3> err1;
     err1=get_numerical_error(vlist,false);
+    //std::cout<<"get error successfully"<<std::endl;
     //////////////////////////////////////////////////////////
 
     std::array<std::pair<Rational,Rational>, 3> toi_interval;
@@ -552,10 +663,12 @@ bool vertexFaceCCD_rational(
         face_vertex2_start, vertex_end, face_vertex0_end, face_vertex1_end,
         face_vertex2_end);
     time0+=timer.getElapsedTimeInMicroSec();
+    //std::cout<<"get result successfully"<<std::endl;
    // Return a conservative time-of-impact
    if (is_impacting) {
        toi = toi_interval[0].first.to_double();
    }
+   //std::cout<<"get time successfully"<<std::endl;
    // This time of impact is very dangerous for convergence
    // assert(!is_impacting || toi > 0);
    return is_impacting;
@@ -564,5 +677,13 @@ bool vertexFaceCCD_rational(
 }
 void print_time_1(){
     std::cout<<"time of root finder, "<<time0<<std::endl;
+}
+void print_tol(){
+    std::cout<<"tol, "<<tol0<<" "<<tol1<<" "<<tol2<<std::endl;
+    std::cout<<"toln, "<<tol0n<<" "<<tol1n<<" "<<tol2n<<std::endl;
+    if(tol0==0||tol1==0||tol2==0){
+        std::cout<<"***** tolerance is 0 for some cases"<<std::endl;
+    }
+    std::cout<<"lengths, "<<c00<<", "<<c10<<", "<<c20<<std::endl;
 }
 } // namespace ccd
