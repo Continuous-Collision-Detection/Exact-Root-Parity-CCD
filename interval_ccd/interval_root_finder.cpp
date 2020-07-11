@@ -912,6 +912,7 @@ bool interval_root_finder_double(
     err_and_ms[1]=err[1]+ms;
     err_and_ms[2]=err[2]+ms;
     refine=0;
+    //std::array<double,3> 
     while(!istack.empty()){
         current=istack.top().first;
         int last_split=istack.top().second;
@@ -939,14 +940,56 @@ bool interval_root_finder_double(
                 return true;
         }
 
-        // Bisect the next dimension that is greater than its tolerance
-        int split_i;
-        for (int i = 1; i <= 3; i++) {
-            split_i = (last_split + i) % 3;
-            if (widths(split_i) > tol(split_i)) {
-                break;
+        std::array<bool , 3> check;
+        Eigen::VectorX3d widthratio;
+        widthratio.resize(3);
+        check[0]=false;check[1]=false; check[2]=false;
+        for(int i=0;i<3;i++){
+            widthratio(i)=widths(i)/tol(i);
+            if(widths(i) > tol(i))
+                check[i]=true;// means this need to be checked
+        }
+        
+        int split_i=-1;
+        for(int i=0;i<3;i++){
+            if(check[i]){
+                if(check[(i+1)%3]&&check[(i+2)%3]){
+                    if(widthratio(i)>=widthratio((i+1)%3)&&widthratio(i)>=widthratio((i+2)%3)){
+                        split_i=i;
+                        break;
+                    }    
+                }
+                if(check[(i+1)%3]&&!check[(i+2)%3]){
+                    if(widthratio(i)>=widthratio((i+1)%3)){
+                        split_i=i;
+                        break;
+                    }
+                }
+                if(!check[(i+1)%3]&&check[(i+2)%3]){
+                    if(widthratio(i)>=widthratio((i+2)%3)){
+                        split_i=i;
+                        break;
+                    }
+                }
+                if(!check[(i+1)%3]&&!check[(i+2)%3]){
+                   
+                        split_i=i;
+                        break;
+                    
+                }
             }
         }
+        if(split_i<0){
+            std::cout<<"ERROR OCCURRED HERE, DID NOT FIND THE RIGHT DIMENSION TO SPLIT"<<std::endl;
+        }
+        // Bisect the next dimension that is greater than its tolerance
+        // int split_i;
+        // for (int i = 1; i <= 3; i++) {
+        //     split_i = (last_split + i) % 3;
+        //     if (widths(split_i) > tol(split_i)) {
+        //         break;
+        //     }
+        // }
         std::pair<Singleinterval, Singleinterval> halves = bisect(current[split_i]);
 
         if(check_vf){
