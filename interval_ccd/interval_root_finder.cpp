@@ -7,7 +7,7 @@
 #include<interval_ccd/Rational.hpp>
 
 // #define COMPARE_WITH_RATIONAL
-
+//#define USE_TIMER
 
 namespace intervalccd {
 double time20=0,time21=0,time22=0, time23=0,time24=0,time25=0,time_rational=0;
@@ -238,17 +238,33 @@ bool evaluate_bbox_one_dimension(
     const Eigen::Vector3d& b0e,
     const Eigen::Vector3d& b1e,
     const int dimension,T tp,const bool check_vf,const double eps){
-    
+#ifdef USE_TIMER
+    igl::Timer timer;
+#endif
     double eva;
     bool flag0=false, flag1=false;
     for(int i=0;i<2;i++){
         for(int j=0;j<2;j++){
             for(int k=0;k<2;k++){
                 if(!check_vf){
+#ifdef USE_TIMER
+                    timer.start();
+#endif
                     eva=function_f_ee(t[i],u[j],v[k],tp,dimension,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
+#ifdef USE_TIMER
+                    timer.stop();
+                    time25+=timer.getElapsedTimeInMicroSec();
+#endif
                 }
                 else{
+#ifdef USE_TIMER
+                    timer.start();
+#endif
                     eva=function_f_vf(t[i],u[j],v[k],tp,dimension,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
+#ifdef USE_TIMER
+                    timer.stop();
+                    time25+=timer.getElapsedTimeInMicroSec();
+#endif
                 }
                 if(eva<=eps&&eva>=-eps){
                     return true;
@@ -270,6 +286,114 @@ bool evaluate_bbox_one_dimension(
     return false;
         
 }
+std::array<Eigen::Vector3d,2> bbd_4_pts(const std::array<Eigen::Vector3d,4>& pts){
+    Eigen::Vector3d min,max;
+    min=pts[0];max=pts[0];
+    for(int i=1;i<4;i++){
+        for(int j=0;j<3;j++){
+            if(min[j]>pts[i][j]){
+                min[j]=pts[i][j];
+            }
+            if(max[j]<pts[i][j]){
+                max[j]=pts[i][j];
+            }
+        }
+    }
+    std::array<Eigen::Vector3d,2> rst;
+    rst[0]=min;rst[1]=max;
+    return rst;
+
+}
+
+// the bounding boxes generated are t0, t1, u, u1, v0, v1 boxes
+template<typename T>
+void evaluate_tuv_bboxes(
+    const std::array<Numccd,2>& t,
+    const std::array<Numccd,2>& u,
+    const std::array<Numccd,2>& v,
+    const Eigen::Vector3d& a0s,
+    const Eigen::Vector3d& a1s,
+    const Eigen::Vector3d& b0s,
+    const Eigen::Vector3d& b1s,
+    const Eigen::Vector3d& a0e,
+    const Eigen::Vector3d& a1e,
+    const Eigen::Vector3d& b0e,
+    const Eigen::Vector3d& b1e,
+    T tp,const bool check_vf,std::array<std::array<Eigen::Vector3d,2>,6>& bboxes){
+    
+
+    int count=0;
+    std::array<Eigen::Vector3d,8> pts;
+    for(int i=0;i<2;i++){
+        for(int j=0;j<2;j++){
+            for(int k=0;k<2;k++){
+                if(!check_vf){
+                    pts[count][0]=
+                    function_f_ee(t[i],u[j],v[k],tp,0,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
+
+                    pts[count][1]=
+                    function_f_ee(t[i],u[j],v[k],tp,1,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
+                    
+                    pts[count][2]=
+                    function_f_ee(t[i],u[j],v[k],tp,2,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
+                }
+                else{
+                    pts[count][0]=
+                    function_f_vf(t[i],u[j],v[k],tp,0,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
+
+                    pts[count][1]=
+                    function_f_vf(t[i],u[j],v[k],tp,1,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
+                    
+                    pts[count][2]=
+                    function_f_vf(t[i],u[j],v[k],tp,2,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
+                }
+                count++;
+                
+            }
+        }
+    }
+    // now the parameters of pts are:
+    // 000, 001, 010, 011, 100, 101, 110, 111
+    std::array<Eigen::Vector3d,4> bps;
+    bps[0]=pts[0];
+    bps[1]=pts[1];
+    bps[2]=pts[2];
+    bps[3]=pts[3];
+    bboxes[0]=bbd_4_pts(bps);//t0
+
+    bps[0]=pts[4];
+    bps[1]=pts[5];
+    bps[2]=pts[6];
+    bps[3]=pts[7];
+    bboxes[1]=bbd_4_pts(bps);//t1
+
+    bps[0]=pts[0];
+    bps[1]=pts[1];
+    bps[2]=pts[4];
+    bps[3]=pts[5];
+    bboxes[2]=bbd_4_pts(bps);//u0
+
+    bps[0]=pts[2];
+    bps[1]=pts[3];
+    bps[2]=pts[6];
+    bps[3]=pts[7];
+    bboxes[3]=bbd_4_pts(bps);//u1
+
+    bps[0]=pts[0];
+    bps[1]=pts[2];
+    bps[2]=pts[4];
+    bps[3]=pts[6];
+    bboxes[4]=bbd_4_pts(bps);//v0
+
+    bps[0]=pts[1];
+    bps[1]=pts[3];
+    bps[2]=pts[5];
+    bps[3]=pts[7];
+    bboxes[5]=bbd_4_pts(bps);//v1
+        
+}
+
+
 Vector3r function_f_ee_Rational (
 const Numccd&tpara, const Numccd&upara, const Numccd&vpara, 
 const Eigen::Vector3d& a0sd,
@@ -471,6 +595,75 @@ bool Origin_in_function_bounding_box_double(
     const Eigen::Vector3d& b1e,
     const bool check_vf,
     const std::array<double,3>& box){
+#ifdef USE_TIMER
+    igl::Timer timer;
+#endif
+    std::array<Numccd,2> t,u,v;
+    
+    t[0]=paras[0].first;
+    t[1]=paras[0].second;
+    u[0]=paras[1].first;
+    u[1]=paras[1].second;
+    v[0]=paras[2].first;
+    v[1]=paras[2].second;
+    //bool zero_0=false, zer0_1=false, zero_2=false;
+    double input_type;
+    bool ck;
+#ifdef USE_TIMER
+    timer.start();
+#endif
+    ck=evaluate_bbox_one_dimension(t,u,v,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,0,input_type,check_vf,box[0]);
+#ifdef USE_TIMER
+    timer.stop();
+    time23+=timer.getElapsedTimeInMicroSec();
+#endif
+    if(!ck)
+        return false;
+#ifdef USE_TIMER
+    timer.start();
+#endif
+    ck=evaluate_bbox_one_dimension(t,u,v,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,1,input_type,check_vf,box[1]);
+#ifdef USE_TIMER
+    timer.stop();
+    time23+=timer.getElapsedTimeInMicroSec();
+#endif
+    if(!ck)
+        return false;
+#ifdef USE_TIMER
+    timer.start();
+#endif
+    ck=evaluate_bbox_one_dimension(t,u,v,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,2,input_type,check_vf,box[2]);
+#ifdef USE_TIMER
+    timer.stop();
+    time23+=timer.getElapsedTimeInMicroSec();
+#endif
+    if(!ck)
+        return false;
+    return true;
+    
+}
+bool bounding_box_intersection(const Eigen::Vector3d &pmin,const Eigen::Vector3d &pmax,
+const Eigen::Vector3d &qmin,const Eigen::Vector3d &qmax){
+    if(pmax[0]<qmin[0]||pmax[1]<qmin[1]||pmax[2]<qmin[2]){
+        return false;
+    }
+    if(qmax[0]<pmin[0]||qmax[1]<pmin[1]||qmax[2]<pmin[2]){
+        return false;
+    }
+    return true;
+}
+bool estimate_tuv_through_bbox(
+    const Interval3& paras,
+    const Eigen::Vector3d& a0s,
+    const Eigen::Vector3d& a1s,
+    const Eigen::Vector3d& b0s,
+    const Eigen::Vector3d& b1s,
+    const Eigen::Vector3d& a0e,
+    const Eigen::Vector3d& a1e,
+    const Eigen::Vector3d& b0e,
+    const Eigen::Vector3d& b1e,
+    const bool check_vf,
+    const std::array<double,3>& box){
     //igl::Timer timer;
     std::array<Numccd,2> t,u,v;
     
@@ -482,6 +675,10 @@ bool Origin_in_function_bounding_box_double(
     v[1]=paras[2].second;
     //bool zero_0=false, zer0_1=false, zero_2=false;
     double input_type;
+    std::array<std::array<Eigen::Vector3d,2>,6> bboxes;
+    // get the bounding boxes 
+    evaluate_tuv_bboxes(t,u,v,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,input_type,check_vf,bboxes);
+     //TODO
     if(!evaluate_bbox_one_dimension(t,u,v,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,0,input_type,check_vf,box[0]))
         return false;
     if(!evaluate_bbox_one_dimension(t,u,v,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,1,input_type,check_vf,box[1]))
@@ -746,17 +943,25 @@ bool interval_root_finder_opt(
         current=istack.top().first;
         int last_split=istack.top().second;
         istack.pop();
+#ifdef USE_TIMER
         igl::Timer timer;
         timer.start();
+#endif
         bool zero_in = Origin_in_function_bounding_box(current,f);
         // TODO need to add vf function check here 
+#ifdef USE_TIMER
         timer.stop();
         time20+=timer.getElapsedTimeInMicroSec();
+#endif
         if(!zero_in) continue;
+#ifdef USE_TIMER
         timer.start();
+#endif
         Eigen::VectorX3d widths = width(current);
+#ifdef USE_TIMER
         timer.stop();
         time21+=timer.getElapsedTimeInMicroSec();
+#endif
         if ((widths.array() <= tol.array()).all()) {
             final=current;
                 return true;
@@ -912,18 +1117,29 @@ bool interval_root_finder_double(
     err_and_ms[1]=err[1]+ms;
     err_and_ms[2]=err[2]+ms;
     refine=0;
+    bool estimate=true;
     //std::array<double,3> 
     while(!istack.empty()){
         current=istack.top().first;
         int last_split=istack.top().second;
         istack.pop();
+#ifdef USE_TIMER
         igl::Timer timer;
 
         timer.start();
+#endif
         refine++;
-        bool zero_in = Origin_in_function_bounding_box_double(current,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,check_vf,err_and_ms);
+        bool zero_in;
+        if(estimate)
+        zero_in= Origin_in_function_bounding_box_double(current,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,check_vf,err_and_ms);
+        else{
+
+        }
+#ifdef USE_TIMER
+        
         timer.stop();
         time20+=timer.getElapsedTimeInMicroSec();
+#endif
 #ifdef COMPARE_WITH_RATIONAL// this is defined in the begining of this file
         timer.start();
         zero_in=Origin_in_function_bounding_box_Rational(current,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,check_vf);
@@ -931,10 +1147,14 @@ bool interval_root_finder_double(
         time_rational+=timer.getElapsedTimeInMicroSec();
 #endif
         if(!zero_in) continue;
+#ifdef USE_TIMER
         timer.start();
+#endif
         Eigen::VectorX3d widths = width(current);
+#ifdef USE_TIMER
         timer.stop();
         time21+=timer.getElapsedTimeInMicroSec();
+#endif
         if ((widths.array() <= tol.array()).all()) {
             final=current;
                 return true;
@@ -996,12 +1216,13 @@ bool interval_root_finder_double(
             if(split_i==1){
                // assert(sum_no_larger_1(halves.first.first, current[2].first)==sum_no_larger_1_Rational(halves.first.first, current[2].first));
                // assert(sum_no_larger_1(halves.second.first, current[2].first)==sum_no_larger_1_Rational(halves.second.first, current[2].first));
-                if(sum_no_larger_1(halves.first.first, current[2].first)){
-                    current[split_i]=halves.first;
-                    istack.emplace(current, split_i);
-                }
+                
                 if(sum_no_larger_1(halves.second.first, current[2].first)){
                     current[split_i]=halves.second;
+                    istack.emplace(current, split_i);
+                }
+                if(sum_no_larger_1(halves.first.first, current[2].first)){
+                    current[split_i]=halves.first;
                     istack.emplace(current, split_i);
                 }
                 
@@ -1010,12 +1231,13 @@ bool interval_root_finder_double(
             if(split_i==2){
                 //assert(sum_no_larger_1(halves.first.first, current[1].first)==sum_no_larger_1_Rational(halves.first.first, current[1].first));
                 //assert(sum_no_larger_1(halves.second.first, current[1].first)==sum_no_larger_1_Rational(halves.second.first, current[1].first));
-                if(sum_no_larger_1(halves.first.first, current[1].first)){
-                    current[split_i]=halves.first;
-                    istack.emplace(current, split_i);
-                }
+                
                 if(sum_no_larger_1(halves.second.first, current[1].first)){
                     current[split_i]=halves.second;
+                    istack.emplace(current, split_i);
+                }
+                if(sum_no_larger_1(halves.first.first, current[1].first)){
+                    current[split_i]=halves.first;
                     istack.emplace(current, split_i);
                 }
 
@@ -1154,6 +1376,7 @@ void print_time_2(){
     std::cout<<"bisect, "<<time22<<std::endl;
     std::cout<<"origin part1, "<<time23<<std::endl;
     std::cout<<"origin part2, "<<time24<<std::endl;
+    std::cout<<"time of call the vertex solving function, "<<time25<<std::endl;
 }
 double print_time_rational(){
     return time_rational;
