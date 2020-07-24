@@ -223,7 +223,45 @@ bool interval_bounding_box_check(const Eigen::Vector3I&in, std::array<bool,6>& f
     else return false;
 }
 
+std::array<Eigen::Vector3d,2> bbd_4_pts(const std::array<Eigen::Vector3d,4>& pts){
+    Eigen::Vector3d min,max;
+    min=pts[0];max=pts[0];
+    for(int i=1;i<4;i++){
+        for(int j=0;j<3;j++){
+            if(min[j]>pts[i][j]){
+                min[j]=pts[i][j];
+            }
+            if(max[j]<pts[i][j]){
+                max[j]=pts[i][j];
+            }
+        }
+    }
+    std::array<Eigen::Vector3d,2> rst;
+    rst[0]=min;rst[1]=max;
+    return rst;
+
+}
+std::array<Eigen::Vector3d,2> bbd_6_pts(const std::array<Eigen::Vector3d,6>& pts){
+    Eigen::Vector3d min,max;
+    min=pts[0];max=pts[0];
+    for(int i=1;i<6;i++){
+        for(int j=0;j<3;j++){
+            if(min[j]>pts[i][j]){
+                min[j]=pts[i][j];
+            }
+            if(max[j]<pts[i][j]){
+                max[j]=pts[i][j];
+            }
+        }
+    }
+    std::array<Eigen::Vector3d,2> rst;
+    rst[0]=min;rst[1]=max;
+    return rst;
+
+}
+
 // eps is the interval [-eps,eps] we need to check
+// if [-eps,eps] overlap, return true
 template<typename T>
 bool evaluate_bbox_one_dimension(
     const std::array<Numccd,2>& t,
@@ -241,6 +279,9 @@ bool evaluate_bbox_one_dimension(
 #ifdef USE_TIMER
     igl::Timer timer;
 #endif
+    
+/*   
+{// smart way but no possibility of parallazation
     double eva;
     bool flag0=false, flag1=false;
     for(int i=0;i<2;i++){
@@ -284,26 +325,85 @@ bool evaluate_bbox_one_dimension(
     if(flag0&&flag1)
     return true;
     return false;
-        
-}
-std::array<Eigen::Vector3d,2> bbd_4_pts(const std::array<Eigen::Vector3d,4>& pts){
-    Eigen::Vector3d min,max;
-    min=pts[0];max=pts[0];
-    for(int i=1;i<4;i++){
-        for(int j=0;j<3;j++){
-            if(min[j]>pts[i][j]){
-                min[j]=pts[i][j];
-            }
-            if(max[j]<pts[i][j]){
-                max[j]=pts[i][j];
+}        
+*/
+if(check_vf){// test
+    std::array<double,8> vs;
+    int count=0;
+#ifdef USE_TIMER
+    timer.start();
+#endif    
+    for(int i=0;i<2;i++){
+        for(int j=0;j<2;j++){
+            for(int k=0;k<2;k++){
+
+                vs[count]=function_f_vf(t[i],u[j],v[k],tp,dimension,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
+                
+                count++;
+
             }
         }
     }
-    std::array<Eigen::Vector3d,2> rst;
-    rst[0]=min;rst[1]=max;
-    return rst;
+#ifdef USE_TIMER
+                    timer.stop();
+                    time25+=timer.getElapsedTimeInMicroSec();
+#endif
+
+    double minv=vs[0], maxv=vs[0];
+    
+    for(int i=1;i<8;i++){
+        if(minv>vs[i]){
+            minv=vs[i];
+        }
+        if(maxv<vs[i]){
+            maxv=vs[i];
+        }
+    }
+    if(minv>eps||maxv<-eps)
+        return false;
+    return true;
+
+    }// test end
+    
+     else{// test
+    std::array<double,8> vs;
+    int count=0;
+#ifdef USE_TIMER
+    timer.start();
+#endif    
+    for(int i=0;i<2;i++){
+        for(int j=0;j<2;j++){
+            for(int k=0;k<2;k++){
+
+                vs[count]=function_f_ee(t[i],u[j],v[k],tp,dimension,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
+                count++;
+
+            }
+        }
+    }
+#ifdef USE_TIMER
+                    timer.stop();
+                    time25+=timer.getElapsedTimeInMicroSec();
+#endif
+
+    double minv=vs[0], maxv=vs[0];
+    
+    for(int i=1;i<8;i++){
+        if(minv>vs[i]){
+            minv=vs[i];
+        }
+        if(maxv<vs[i]){
+            maxv=vs[i];
+        }
+    }
+    if(minv>eps||maxv<-eps)
+        return false;
+    return true;
+
+    }// test end
 
 }
+
 
 // the bounding boxes generated are t0, t1, u, u1, v0, v1 boxes
 template<typename T>
@@ -1058,6 +1158,7 @@ const Eigen::Vector3d& a0s,
        return edge1_vertex-edge0_vertex;
        
 }
+
 template<typename T>
 T function_f_vf (
 const Numccd&tpara, const Numccd&upara, const Numccd&vpara,const T& type, const int dim,
@@ -1083,6 +1184,8 @@ const Numccd&tpara, const Numccd&upara, const Numccd&vpara,const T& type, const 
         return v-p;
        
 }
+
+
 bool interval_root_finder_double(
     const Eigen::VectorX3d& tol,
     //Eigen::VectorX3I& x,// result interval
