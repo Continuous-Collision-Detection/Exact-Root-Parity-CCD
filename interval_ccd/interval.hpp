@@ -59,17 +59,17 @@ using Vector = Matrix<T, dim, 1, ColMajor, max_dim, 1>;
 
 #if EIGEN_MAJOR_VERSION >= 3
 namespace internal {
-    template <typename X, typename S, typename P>
-    struct is_convertible<X, boost::numeric::interval<S, P>> {
-        enum { value = is_convertible<X, S>::value };
-    };
+    // template <typename X, typename S, typename P>
+    // struct is_convertible<X, boost::numeric::interval<S, P>> {
+    //     enum { value = is_convertible<X, S>::value };
+    // };
 
-    template <typename S, typename P1, typename P2>
-    struct is_convertible<
-        boost::numeric::interval<S, P1>,
-        boost::numeric::interval<S, P2>> {
-        enum { value = true };
-    };
+    // template <typename S, typename P1, typename P2>
+    // struct is_convertible<
+    //     boost::numeric::interval<S, P1>,
+    //     boost::numeric::interval<S, P2>> {
+    //     enum { value = true };
+    // };
 } // namespace internal
 #endif
 } // namespace Eigen

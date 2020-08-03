@@ -1,11 +1,11 @@
 // A root finder using interval arithmetic.
-#include "interval_root_finder.hpp"
+#include <interval_ccd/interval_root_finder.hpp>
 
 #include <stack>
 #include<igl/Timer.h>
 #include<iostream>
 #include<interval_ccd/Rational.hpp>
-
+#include <interval_ccd/avx.h>
 // #define COMPARE_WITH_RATIONAL
 //#define USE_TIMER
 
@@ -403,7 +403,56 @@ if(check_vf){// test
     }// test end
 
 }
+// eps is the interval [-eps,eps] we need to check
+// if [-eps,eps] overlap, return true
+bool evaluate_bbox_one_dimension_vector(
+    std::array<double,8>& t_up,std::array<double,8>&t_dw,
+    std::array<double,8>& u_up,std::array<double,8>&u_dw,
+    std::array<double,8>& v_up,std::array<double,8>&v_dw,
+    const Eigen::Vector3d& a0s,
+    const Eigen::Vector3d& a1s,
+    const Eigen::Vector3d& b0s,
+    const Eigen::Vector3d& b1s,
+    const Eigen::Vector3d& a0e,
+    const Eigen::Vector3d& a1e,
+    const Eigen::Vector3d& b0e,
+    const Eigen::Vector3d& b1e,
+    const int dimension,const bool check_vf,const double eps){
+#ifdef USE_TIMER
+    igl::Timer timer;
+#endif
+    std::array<double,8> vs;
+    int count=0;
+#ifdef USE_TIMER
+    timer.start();
+#endif  
+    if(check_vf){
+        vs=function_vf(a0s[dimension],a1s[dimension],b0s[dimension],b1s[dimension],a0e[dimension],a1e[dimension],b0e[dimension],b1e[dimension],t_up,t_dw,
+        u_up,u_dw,v_up,v_dw);
+    }
+    else{
+        vs=function_ee(a0s[dimension],a1s[dimension],b0s[dimension],b1s[dimension],a0e[dimension],a1e[dimension],b0e[dimension],b1e[dimension],t_up,t_dw,
+        u_up,u_dw,v_up,v_dw);
+    }
+#ifdef USE_TIMER
+                    timer.stop();
+                    time25+=timer.getElapsedTimeInMicroSec();
+#endif
+    double minv=vs[0], maxv=vs[0];
+    
+    for(int i=1;i<8;i++){
+        if(minv>vs[i]){
+            minv=vs[i];
+        }
+        if(maxv<vs[i]){
+            maxv=vs[i];
+        }
+    }
+    if(minv>eps||maxv<-eps)
+        return false;
+    return true;
 
+}
 
 // the bounding boxes generated are t0, t1, u, u1, v0, v1 boxes
 template<typename T>
@@ -559,6 +608,26 @@ const Eigen::Vector3d& a0sd,
         a1e(a1ed[0],a1ed[1],a1ed[2]),
         b0e(b0ed[0],b0ed[1],b0ed[2]),
         b1e(b1ed[0],b1ed[1],b1ed[2]);
+
+        // Vector3r las = (1-upara)*a0s+upara*a1s;
+        // //std::cout<<"las, "<<las[0]<<", "<<las[1]<<", "<<las[2]<<std::endl;
+        // Vector3r lae = (1-upara)*a0e+upara*a1e;
+        // Vector3r lbs = (1-vpara)*b0s+vpara*b1s;
+        // Vector3r lbe = (1-vpara)*b0e+vpara*b1e;
+        // Vector3r lla=(1-tpara)*las + tpara*lae;
+        // Vector3r llb=(1-tpara)*lbs + tpara*lbe;
+
+        // //std::cout<<"lae, "<<lae[0]<<", "<<lae[1]<<", "<<lae[2]<<std::endl;
+        // //std::cout<<"lbs, "<<lbs[0]<<", "<<lbs[1]<<", "<<lbs[2]<<std::endl;
+        // //std::cout<<"lbe, "<<lbe[0]<<", "<<lbe[1]<<", "<<lbe[2]<<std::endl;
+        // //std::cout<<"lla, "<<lla[0]<<", "<<lla[1]<<", "<<lla[2]<<std::endl;
+        // //std::cout<<"llb, "<<llb[0]<<", "<<llb[1]<<", "<<llb[2]<<std::endl<<std::endl;
+        // return lla-llb;
+
+
+
+
+
        Vector3r edge0_vertex0
            = (a0e - a0s) * tpara
            + a0s;
@@ -742,6 +811,44 @@ bool Origin_in_function_bounding_box_double(
     return true;
     
 }
+bool Origin_in_function_bounding_box_double_vector(
+    const Interval3& paras,
+    const Eigen::Vector3d& a0s,
+    const Eigen::Vector3d& a1s,
+    const Eigen::Vector3d& b0s,
+    const Eigen::Vector3d& b1s,
+    const Eigen::Vector3d& a0e,
+    const Eigen::Vector3d& a1e,
+    const Eigen::Vector3d& b0e,
+    const Eigen::Vector3d& b1e,
+    const bool check_vf,
+    const std::array<double,3>& box){
+#ifdef USE_TIMER
+    igl::Timer timer;
+#endif  
+    std::array<double,8> t_up;std::array<double,8>t_dw;
+    std::array<double,8> u_up;std::array<double,8>u_dw;
+    std::array<double,8> v_up;std::array<double,8>v_dw;
+
+    convert_tuv_to_array(paras,t_up,t_dw,u_up,u_dw,v_up,v_dw);
+    bool ck;
+    for(int i=0;i<3;i++){
+#ifdef USE_TIMER
+    timer.start();
+#endif
+        ck=evaluate_bbox_one_dimension_vector(t_up,t_dw,u_up,u_dw,v_up,v_dw,
+    a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,i,check_vf,box[i]);
+#ifdef USE_TIMER
+    timer.stop();
+    time23+=timer.getElapsedTimeInMicroSec();
+#endif
+     if(!ck)
+        return false;
+    }
+    return true;
+    
+    
+}
 bool bounding_box_intersection(const Eigen::Vector3d &pmin,const Eigen::Vector3d &pmax,
 const Eigen::Vector3d &qmin,const Eigen::Vector3d &qmax){
     if(pmax[0]<qmin[0]||pmax[1]<qmin[1]||pmax[2]<qmin[2]){
@@ -807,13 +914,18 @@ bool Origin_in_function_bounding_box_Rational(
     u[1]=paras[1].second;
     v[0]=paras[2].first;
     v[1]=paras[2].second;
+    //std::cout<<"t, ["<<t[0].first/pow(2,t[0].second)<<","<<t[1].first/pow(2,t[1].second)<<"]"<<std::endl;
+    //std::cout<<"u, ["<<u[0].first/pow(2,u[0].second)<<","<<u[1].first/pow(2,u[1].second)<<"]"<<std::endl;
+    //std::cout<<"v, ["<<v[0].first/pow(2,v[0].second)<<","<<v[1].first/pow(2,v[1].second)<<"]"<<std::endl<<std::endl;
     Vector3r minv, maxv;
     std::array<Vector3r,8> pts;
     int c=0;
     for(int i=0;i<2;i++){
         for(int j=0;j<2;j++){
             for(int k=0;k<2;k++){
+                //std::cout<<"c="<<c<<std::endl;
                 if(!check_vf){
+                    //std::cout<<"ee"<<std::endl;
                     pts[c]=function_f_ee_Rational(t[i],u[j],v[k],a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
                 }
                 else{
@@ -881,6 +993,7 @@ bool Origin_in_function_bounding_box_Rational(
     for(int i=0;i<2;i++){
         for(int j=0;j<2;j++){
             for(int k=0;k<2;k++){
+                
                 if(!check_vf){
                     pts[c]=function_f_ee_Rational(t[i],u[j],v[k],a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
                 }
@@ -1201,7 +1314,19 @@ bool interval_root_finder_double(
     const Eigen::Vector3d& a1e,
     const Eigen::Vector3d& b0e,
     const Eigen::Vector3d& b1e){
-    
+        {//la = 0.2954570784440031002, lb = 1.1090868531538015859, t = 4635.2393745312786939
+            //Vector3r value=function_f_ee_Rational(Rational(4635.2393745312786939),Rational( 0.2954570784440031002),
+            //Rational(1.1090868531538015859),a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
+            // std::cout<<"a0s,"<<a0s.transpose()<<std::endl;
+            // std::cout<<"a1s,"<<a1s.transpose()<<std::endl;
+            // std::cout<<"b0s,"<<b0s.transpose()<<std::endl;
+            // std::cout<<"b1s,"<<b1s.transpose()<<std::endl;
+            // std::cout<<"a0e,"<<a0e.transpose()<<std::endl;
+            // std::cout<<"a1e,"<<a1e.transpose()<<std::endl;
+            // std::cout<<"b0e,"<<b0e.transpose()<<std::endl;
+            // std::cout<<"b1e,"<<b1e.transpose()<<std::endl;
+            // std::cout<<"rational value, "<<value[0]<<", "<<value[1]<<", "<<value[2]<<std::endl;
+        }
     Numccd low_number; low_number.first=0; low_number.second=0;// low_number=0;
     Numccd up_number; up_number.first=1; up_number.second=0;// up_number=1;
     // initial interval [0,1]
@@ -1234,7 +1359,7 @@ bool interval_root_finder_double(
         refine++;
         bool zero_in;
         if(estimate)
-        zero_in= Origin_in_function_bounding_box_double(current,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,check_vf,err_and_ms);
+        zero_in= Origin_in_function_bounding_box_double_vector(current,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,check_vf,err_and_ms);
         else{
 
         }
@@ -1244,10 +1369,9 @@ bool interval_root_finder_double(
         time20+=timer.getElapsedTimeInMicroSec();
 #endif
 #ifdef COMPARE_WITH_RATIONAL// this is defined in the begining of this file
-        timer.start();
+        
         zero_in=Origin_in_function_bounding_box_Rational(current,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,check_vf);
-        timer.stop();
-        time_rational+=timer.getElapsedTimeInMicroSec();
+
 #endif
         if(!zero_in) continue;
 #ifdef USE_TIMER
@@ -1316,6 +1440,7 @@ bool interval_root_finder_double(
         std::pair<Singleinterval, Singleinterval> halves = bisect(current[split_i]);
 
         if(check_vf){
+            //std::cout<<"*** check_vf"<<std::endl;
             if(split_i==1){
                // assert(sum_no_larger_1(halves.first.first, current[2].first)==sum_no_larger_1_Rational(halves.first.first, current[2].first));
                // assert(sum_no_larger_1(halves.second.first, current[2].first)==sum_no_larger_1_Rational(halves.second.first, current[2].first));

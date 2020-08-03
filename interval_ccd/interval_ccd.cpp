@@ -461,19 +461,19 @@ bool edgeEdgeCCD_double(
     const std::array<double,3>& err,
     const double ms,
     double &toi){
-   tol0=0;tol1=0;tol2=0;
+   //tol0=0;tol1=0;tol2=0;
     Eigen::Vector3d tol = compute_edge_edge_tolerance_new(a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
-    tol0=tol[0];
-    tol1=tol[1];
-    tol2=tol[2];
-    bool flag=false;
-    for(int i=0;i<3;i++){
-        if (tol[i]==0)
-        flag=true;
-    }
-    if(flag==true){
+    // tol0=tol[0];
+    // tol1=tol[1];
+    // tol2=tol[2];
+    //bool flag=false;
+    // for(int i=0;i<3;i++){
+    //     if (tol[i]==0)
+    //     flag=true;
+    // }
+    // if(flag==true){
 
-    }
+    // }
     //////////////////////////////////////////////////////////
     //TODO this should be the error of the whole mesh
     std::vector<Eigen::Vector3d> vlist;
