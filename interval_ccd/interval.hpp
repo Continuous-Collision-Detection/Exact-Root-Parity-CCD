@@ -1,6 +1,7 @@
 // An interval object.
 #pragma once
 
+#include <array>
 #include <string>
 
 #include <Eigen/Core>
@@ -54,7 +55,7 @@ typedef Matrix<intervalccd::Interval, Dynamic, 1, ColMajor, 3, 1> VectorX3I;
 typedef Matrix<double, 3, 1> Vector3d;
 typedef Matrix<double, Dynamic, 1, ColMajor, 3, 1> VectorX3d;
 
-template <typename T, int dim, int max_dim = dim>
+template <typename T, int dim, int max_dim>
 using Vector = Matrix<T, dim, 1, ColMajor, max_dim, 1>;
 
 #if EIGEN_MAJOR_VERSION >= 3
