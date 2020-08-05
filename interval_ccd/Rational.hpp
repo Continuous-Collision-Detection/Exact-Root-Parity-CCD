@@ -11,7 +11,27 @@ public:
     mpq_t value;
     void canonicalize() { mpq_canonicalize(value); }
     int get_sign() const { return mpq_sgn(value); }
-
+    void print_numerator(){
+        mpz_t numerator;
+        mpz_init(numerator);
+        //std::cout<<"++++++++++++"<<std::endl;
+        mpq_get_num ( numerator,value );
+        //std::cout<<"*************"<<std::endl;
+        mpz_out_str(NULL, 10, numerator);
+        //long v=mpz_get_si(numerator);
+        //std::cout<<v;
+        mpz_clear(numerator);
+    }
+    void print_denominator(){
+        mpz_t denominator;
+        mpz_init(denominator);
+        mpq_get_den ( denominator,value );
+        
+        mpz_out_str(NULL, 10, denominator);
+        // long v=mpz_get_si(denominator);
+        // std::cout<<v;
+        mpz_clear(denominator);
+    }
     Rational()
     {
         mpq_init(value);

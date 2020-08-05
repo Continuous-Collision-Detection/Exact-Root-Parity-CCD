@@ -7,7 +7,7 @@
 #include<interval_ccd/Rational.hpp>
 #include <interval_ccd/avx.h>
 // #define COMPARE_WITH_RATIONAL
-//#define USE_TIMER
+#define USE_TIMER
 
 namespace intervalccd {
 double time20=0,time21=0,time22=0, time23=0,time24=0,time25=0,time_rational=0;
@@ -68,7 +68,7 @@ inline Eigen::VectorX3d width(const Eigen::VectorX3I& x)
 }
 // convert Numccd to double number
 double Numccd2double(const Numccd& n){
-    double r=double(n.first)/pow(2,n.second);
+    double r=double(n.first)/power(1,n.second);
     return r;
 }
 Eigen::VectorX3d width(const Interval3&x){
@@ -567,22 +567,22 @@ const Eigen::Vector3d& a0sd,
         b0e(b0ed[0],b0ed[1],b0ed[2]),
         b1e(b1ed[0],b1ed[1],b1ed[2]);
        Vector3r edge0_vertex0
-           = (a0e - a0s) * tu/int(pow(2,td))
+           = (a0e - a0s) * tu/power(1,td)
            + a0s;
        Vector3r edge0_vertex1
-           = (a1e - a1s) * tu/int(pow(2,td))
+           = (a1e - a1s) * tu/power(1,td)
            + a1s;
        Vector3r edge0_vertex
-           = (edge0_vertex1 - edge0_vertex0) * uu/int(pow(2,ud)) + edge0_vertex0;
+           = (edge0_vertex1 - edge0_vertex0) * uu/power(1,ud) + edge0_vertex0;
 
        Vector3r edge1_vertex0
-           = (b0e - b0s) * tu/int(pow(2,td))
+           = (b0e - b0s) * tu/power(1,td)
            + b0s;
        Vector3r edge1_vertex1
-           = (b1e - b1s) * tu/int(pow(2,td))
+           = (b1e - b1s) * tu/power(1,td)
            + b1s;
        Vector3r edge1_vertex
-           = (edge1_vertex1 - edge1_vertex0) * vu/int(pow(2,vd)) + edge1_vertex0;
+           = (edge1_vertex1 - edge1_vertex0) * vu/power(1,vd) + edge1_vertex0;
 
        
        return edge1_vertex-edge0_vertex;
@@ -675,12 +675,12 @@ const Eigen::Vector3d& a0sd,
         t1e(b0ed[0],b0ed[1],b0ed[2]),
         t2e(b1ed[0],b1ed[1],b1ed[2]);
 
-        Vector3r v=(ve-vs)*tu/int(pow(2,td))+vs;
+        Vector3r v=(ve-vs)*tu/power(1,td)+vs;
 
-        Vector3r t0=(t0e-t0s)*tu/int(pow(2,td))+t0s;
-        Vector3r t1=(t1e-t1s)*tu/int(pow(2,td))+t1s;
-        Vector3r t2=(t2e-t2s)*tu/int(pow(2,td))+t2s;
-        Vector3r p=(t1-t0)*uu/int(pow(2,ud))+(t2-t0)*vu/int(pow(2,vd))+t0;
+        Vector3r t0=(t0e-t0s)*tu/power(1,td)+t0s;
+        Vector3r t1=(t1e-t1s)*tu/power(1,td)+t1s;
+        Vector3r t2=(t2e-t2s)*tu/power(1,td)+t2s;
+        Vector3r p=(t1-t0)*uu/power(1,ud)+(t2-t0)*vu/power(1,vd)+t0;
         return v-p;
        
 }
@@ -1067,11 +1067,11 @@ std::pair<Singleinterval, Singleinterval> bisect(const Singleinterval& inter){
         n=n2-p+1;
     }
     if(n2>n1){
-        k=k1*pow(2,n2-n1)+k2; assert(k%2==1);
+        k=k1*power(1,n2-n1)+k2; assert(k%2==1);
         n=n2+1;
     }
     if(n2<n1){
-        k=k1+k2*pow(2,n1-n2); assert(k%2==1);
+        k=k1+k2*power(1,n1-n2); assert(k%2==1);
         n=n1+1;
     }
     Numccd newnum(k,n);
@@ -1101,15 +1101,15 @@ bool sum_no_larger_1(const Numccd& num1, const Numccd& num2){
         n=n1;
     }
     if(n1<n2){
-        k=pow(2,n2-n1)*k1+k2;
+        k=power(1,n2-n1)*k1+k2;
         n=n2;
     }
     if(n1>n2){
-        k=pow(2,n1-n2)*k2+k1;
+        k=power(1,n1-n2)*k2+k1;
         n=n1;
     }
     assert(k>=0&&n>=0);
-    if(k>pow(2,n)) return false;
+    if(k>power(1,n)) return false;
     else return true;
 
 }
@@ -1119,8 +1119,8 @@ bool sum_no_larger_1_Rational(const Numccd& num1, const Numccd& num2){
     int k2=num2.first;
     int n2=num2.second;
     Rational nbr1,nbr2;
-    nbr1=Rational(k1)/Rational(pow(2,n1));
-    nbr2=Rational(k2)/Rational(pow(2,n2));
+    nbr1=Rational(k1)/Rational(power(1,n1));
+    nbr2=Rational(k2)/Rational(power(1,n2));
     Rational rst=nbr1+nbr2-Rational(1);
     if(rst>0) return false;
     else return true;
@@ -1250,22 +1250,22 @@ const Eigen::Vector3d& a0s,
        int vu = vpara.first, vd=vpara.second;
 
        T edge0_vertex0
-           = (T(a0e[dim]) - T(a0s[dim])) * tu/int(pow(2,td))
+           = (T(a0e[dim]) - T(a0s[dim])) * tu/power(1,td)
            + T(a0s[dim]);
        T edge0_vertex1
-           = (T(a1e[dim]) - T(a1s[dim])) * tu/int(pow(2,td))
+           = (T(a1e[dim]) - T(a1s[dim])) * tu/power(1,td)
            + T(a1s[dim]);
        T edge0_vertex
-           = (edge0_vertex1 - edge0_vertex0) * uu/int(pow(2,ud)) + edge0_vertex0;
+           = (edge0_vertex1 - edge0_vertex0) * uu/power(1,ud) + edge0_vertex0;
 
        T edge1_vertex0
-           = (T(b0e[dim]) - T(b0s[dim])) * tu/int(pow(2,td))
+           = (T(b0e[dim]) - T(b0s[dim])) * tu/power(1,td)
            + T(b0s[dim]);
        T edge1_vertex1
-           = (T(b1e[dim]) - T(b1s[dim])) * tu/int(pow(2,td))
+           = (T(b1e[dim]) - T(b1s[dim])) * tu/power(1,td)
            + T(b1s[dim]);
        T edge1_vertex
-           = (edge1_vertex1 - edge1_vertex0) * vu/int(pow(2,vd)) + edge1_vertex0;
+           = (edge1_vertex1 - edge1_vertex0) * vu/power(1,vd) + edge1_vertex0;
 
        
        return edge1_vertex-edge0_vertex;
@@ -1289,11 +1289,11 @@ const Numccd&tpara, const Numccd&upara, const Numccd&vpara,const T& type, const 
        int uu = upara.first, ud=upara.second;
        int vu = vpara.first, vd=vpara.second;
 
-        T v= (T(ve[dim])-T(vs[dim]))* tu/int(pow(2,td))+T(vs[dim]);
-        T t0=(T(t0e[dim])-T(t0s[dim]))* tu/int(pow(2,td))+T(t0s[dim]);
-        T t1=(T(t1e[dim])-T(t1s[dim]))* tu/int(pow(2,td))+T(t1s[dim]);
-        T t2=(T(t2e[dim])-T(t2s[dim]))* tu/int(pow(2,td))+T(t2s[dim]);
-        T p=(t1-t0)*uu/int(pow(2,ud))+(t2-t0)*vu/int(pow(2,vd))+t0;
+        T v= (T(ve[dim])-T(vs[dim]))* tu/power(1,td)+T(vs[dim]);
+        T t0=(T(t0e[dim])-T(t0s[dim]))* tu/power(1,td)+T(t0s[dim]);
+        T t1=(T(t1e[dim])-T(t1s[dim]))* tu/power(1,td)+T(t1s[dim]);
+        T t2=(T(t2e[dim])-T(t2s[dim]))* tu/power(1,td)+T(t2s[dim]);
+        T p=(t1-t0)*uu/power(1,ud)+(t2-t0)*vu/power(1,vd)+t0;
         return v-p;
        
 }

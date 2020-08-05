@@ -43,6 +43,11 @@ namespace intervalccd{
 
 //         return _mm512_sub_pd(edge1_vertex,edge0_vertex);
 //     }
+
+// calculate a*(2^b)
+int power(const int a, const int b){
+    return a<<b;
+}
 std::array<double,8> function_ee(
     const double& a0s,const double& a1s,const double& b0s,const double& b1s,
     const double& a0e,const double& a1e,const double& b0e,const double& b1e,
@@ -98,14 +103,14 @@ std::array<double,8> function_ee(
         // u order: 0,0,1,1,0,0,1,1
         // v order: 0,1,0,1,0,1,0,1
         double 
-        t0_up=itv[0].first.first,t0_dw=pow(2,itv[0].first.second),
-        t1_up=itv[0].second.first,t1_dw=pow(2,itv[0].second.second),
+        t0_up=itv[0].first.first,t0_dw=power(1,itv[0].first.second),
+        t1_up=itv[0].second.first,t1_dw=power(1,itv[0].second.second),
 
-        u0_up=itv[1].first.first,u0_dw=pow(2,itv[1].first.second),
-        u1_up=itv[1].second.first,u1_dw=pow(2,itv[1].second.second),
+        u0_up=itv[1].first.first,u0_dw=power(1,itv[1].first.second),
+        u1_up=itv[1].second.first,u1_dw=power(1,itv[1].second.second),
 
-        v0_up=itv[2].first.first,v0_dw=pow(2,itv[2].first.second),
-        v1_up=itv[2].second.first,v1_dw=pow(2,itv[2].second.second);
+        v0_up=itv[2].first.first,v0_dw=power(1,itv[2].first.second),
+        v1_up=itv[2].second.first,v1_dw=power(1,itv[2].second.second);
         t_up={{t0_up,t0_up,t0_up,t0_up,t1_up,t1_up,t1_up,t1_up}};
         t_dw={{t0_dw,t0_dw,t0_dw,t0_dw,t1_dw,t1_dw,t1_dw,t1_dw}};
         u_up={{u0_up,u0_up,u1_up,u1_up,u0_up,u0_up,u1_up,u1_up}};
