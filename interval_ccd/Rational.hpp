@@ -32,6 +32,54 @@ public:
         // std::cout<<v;
         mpz_clear(denominator);
     }
+    long long get_numerator(){
+        mpz_t numerator;
+        mpz_init(numerator);
+
+        mpq_get_num ( numerator,value );
+        long long v=mpz_get_si(numerator);
+        
+        mpz_clear(numerator);
+        return v;
+    }
+    long long get_denominator(){
+        mpz_t denominator;
+        mpz_init(denominator);
+        mpq_get_den ( denominator,value );
+        
+        long long v=mpz_get_si(denominator);
+        // std::string s(mpz_get_str(NULL, 10, denominator));
+        // long long v=std::stoll(s);
+        mpz_clear(denominator);
+        return v;
+    }
+    std::string get_denominator_str(){
+        mpz_t denominator;
+        mpz_init(denominator);
+        mpq_get_den ( denominator,value );
+        
+        
+        std::string v(mpz_get_str(NULL, 10, denominator));
+
+        mpz_clear(denominator);
+        return v;
+    }
+    std::string get_numerator_str(){
+        mpz_t numerator;
+        mpz_init(numerator);
+
+        mpq_get_num ( numerator,value );
+        std::string v(mpz_get_str(NULL, 10, numerator));;
+        
+        mpz_clear(numerator);
+        return v;
+    }
+    double get_double(const std::string& num, const std::string& denom){
+        std::string tmp = num +"/" +denom; 
+        mpq_set_str(value, tmp.c_str(), 10);
+        return mpq_get_d(value);
+    }
+    
     Rational()
     {
         mpq_init(value);
@@ -42,7 +90,7 @@ public:
     {
         mpq_init(value);
         mpq_set_d(value, d);
-        //            canonicalize();
+        canonicalize();
     }
 
     Rational(const mpq_t& v_)

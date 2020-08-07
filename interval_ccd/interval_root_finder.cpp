@@ -7,7 +7,7 @@
 #include<interval_ccd/Rational.hpp>
 #include <interval_ccd/avx.h>
 // #define COMPARE_WITH_RATIONAL
-#define USE_TIMER
+// #define USE_TIMER
 
 namespace intervalccd {
 double time20=0,time21=0,time22=0, time23=0,time24=0,time25=0,time_rational=0;
@@ -1345,7 +1345,7 @@ bool interval_root_finder_double(
     err_and_ms[1]=err[1]+ms;
     err_and_ms[2]=err[2]+ms;
     refine=0;
-    bool estimate=true;
+    
     //std::array<double,3> 
     while(!istack.empty()){
         current=istack.top().first;
@@ -1358,11 +1358,9 @@ bool interval_root_finder_double(
 #endif
         refine++;
         bool zero_in;
-        if(estimate)
+       
         zero_in= Origin_in_function_bounding_box_double_vector(current,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,check_vf,err_and_ms);
-        else{
-
-        }
+        
 #ifdef USE_TIMER
         
         timer.stop();
