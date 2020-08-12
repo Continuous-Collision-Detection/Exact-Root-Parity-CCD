@@ -671,10 +671,66 @@ void test_small(){
     intervalccd::Singleinterval oi(low,up);
     std::pair<Singleinterval,Singleinterval> bi=bisect(oi);
     std::cout<<"new midpoint,"<<bi.first.second.first<<" "<<bi.first.second.second<<std::endl;
+} 
+void get_rand_paras(double& a, double&b, double&c, double&d,
+double&e, double&f, double&g, double&h ){
+    const auto paras=Eigen::MatrixXd::Random(3,1);
+    double t=fabs(paras(0));
+    double u=fabs(paras(1));
+    double v=fabs(paras(2))*(1-u);// make sure 1-u-v>=0
+    std::cout<<"tuv, "<<t<<", "<<u<<", "<<v<<std::endl;
+     a=1-t, b=t, c=-(1-u-v)*(1-t),
+    d=-t*(1-u-v), e=-u*(1-t), f=-u*(t),
+    g=-v*(1-t),h=-v*t;
+}
+Vector3d get_rand_p(){
+    const auto paras=Eigen::MatrixXd::Random(3,1);
+    return Vector3d(paras(0),paras(1),paras(2));
+}
+void get_queries_from_funcs(){
+    Vector3d x0s=get_rand_p(),x0e=get_rand_p(),
+    x1s=get_rand_p(),x1e=get_rand_p(),x2s=get_rand_p();
+    Vector3d x2e,x3s,x3e; //these are the points to be solved
+    Vector3d a,b,c,d,e,f,g,h;
+     get_rand_paras(a[0],b[0],c[0],d[0],e[0],f[0],g[0],h[0]);
+     get_rand_paras(a[1],b[1],c[1],d[1],e[1],f[1],g[1],h[1]);
+     get_rand_paras(a[2],b[2],c[2],d[2],e[2],f[2],g[2],h[2]);
+    Vector3d B0,B1,B2;
+    
+    B0=a[0]*x0s+b[0]*x0e+c[0]*x1s+d[0]*x1e+e[0]*x2s;
+    B1=a[1]*x0s+b[1]*x0e+c[1]*x1s+d[1]*x1e+e[1]*x2s;
+    B2=a[2]*x0s+b[2]*x0e+c[2]*x1s+d[2]*x1e+e[2]*x2s;
+    // A0X=-B0, A1X=-B1, A2X=-B2
+    Vector3d nBx=-Vector3d(B0[0],B1[0],B2[0]),
+    nBy=-Vector3d(B0[1],B1[1],B2[1]),nBz=-Vector3d(B0[2],B1[2],B2[2]);
+    Eigen::Matrix3d A;
+    A<<f[0],g[0],h[0],
+    f[1],g[1],h[1],
+    f[2],g[2],h[2];
+    //AX_x=nBx. X_x=(x2ex, x3sx, x3ex)
+    Vector3d x=A.lu().solve(nBx);
+    Vector3d y=A.lu().solve(nBy);
+    Vector3d z=A.lu().solve(nBz);
+    x2e=Vector3d(x[0],y[0],z[0]);
+    x3s=Vector3d(x[1],y[1],z[1]);
+    x3e=Vector3d(x[2],y[2],z[2]);
+    std::cout<<"V\n"<<
+    x0s.transpose()<<"\n"<<
+    x1s.transpose()<<"\n"<<
+    x2s.transpose()<<"\n"<<
+    x3s.transpose()<<"\n"<<
+    x0e.transpose()<<"\n"<<
+    x1e.transpose()<<"\n"<<
+    x2e.transpose()<<"\n"<<
+    x3e.transpose()<<"\n"<<
+    std::endl<<std::endl;
+
 }
 int main(int argc, char* argv[])
 {
-    test_small();
+    // test_small();
+    get_queries_from_funcs();
+    // get_queries_from_funcs();
     // TODO: Put something more relevant here
     // ccd::test();
    // test_shifted_compare();

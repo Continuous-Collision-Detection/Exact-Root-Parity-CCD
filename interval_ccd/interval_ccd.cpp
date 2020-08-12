@@ -476,6 +476,8 @@ bool edgeEdgeCCD_double(
     // }
     //////////////////////////////////////////////////////////
     //TODO this should be the error of the whole mesh
+    std::array<double,3> err1;
+    if(err[0]<0){// if error[0]<0, means we need to calculate error here
     std::vector<Eigen::Vector3d> vlist;
     vlist.emplace_back(a0s);
     vlist.emplace_back(a1s);
@@ -487,8 +489,13 @@ bool edgeEdgeCCD_double(
     vlist.emplace_back(b0e);
     vlist.emplace_back(b1e);
 
-    std::array<double,3> err1;
+
     err1=get_numerical_error(vlist,false);
+    }
+    else{
+        err1=err;
+    }
+    
     //////////////////////////////////////////////////////////
 
     Interval3 toi_interval;
@@ -537,6 +544,9 @@ bool vertexFaceCCD_double(
     //std::cout<<"get tolerance successfully"<<std::endl;
      //////////////////////////////////////////////////////////
     //TODO this should be the error of the whole mesh
+
+    std::array<double,3> err1;
+    if(err[0]<0){// if error[0]<0, means we need to calculate error here
     std::vector<Eigen::Vector3d> vlist;
     vlist.emplace_back(vertex_start);
     vlist.emplace_back(face_vertex0_start);
@@ -548,8 +558,12 @@ bool vertexFaceCCD_double(
     vlist.emplace_back(face_vertex1_end);
     vlist.emplace_back(face_vertex2_end);
 
-    std::array<double,3> err1;
+
     err1=get_numerical_error(vlist,false);
+    }
+    else{
+        err1=err;
+    }
     //////////////////////////////////////////////////////////
 
     Interval3 toi_interval;
