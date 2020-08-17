@@ -46,8 +46,34 @@ bool interval_root_finder(
         x = x_vec(0);
     }
     return found_root;
+    return true;
 }
-
+bool interval_root_finder_Redon(
+    const std::function<Interval(const Interval&)>& f,
+    const std::function<bool(const Interval&)>& constraint_predicate,
+    const Interval& x0,
+    double tol,
+    Interval& x)
+{
+    Eigen::VectorX3I x0_vec = Eigen::VectorX3I::Constant(1, x0), x_vec;
+    Eigen::VectorX3d tol_vec = Eigen::VectorX3d::Constant(1, tol);
+    bool found_root = interval_root_finder(
+        [&](const Eigen::VectorX3I& x) {
+            assert(x.size() == 1);
+            return Eigen::VectorX3I::Constant(1, f(x(0)));
+        },
+        [&](const Eigen::VectorX3I& x) {
+            assert(x.size() == 1);
+            return constraint_predicate(x(0));
+        },
+        x0_vec, tol_vec, x_vec);
+    if (found_root) {
+        assert(x_vec.size() == 1);
+        x = x_vec(0);
+    }
+    return found_root;
+    
+}
 bool interval_root_finder(
     const std::function<Eigen::VectorX3I(const Eigen::VectorX3I&)>& f,
     const Eigen::VectorX3I& x0,
@@ -437,6 +463,7 @@ bool evaluate_bbox_one_dimension_vector(
 #ifdef USE_TIMER
                     timer.stop();
                     time25+=timer.getElapsedTimeInMicroSec();
+                    
 #endif
     double minv=vs[0], maxv=vs[0];
     
@@ -743,7 +770,7 @@ bool Origin_in_function_bounding_box(
                 timer.start();
                 bool check=interval_bounding_box_check(result,flag);
                 timer.stop();
-                time24+=timer.getElapsedTimeInMicroSec();
+                //time24+=timer.getElapsedTimeInMicroSec();
                 if(check)
                     return true;
             }
@@ -829,8 +856,14 @@ bool Origin_in_function_bounding_box_double_vector(
     std::array<double,8> t_up;std::array<double,8>t_dw;
     std::array<double,8> u_up;std::array<double,8>u_dw;
     std::array<double,8> v_up;std::array<double,8>v_dw;
-
+#ifdef USE_TIMER
+    timer.start();
+#endif
     convert_tuv_to_array(paras,t_up,t_dw,u_up,u_dw,v_up,v_dw);
+#ifdef USE_TIMER
+    timer.stop();
+    time24+=timer.getElapsedTimeInMicroSec();
+#endif
     bool ck;
     for(int i=0;i<3;i++){
 #ifdef USE_TIMER
@@ -1362,7 +1395,7 @@ bool interval_root_finder_double(
         zero_in= Origin_in_function_bounding_box_double_vector(current,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,check_vf,err_and_ms);
         
 #ifdef USE_TIMER
-        
+    
         timer.stop();
         time20+=timer.getElapsedTimeInMicroSec();
 #endif
@@ -1600,9 +1633,10 @@ void print_time_2(){
     std::cout<<"origin predicates, "<<time20<<std::endl;
     std::cout<<"width, "<<time21<<std::endl;
     std::cout<<"bisect, "<<time22<<std::endl;
-    std::cout<<"origin part1, "<<time23<<std::endl;
-    std::cout<<"origin part2, "<<time24<<std::endl;
+    std::cout<<"origin part1(evaluate 1 dimension), "<<time23<<std::endl;
+    std::cout<<"origin part2(convert tuv), "<<time24<<std::endl;
     std::cout<<"time of call the vertex solving function, "<<time25<<std::endl;
+    std::cout<<"how many times of interval check for this query, "<<refine<<std::endl;
 }
 double print_time_rational(){
     return time_rational;

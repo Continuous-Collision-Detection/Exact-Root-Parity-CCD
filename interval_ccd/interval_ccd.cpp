@@ -9,79 +9,8 @@ static double CCD_LENGTH_TOL = 1e-6;
 double tol0=0,tol1=0,tol2=0,tol0n=0,tol1n=0,tol2n=0;
 double c00,c01,c10,c11,c20,c21;
 
-////////////////////////////////////////////////////////////////////////////////
-// Edge-Vertex
 
-Eigen::Vector2d compute_edge_vertex_tolerance(
-    const Eigen::Vector2d& vertex_start,
-    const Eigen::Vector2d& edge_vertex0_start,
-    const Eigen::Vector2d& edge_vertex1_start,
-    const Eigen::Vector2d& vertex_end,
-    const Eigen::Vector2d& edge_vertex0_end,
-    const Eigen::Vector2d& edge_vertex1_end)
-{
-    // Compute the maximum trajectory length of all the vertices
-    double dl = std::max(
-        (vertex_end - vertex_start).norm(),
-        std::max(
-            (edge_vertex0_end - edge_vertex0_start).norm(),
-            (edge_vertex1_end - edge_vertex1_start).norm()));
-
-    double edge_length = std::max(
-        (edge_vertex1_start - edge_vertex0_start).norm(),
-        (edge_vertex1_end - edge_vertex0_end).norm());
-
-    return Eigen::Vector2d(CCD_LENGTH_TOL / dl, CCD_LENGTH_TOL / edge_length);
-}
-
-bool edgeVertexCCD(
-    const Eigen::Vector2d& vertex_start,
-    const Eigen::Vector2d& edge_vertex0_start,
-    const Eigen::Vector2d& edge_vertex1_start,
-    const Eigen::Vector2d& vertex_end,
-    const Eigen::Vector2d& edge_vertex0_end,
-    const Eigen::Vector2d& edge_vertex1_end,
-    double& toi)
-{
-    const auto distance = [&](const Eigen::VectorX3I& params) {
-        assert(params.size() == 2);
-        Interval t = params(0);
-        Interval alpha = params(1);
-
-        // Get the vertex at time t
-        Eigen::Vector2I vertex = (vertex_end.cast<Interval>() - vertex_start.cast<Interval>()) * t + vertex_start.cast<Interval>();
-
-        // Get the vertex of the edge at time t
-        Eigen::Vector2I edge_vertex0
-            = (edge_vertex0_end.cast<Interval>() - edge_vertex0_start.cast<Interval>()) * t + edge_vertex0_start.cast<Interval>();
-        Eigen::Vector2I edge_vertex1
-            = (edge_vertex1_end - edge_vertex1_start).cast<Interval>() * t + edge_vertex1_start.cast<Interval>();
-        Eigen::Vector2I edge_vertex
-            = (edge_vertex1 - edge_vertex0).cast<Interval>() * alpha + edge_vertex0.cast<Interval>();
-
-        return (vertex - edge_vertex).eval();
-    };
-
-    Eigen::Vector2d tol = compute_edge_vertex_tolerance(
-        vertex_start, edge_vertex0_start, edge_vertex1_start, //
-        vertex_end, edge_vertex0_end, edge_vertex1_end);
-
-    Eigen::VectorX3I toi_interval;
-    bool is_impacting = interval_root_finder(
-        distance, Eigen::VectorX3I::Constant(2, Interval(0, 1)),tol, toi_interval,false);
-
-    // Return a conservative time-of-impact
-    if (is_impacting) {
-        toi = toi_interval(0).lower();
-    }
-
-    return is_impacting;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// Face-Vertex
-
-double compute_face_vertex_tolerance(
+double compute_face_vertex_tolerance_1d(
     const Eigen::Vector3d& vertex_start,
     const Eigen::Vector3d& face_vertex0_start,
     const Eigen::Vector3d& face_vertex1_start,
@@ -101,6 +30,223 @@ double compute_face_vertex_tolerance(
 
     return CCD_LENGTH_TOL / dl;
 }
+Eigen::Vector3I cross(const Eigen::Vector3I& a,const Eigen::Vector3I& b){
+    Eigen::Vector3I c;
+    c(0)=a(1)*b(2)-a(2)*b(1);
+    c(1)=a(2)*b(0)-a(0)*b(2);
+    c(2)=a(0)*b(1)-a(1)*b(0);
+    return c;
+}
+bool are_points_on_same_side_of_edge(
+    const Eigen::Vector3I& p1,
+    const Eigen::Vector3I& p2,
+    const Eigen::Vector3I& a,
+    const Eigen::Vector3I& b)
+{
+    Eigen::Vector3I cp1 = cross(b-a,p1-a);//(b - a).cross(p1 - a);
+    Eigen::Vector3I cp2 = cross(b-a,p2-a);//(b - a).cross(p2 - a);
+    return cp1.dot(cp2).upper() >= 0;
+}
+
+bool is_point_inside_triangle_(
+    const Eigen::Vector3I& point,
+    const Eigen::Vector3I& triangle_vertex0,
+    const Eigen::Vector3I& triangle_vertex1,
+    const Eigen::Vector3I& triangle_vertex2)
+{
+    return are_points_on_same_side_of_edge(
+               point, triangle_vertex0, triangle_vertex1, triangle_vertex2)
+        && are_points_on_same_side_of_edge(
+               point, triangle_vertex1, triangle_vertex0, triangle_vertex2)
+        && are_points_on_same_side_of_edge(
+               point, triangle_vertex2, triangle_vertex0, triangle_vertex1);
+}
+
+inline Eigen::Vector3I triangle_normal(
+    const Eigen::Vector3I& face_vertex0,
+    const Eigen::Vector3I& face_vertex1,
+    const Eigen::Vector3I& face_vertex2)
+{
+    return cross(face_vertex1 - face_vertex0,face_vertex2 - face_vertex0);//(face_vertex1 - face_vertex0).cross(face_vertex2 - face_vertex0);
+}
+
+bool vertexFaceCCD_Redon(
+    const Eigen::Vector3d& vertex_start,
+    const Eigen::Vector3d& face_vertex0_start,
+    const Eigen::Vector3d& face_vertex1_start,
+    const Eigen::Vector3d& face_vertex2_start,
+    const Eigen::Vector3d& vertex_end,
+    const Eigen::Vector3d& face_vertex0_end,
+    const Eigen::Vector3d& face_vertex1_end,
+    const Eigen::Vector3d& face_vertex2_end,
+    double& toi)
+{
+    const auto distance = [&](const Interval& t) {
+        // Get the vertex at time t
+        Eigen::Vector3I vertex = (vertex_end.cast<Interval>() - vertex_start.cast<Interval>()) * t + vertex_start.cast<Interval>();
+
+        // Get the vertex of the face at time t
+        Eigen::Vector3I face_vertex0
+            = (face_vertex0_end.cast<Interval>() - face_vertex0_start.cast<Interval>()) * t + face_vertex0_start.cast<Interval>();
+        Eigen::Vector3I face_vertex1
+            = (face_vertex1_end.cast<Interval>() - face_vertex1_start.cast<Interval>()) * t + face_vertex1_start.cast<Interval>();
+        Eigen::Vector3I face_vertex2
+            = (face_vertex2_end.cast<Interval>() - face_vertex2_start.cast<Interval>()) * t + face_vertex2_start.cast<Interval>();
+
+        return 
+        (vertex - face_vertex0)
+            .dot(triangle_normal(face_vertex0, face_vertex1, face_vertex2));
+    };
+
+    const auto is_point_inside_triangle = [&](const Interval& t) {
+        // Get the vertex at time t
+        Eigen::Vector3I vertex = (vertex_end.cast<Interval>() - vertex_start.cast<Interval>()) * t + vertex_start.cast<Interval>();
+
+        // Get the vertex of the face at time t
+        Eigen::Vector3I face_vertex0
+            = (face_vertex0_end.cast<Interval>() - face_vertex0_start.cast<Interval>()) * t + face_vertex0_start.cast<Interval>();
+        Eigen::Vector3I face_vertex1
+            = (face_vertex1_end.cast<Interval>() - face_vertex1_start.cast<Interval>()) * t + face_vertex1_start.cast<Interval>();
+        Eigen::Vector3I face_vertex2
+            = (face_vertex2_end.cast<Interval>() - face_vertex2_start.cast<Interval>()) * t + face_vertex2_start.cast<Interval>();
+
+        return is_point_inside_triangle_(
+            vertex, face_vertex0, face_vertex1, face_vertex2);
+    };
+
+    double tol = compute_face_vertex_tolerance_1d(
+        vertex_start, face_vertex0_start, face_vertex1_start,
+        face_vertex2_start, vertex_end, face_vertex0_end, face_vertex1_end,
+        face_vertex2_end);
+
+    Interval toi_interval;
+    bool is_impacting
+     = interval_root_finder(
+        distance, is_point_inside_triangle, Interval(0, 1), tol, toi_interval);
+
+    // Return a conservative time-of-impact
+    toi = toi_interval.lower();
+
+    return is_impacting;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Edge-Edge
+
+double compute_edge_edge_tolerance_1d(
+    const Eigen::Vector3d& edge0_vertex0_start,
+    const Eigen::Vector3d& edge0_vertex1_start,
+    const Eigen::Vector3d& edge1_vertex0_start,
+    const Eigen::Vector3d& edge1_vertex1_start,
+    const Eigen::Vector3d& edge0_vertex0_end,
+    const Eigen::Vector3d& edge0_vertex1_end,
+    const Eigen::Vector3d& edge1_vertex0_end,
+    const Eigen::Vector3d& edge1_vertex1_end)
+{
+    // Compute the maximum trajectory length of all the vertices
+    double dl = std::max(
+        std::max(
+            (edge0_vertex0_end - edge0_vertex0_start).norm(),
+            (edge0_vertex1_end - edge0_vertex1_start).norm()),
+        std::max(
+            (edge1_vertex0_end - edge1_vertex0_start).norm(),
+            (edge1_vertex1_end - edge1_vertex1_start).norm()));
+
+    return CCD_LENGTH_TOL / dl;
+}
+
+bool are_segments_intersecting(
+    const Eigen::Vector3I& edge0_vertex0,
+    const Eigen::Vector3I& edge0_vertex1,
+    const Eigen::Vector3I& edge1_vertex0,
+    const Eigen::Vector3I& edge1_vertex1)
+{
+    const Eigen::Vector3I& a = edge0_vertex0;
+    const Eigen::Vector3I& b = edge0_vertex1;
+    const Eigen::Vector3I& c = edge1_vertex0;
+    const Eigen::Vector3I& d = edge1_vertex1;
+
+    Eigen::Vector3I n = cross(b - a,c - a);
+
+    return cross(b - d,c - d).dot(n).upper() >= 0
+        && cross(c - d,a - d).dot(n).upper() >= 0
+        && cross(a - d,b - d).dot(n).lower() <= 0;
+}
+
+bool edgeEdgeCCD_Redon(
+    const Eigen::Vector3d& edge0_vertex0_start,
+    const Eigen::Vector3d& edge0_vertex1_start,
+    const Eigen::Vector3d& edge1_vertex0_start,
+    const Eigen::Vector3d& edge1_vertex1_start,
+    const Eigen::Vector3d& edge0_vertex0_end,
+    const Eigen::Vector3d& edge0_vertex1_end,
+    const Eigen::Vector3d& edge1_vertex0_end,
+    const Eigen::Vector3d& edge1_vertex1_end,
+    double& toi)
+{
+    const auto distance = [&](const Interval& t) {
+        Eigen::Vector3I edge0_vertex0
+            = (edge0_vertex0_end.cast<Interval>() - edge0_vertex0_start.cast<Interval>()) * t
+            + edge0_vertex0_start.cast<Interval>();
+        Eigen::Vector3I edge0_vertex1
+            = (edge0_vertex1_end.cast<Interval>() - edge0_vertex1_start.cast<Interval>()) * t
+            + edge0_vertex1_start.cast<Interval>();
+
+        Eigen::Vector3I edge1_vertex0
+            = (edge1_vertex0_end.cast<Interval>() - edge1_vertex0_start.cast<Interval>()) * t
+            + edge1_vertex0_start.cast<Interval>();
+        Eigen::Vector3I edge1_vertex1
+            = (edge1_vertex1_end.cast<Interval>() - edge1_vertex1_start.cast<Interval>()) * t
+            + edge1_vertex1_start.cast<Interval>();
+
+        return cross(edge0_vertex1 - edge0_vertex0,
+            edge1_vertex1 - edge1_vertex0).dot(
+                edge1_vertex0 - edge0_vertex0);
+    };
+
+    const auto is_intersection_inside_edges = [&](const Interval& t) -> bool {
+        Eigen::Vector3I edge0_vertex0
+            = (edge0_vertex0_end.cast<Interval>() - edge0_vertex0_start.cast<Interval>()) * t
+            + edge0_vertex0_start.cast<Interval>();
+        Eigen::Vector3I edge0_vertex1
+            = (edge0_vertex1_end.cast<Interval>() - edge0_vertex1_start.cast<Interval>()) * t
+            + edge0_vertex1_start.cast<Interval>();
+
+        Eigen::Vector3I edge1_vertex0
+            = (edge1_vertex0_end.cast<Interval>() - edge1_vertex0_start.cast<Interval>()) * t
+            + edge1_vertex0_start.cast<Interval>();
+        Eigen::Vector3I edge1_vertex1
+            = (edge1_vertex1_end.cast<Interval>() - edge1_vertex1_start.cast<Interval>()) * t
+            + edge1_vertex1_start.cast<Interval>();
+
+        return are_segments_intersecting(
+            edge0_vertex0, edge0_vertex1, edge1_vertex0, edge1_vertex1);
+    };
+
+    double tol = compute_edge_edge_tolerance_1d(
+        edge0_vertex0_start, edge0_vertex1_start, edge1_vertex0_start,
+        edge1_vertex1_start, edge0_vertex0_end, edge0_vertex1_end,
+        edge1_vertex0_end, edge1_vertex1_end);
+
+    Interval toi_interval;
+    bool is_impacting = interval_root_finder(
+        distance, is_intersection_inside_edges, Interval(0, 1), tol, toi_interval);
+
+    // Return a conservative time-of-impact
+    toi = toi_interval.lower();
+
+    return is_impacting;
+}
+
+
+
+
+
+
+
+
+
+
 
 Eigen::Vector3d compute_face_vertex_tolerance_3d(
    const Eigen::Vector3d& vs,
@@ -176,41 +322,8 @@ Eigen::Vector3d compute_face_vertex_tolerance_3d_new(
     c00=dl;c10=edge0_length;c20=edge1_length;
    return Eigen::Vector3d(CCD_LENGTH_TOL / dl, CCD_LENGTH_TOL / edge0_length, CCD_LENGTH_TOL / edge1_length);
 }
-// Eigen::Vector3I cross(const Eigen::Vector3I&v1, const Eigen::Vector3I&v2){
-//     Eigen::Vector3I res;
-//     res[0] = v1[1] * v2[2] - v1[2] * v2[1];
-//     res[1] = v1[2] * v2[0] - v1[0] * v2[2];
-//     res[2] = v1[0] * v2[1] - v1[1] * v2[0];
 
-//     return res;
-// }
-inline Eigen::Vector3I triangle_normal(
-    const Eigen::Vector3I& face_vertex0,
-    const Eigen::Vector3I& face_vertex1,
-    const Eigen::Vector3I& face_vertex2)
-{
-    return (face_vertex1 - face_vertex0).cross(face_vertex2 - face_vertex0);
-}
 
-bool is_point_inside_triangle(
-    const Eigen::Vector3I& point,
-    const Eigen::Vector3I& triangle_vertex0,
-    const Eigen::Vector3I& triangle_vertex1,
-    const Eigen::Vector3I& triangle_vertex2)
-{
-    // Eigen::Vector3I normal0
-    //     = triangle_normal(triangle_vertex0, triangle_vertex1, point);
-    // Eigen::Vector3I normal1
-    //     = triangle_normal(triangle_vertex0, point, triangle_vertex2);
-    // Eigen::Vector3I normal2
-    //     = triangle_normal(triangle_vertex1, triangle_vertex2, point);
-    // for (int i = 0; i < normal0.size(); i++) {
-    //     if (!overlap(intersect(normal0(i), normal1(i)), normal2(i))) {
-    //         return false;
-    //     }
-    // }
-    return true;
-}
 //
 bool vertexFaceCCD(
     const Eigen::Vector3d& vertex_start,
@@ -560,6 +673,7 @@ bool vertexFaceCCD_double(
 
 
     err1=get_numerical_error(vlist,false);
+    
     }
     else{
         err1=err;

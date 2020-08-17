@@ -7,7 +7,12 @@
 #include<vector>
 
 namespace intervalccd {
-
+bool interval_root_finder_Redon(
+    const std::function<Interval(const Interval&)>& f,
+    const std::function<bool(const Interval&)>& constraint_predicate,
+    const Interval& x0,
+    double tol,
+    Interval& x);
 /// Find the first root of a function f: I ↦ I
 bool interval_root_finder(
     const std::function<Interval(const Interval&)>& f,
