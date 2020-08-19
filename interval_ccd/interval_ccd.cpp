@@ -611,16 +611,16 @@ bool edgeEdgeCCD_double(
     
     //////////////////////////////////////////////////////////
 
-    Interval3 toi_interval;
+    
     igl::Timer timer;
     timer.start();
    bool is_impacting = interval_root_finder_double(
-        tol,toi_interval,false,err1,ms,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
+        tol,toi,false,err1,ms,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
     time0+=timer.getElapsedTimeInMicroSec();
    // Return a conservative time-of-impact
-   if (is_impacting) {
-       toi = double(toi_interval[0].first.first)/pow(2,toi_interval[0].first.second);
-   }
+//    if (is_impacting) {
+//        toi = double(toi_interval[0].first.first)/pow(2,toi_interval[0].first.second);
+//    }
    // This time of impact is very dangerous for convergence
    // assert(!is_impacting || toi > 0);
    return is_impacting;
@@ -680,18 +680,18 @@ bool vertexFaceCCD_double(
     }
     //////////////////////////////////////////////////////////
 
-    Interval3 toi_interval;
+    // Interval3 toi_interval;
     igl::Timer timer;
     timer.start();
    bool is_impacting = interval_root_finder_double(
-        tol,toi_interval,true,err1,ms,vertex_start, face_vertex0_start, face_vertex1_start,
+        tol,toi,true,err1,ms,vertex_start, face_vertex0_start, face_vertex1_start,
         face_vertex2_start, vertex_end, face_vertex0_end, face_vertex1_end,
         face_vertex2_end);
     time0+=timer.getElapsedTimeInMicroSec();
    // Return a conservative time-of-impact
-   if (is_impacting) {
-       toi = double(toi_interval[0].first.first)/pow(2,toi_interval[0].first.second);
-   }
+//    if (is_impacting) {
+//        toi = double(toi_interval[0].first.first)/pow(2,toi_interval[0].first.second);
+//    }
    // This time of impact is very dangerous for convergence
    // assert(!is_impacting || toi > 0);
    return is_impacting;

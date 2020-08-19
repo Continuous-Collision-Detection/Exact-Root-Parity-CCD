@@ -1146,6 +1146,22 @@ bool sum_no_larger_1(const Numccd& num1, const Numccd& num2){
     else return true;
 
 }
+//check if num1<num2
+bool less_than(const Numccd& num1, const Numccd& num2){
+    int k1=num1.first;
+    int n1=num1.second;
+    int k2=num2.first;
+    int n2=num2.second;
+    
+    if(n1<n2){
+        k1=power(1,n2-n1)*k1;
+    }
+    if(n1>n2){
+        k2=power(1,n1-n2)*k2;
+    }
+    if(k1<k2) return true;
+    return false;
+}
 bool sum_no_larger_1_Rational(const Numccd& num1, const Numccd& num2){
     int k1=num1.first;
     int n1=num1.second;
@@ -1335,7 +1351,8 @@ const Numccd&tpara, const Numccd&upara, const Numccd&vpara,const T& type, const 
 bool interval_root_finder_double(
     const Eigen::VectorX3d& tol,
     //Eigen::VectorX3I& x,// result interval
-    Interval3& final,
+    // Interval3& final,
+    double& toi,
     const bool check_vf,
     const std::array<double,3> err,
     const double ms,
@@ -1347,19 +1364,7 @@ bool interval_root_finder_double(
     const Eigen::Vector3d& a1e,
     const Eigen::Vector3d& b0e,
     const Eigen::Vector3d& b1e){
-        {//la = 0.2954570784440031002, lb = 1.1090868531538015859, t = 4635.2393745312786939
-            //Vector3r value=function_f_ee_Rational(Rational(4635.2393745312786939),Rational( 0.2954570784440031002),
-            //Rational(1.1090868531538015859),a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
-            // std::cout<<"a0s,"<<a0s.transpose()<<std::endl;
-            // std::cout<<"a1s,"<<a1s.transpose()<<std::endl;
-            // std::cout<<"b0s,"<<b0s.transpose()<<std::endl;
-            // std::cout<<"b1s,"<<b1s.transpose()<<std::endl;
-            // std::cout<<"a0e,"<<a0e.transpose()<<std::endl;
-            // std::cout<<"a1e,"<<a1e.transpose()<<std::endl;
-            // std::cout<<"b0e,"<<b0e.transpose()<<std::endl;
-            // std::cout<<"b1e,"<<b1e.transpose()<<std::endl;
-            // std::cout<<"rational value, "<<value[0]<<", "<<value[1]<<", "<<value[2]<<std::endl;
-        }
+        
     Numccd low_number; low_number.first=0; low_number.second=0;// low_number=0;
     Numccd up_number; up_number.first=1; up_number.second=0;// up_number=1;
     // initial interval [0,1]
@@ -1378,12 +1383,22 @@ bool interval_root_finder_double(
     err_and_ms[1]=err[1]+ms;
     err_and_ms[2]=err[2]+ms;
     refine=0;
-    
+    toi=std::numeric_limits<double>::infinity();
+    Numccd TOI; TOI.first=1;TOI.second=0;
     //std::array<double,3> 
+    bool collision=false;
+    int rnbr=0;
     while(!istack.empty()){
         current=istack.top().first;
         int last_split=istack.top().second;
         istack.pop();
+
+        if(!less_than(current[0].first,TOI)){
+            continue;
+        }
+        // if(Numccd2double(current[0].first)>=Numccd2double(TOI)){
+        //     std::cout<<"here wrong, comparing"<<std::endl;
+        // } 
 #ifdef USE_TIMER
         igl::Timer timer;
 
@@ -1414,8 +1429,10 @@ bool interval_root_finder_double(
         time21+=timer.getElapsedTimeInMicroSec();
 #endif
         if ((widths.array() <= tol.array()).all()) {
-            final=current;
-                return true;
+            TOI=current[0].first;
+            collision=true;
+            rnbr++;
+            continue;
         }
 
         std::array<bool , 3> check;
@@ -1516,6 +1533,10 @@ bool interval_root_finder_double(
         }
 
     }
+    if(collision) toi=Numccd2double(TOI);
+    // if(toi==0)std::cout<<"infinate roots, "<<std::endl;
+    // if(rnbr>5) std::cout<<"nbr of roots, "<<rnbr<<", time, "<<toi<<std::endl;
+    return collision;
     return false;
     
 }

@@ -57,7 +57,8 @@ bool interval_root_finder_opt(
 bool interval_root_finder_double(
     const Eigen::VectorX3d& tol,
     //Eigen::VectorX3I& x,// result interval
-    Interval3& final,
+    //Interval3& final,
+    double &toi,
     const bool check_vf,
     const std::array<double,3> err,
     const double ms,
