@@ -286,7 +286,7 @@ Eigen::Vector3d compute_face_vertex_tolerance_3d_new(
    const Eigen::Vector3d& ve,
    const Eigen::Vector3d& f0e,
    const Eigen::Vector3d& f1e,
-   const Eigen::Vector3d& f2e)
+   const Eigen::Vector3d& f2e,const double tolerance)
 {
    
     double dl=0;
@@ -320,7 +320,7 @@ Eigen::Vector3d compute_face_vertex_tolerance_3d_new(
    //double edge_length = std::max(edge0_length, edge1_length);
     c00=0;c10=0;c20=0;
     c00=dl;c10=edge0_length;c20=edge1_length;
-   return Eigen::Vector3d(CCD_LENGTH_TOL / dl, CCD_LENGTH_TOL / edge0_length, CCD_LENGTH_TOL / edge1_length);
+   return Eigen::Vector3d(tolerance / dl, tolerance / edge0_length, tolerance / edge1_length);
 }
 
 
@@ -420,7 +420,7 @@ Eigen::Vector3d compute_edge_edge_tolerance_new(
    const Eigen::Vector3d& edge0_vertex0_end,
    const Eigen::Vector3d& edge0_vertex1_end,
    const Eigen::Vector3d& edge1_vertex0_end,
-   const Eigen::Vector3d& edge1_vertex1_end)
+   const Eigen::Vector3d& edge1_vertex1_end, const double tolerance)
 {
    
    double dl=0;
@@ -452,7 +452,7 @@ Eigen::Vector3d compute_edge_edge_tolerance_new(
         if(edge1_length<fabs(edge1_vertex1_end[i] - edge1_vertex0_end[i]))
             edge1_length=fabs(edge1_vertex1_end[i] - edge1_vertex0_end[i]);
     }
-   return Eigen::Vector3d(CCD_LENGTH_TOL / dl, CCD_LENGTH_TOL / edge0_length, CCD_LENGTH_TOL / edge1_length);
+   return Eigen::Vector3d(tolerance / dl, tolerance / edge0_length, tolerance / edge1_length);
 }
 bool edgeEdgeCCD(
    const Eigen::Vector3d& edge0_vertex0_start,
@@ -573,9 +573,9 @@ bool edgeEdgeCCD_double(
     const Eigen::Vector3d& b1e, 
     const std::array<double,3>& err,
     const double ms,
-    double &toi){
+    double &toi, const double tolerance=1e-6){
    //tol0=0;tol1=0;tol2=0;
-    Eigen::Vector3d tol = compute_edge_edge_tolerance_new(a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
+    Eigen::Vector3d tol = compute_edge_edge_tolerance_new(a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,tolerance);
     // tol0=tol[0];
     // tol1=tol[1];
     // tol2=tol[2];
@@ -637,13 +637,13 @@ bool vertexFaceCCD_double(
     const Eigen::Vector3d& face_vertex2_end,
     const std::array<double,3>& err,
     const double ms,
-    double& toi)
+    double& toi, const double tolerance=1e-6)
 {
     
    Eigen::Vector3d tol = compute_face_vertex_tolerance_3d_new(
         vertex_start, face_vertex0_start, face_vertex1_start,
         face_vertex2_start, vertex_end, face_vertex0_end, face_vertex1_end,
-        face_vertex2_end);
+        face_vertex2_end, tolerance);
     tol0=tol[0];
     tol1=tol[1];
     tol2=tol[2];

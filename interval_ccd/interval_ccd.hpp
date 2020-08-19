@@ -66,7 +66,7 @@ bool edgeEdgeCCD_double(
     const Eigen::Vector3d& b1e, 
     const std::array<double,3>& err,
     const double ms,
-    double &toi);
+    double &toi, const double tolerance);
 bool vertexFaceCCD_double(
     const Eigen::Vector3d& vertex_start,
     const Eigen::Vector3d& face_vertex0_start,
@@ -78,7 +78,7 @@ bool vertexFaceCCD_double(
     const Eigen::Vector3d& face_vertex2_end,
     const std::array<double,3>& err,
     const double ms,
-    double& toi);
+    double& toi,const double tolerance);
 
 bool edgeEdgeCCD_rational(
     const Eigen::Vector3d& a0s,
