@@ -278,6 +278,126 @@ Eigen::Vector3d compute_face_vertex_tolerance_3d(
     c00=dl;c10=edge0_length;c20=edge1_length;
    return Eigen::Vector3d(CCD_LENGTH_TOL / dl, CCD_LENGTH_TOL / edge0_length, CCD_LENGTH_TOL / edge1_length);
 }
+
+std::array<Eigen::Vector3d,2> bbd_4_pts_new(const std::array<Eigen::Vector3d,4>& pts){
+    Eigen::Vector3d min,max;
+    min=pts[0];max=pts[0];
+    for(int i=1;i<4;i++){
+        for(int j=0;j<3;j++){
+            if(min[j]>pts[i][j]){
+                min[j]=pts[i][j];
+            }
+            if(max[j]<pts[i][j]){
+                max[j]=pts[i][j];
+            }
+        }
+    }
+    std::array<Eigen::Vector3d,2> rst;
+    rst[0]=min;rst[1]=max;
+    return rst;
+
+}
+double max_diff(const double b1min, const double b1max, const double b2min, const double b2max){
+    double r=0;
+    if(r<b1max-b1min) r=b1max-b1min;
+    if(r<b2max-b2min) r=b2max-b2min;
+    if(r<fabs(b2min-b1max)) r=fabs(b2min-b1max);
+    if(r<fabs(b1min-b2max)) r=fabs(b1min-b2max);
+    return r;
+
+}
+// calculate maximum x, y and z diff
+double get_max_axis_diff(const std::array<Eigen::Vector3d,2>& b1,const std::array<Eigen::Vector3d,2>&b2){
+   
+    double x=max_diff(b1[0][0],b1[1][0],b2[0][0],b2[1][0]);
+    double y=max_diff(b1[0][1],b1[1][1],b2[0][1],b2[1][1]);
+    double z=max_diff(b1[0][2],b1[1][2],b2[0][2],b2[1][2]);
+    return std::max(std::max(x,y),z);
+}
+Eigen::Vector3d compute_face_vertex_tolerance_3d_new_old_version(
+   const Eigen::Vector3d& vs,
+   const Eigen::Vector3d& f0s,
+   const Eigen::Vector3d& f1s,
+   const Eigen::Vector3d& f2s,
+   const Eigen::Vector3d& ve,
+   const Eigen::Vector3d& f0e,
+   const Eigen::Vector3d& f1e,
+   const Eigen::Vector3d& f2e,const double tolerance)
+{
+    Eigen::Vector3d
+    p000=vs-f0s,
+    p001=vs-f2s,
+    p011=vs-(f1s+f2s-f0s),
+    p010=vs-f1s;
+    Eigen::Vector3d
+    p100=ve-f0e,
+    p101=ve-f2e,
+    p111=ve-(f1e+f2e-f0e),
+    p110=ve-f1e;
+    double dl=0;
+    double edge0_length=0;
+    double edge1_length=0;
+    std::array<Eigen::Vector3d,2> t0box=bbd_4_pts_new({{p000,p001,p010,p011}});
+    std::array<Eigen::Vector3d,2> t1box=bbd_4_pts_new({{p100,p101,p110,p111}});
+    std::array<Eigen::Vector3d,2> u0box=bbd_4_pts_new({{p000,p001,p100,p101}});
+    std::array<Eigen::Vector3d,2> u1box=bbd_4_pts_new({{p010,p011,p110,p111}});
+    std::array<Eigen::Vector3d,2> v0box=bbd_4_pts_new({{p000,p100,p010,p110}});
+    std::array<Eigen::Vector3d,2> v1box=bbd_4_pts_new({{p001,p101,p011,p111}});
+    dl=get_max_axis_diff(t0box,t1box);
+    edge0_length=get_max_axis_diff(u0box,u1box);
+    edge1_length=get_max_axis_diff(v0box,v1box);
+//     for(int i=0;i<3;i++){
+//         if(dl<fabs(ve[i]-vs[i]))
+//             dl=fabs(ve[i]-vs[i]);
+
+//         if(dl<fabs(f0e[i]-f0s[i]))
+//             dl=fabs(f0e[i]-f0s[i]);
+
+//         if(dl<fabs(f1e[i]-f1s[i]))
+//             dl=fabs(f1e[i]-f1s[i]);
+
+//         if(dl<fabs(f2e[i]-f2s[i]))
+//             dl=fabs(f2e[i]-f2s[i]);
+
+//         if(edge0_length<fabs(f1s[i] - f0s[i]))
+//             edge0_length=fabs(f1s[i] - f0s[i]);
+
+//         if(edge0_length<fabs(f1e[i] - f0e[i]))
+//             edge0_length=fabs(f1e[i] - f0e[i]);
+
+//         if(edge1_length<fabs(f2s[i]-f0s[i]))
+//             edge1_length=fabs(f2s[i]-f0s[i]);
+
+//         if(edge1_length<fabs(f2e[i]-f0e[i]))
+//             edge1_length=fabs(f2e[i]-f0e[i]);
+//     }
+//    //double edge_length = std::max(edge0_length, edge1_length);
+//     c00=0;c10=0;c20=0;
+//     c00=dl;c10=edge0_length;c20=edge1_length;
+   return Eigen::Vector3d(tolerance / dl, tolerance / edge0_length, tolerance / edge1_length);
+}
+double max_linf_dist(const Eigen::Vector3d&p1, const Eigen::Vector3d& p2){
+    double r=0;
+    for(int i=0;i<3;i++){
+        if(r<fabs(p1[i]-p2[i])){
+            r=fabs(p1[i]-p2[i]);
+        }
+    }
+    return r;
+}
+double max_linf_4(const Eigen::Vector3d &p1,const Eigen::Vector3d &p2,const Eigen::Vector3d &p3,const Eigen::Vector3d &p4,
+const Eigen::Vector3d &p1e,const Eigen::Vector3d &p2e,const Eigen::Vector3d &p3e,const Eigen::Vector3d &p4e){
+    double r=0,temp=0;
+    temp=max_linf_dist(p1e,p1);
+    if(r<temp) r=temp;
+    temp=max_linf_dist(p2e,p2);
+    if(r<temp) r=temp;
+    temp=max_linf_dist(p3e,p3);
+    if(r<temp) r=temp;
+    temp=max_linf_dist(p4e,p4);
+    if(r<temp) r=temp;
+    return r;
+}
 Eigen::Vector3d compute_face_vertex_tolerance_3d_new(
    const Eigen::Vector3d& vs,
    const Eigen::Vector3d& f0s,
@@ -288,41 +408,68 @@ Eigen::Vector3d compute_face_vertex_tolerance_3d_new(
    const Eigen::Vector3d& f1e,
    const Eigen::Vector3d& f2e,const double tolerance)
 {
-   
+    Eigen::Vector3d
+    p000=vs-f0s,
+    p001=vs-f2s,
+    p011=vs-(f1s+f2s-f0s),
+    p010=vs-f1s;
+    Eigen::Vector3d
+    p100=ve-f0e,
+    p101=ve-f2e,
+    p111=ve-(f1e+f2e-f0e),
+    p110=ve-f1e;
     double dl=0;
     double edge0_length=0;
     double edge1_length=0;
-    for(int i=0;i<3;i++){
-        if(dl<fabs(ve[i]-vs[i]))
-            dl=fabs(ve[i]-vs[i]);
+    dl=3*max_linf_4(p000,p001,p011,p010,p100,p101,p111,p110);
+    edge0_length=3*max_linf_4(p000,p100,p101,p001,p010,p110,p111,p011);
+    edge1_length=3*max_linf_4(p000,p100,p110,p010,p001,p101,p111,p011);
+    // double diag=max_linf_4(
+    // p000,p100,p110,p010,
+    // p111,p011,p001,p101);
 
-        if(dl<fabs(f0e[i]-f0s[i]))
-            dl=fabs(f0e[i]-f0s[i]);
 
-        if(dl<fabs(f1e[i]-f1s[i]))
-            dl=fabs(f1e[i]-f1s[i]);
 
-        if(dl<fabs(f2e[i]-f2s[i]))
-            dl=fabs(f2e[i]-f2s[i]);
 
-        if(edge0_length<fabs(f1s[i] - f0s[i]))
-            edge0_length=fabs(f1s[i] - f0s[i]);
+    // std::array<Eigen::Vector3d,2> t0box=bbd_4_pts_new({{p000,p001,p010,p011}});
+    // std::array<Eigen::Vector3d,2> t1box=bbd_4_pts_new({{p100,p101,p110,p111}});
+    // std::array<Eigen::Vector3d,2> u0box=bbd_4_pts_new({{p000,p001,p100,p101}});
+    // std::array<Eigen::Vector3d,2> u1box=bbd_4_pts_new({{p010,p011,p110,p111}});
+    // std::array<Eigen::Vector3d,2> v0box=bbd_4_pts_new({{p000,p100,p010,p110}});
+    // std::array<Eigen::Vector3d,2> v1box=bbd_4_pts_new({{p001,p101,p011,p111}});
+    // dl=get_max_axis_diff(t0box,t1box);
+    // edge0_length=get_max_axis_diff(u0box,u1box);
+    // edge1_length=get_max_axis_diff(v0box,v1box);
+//     for(int i=0;i<3;i++){
+//         if(dl<fabs(ve[i]-vs[i]))
+//             dl=fabs(ve[i]-vs[i]);
 
-        if(edge0_length<fabs(f1e[i] - f0e[i]))
-            edge0_length=fabs(f1e[i] - f0e[i]);
+//         if(dl<fabs(f0e[i]-f0s[i]))
+//             dl=fabs(f0e[i]-f0s[i]);
 
-        if(edge1_length<fabs(f2s[i]-f0s[i]))
-            edge1_length=fabs(f2s[i]-f0s[i]);
+//         if(dl<fabs(f1e[i]-f1s[i]))
+//             dl=fabs(f1e[i]-f1s[i]);
 
-        if(edge1_length<fabs(f2e[i]-f0e[i]))
-            edge1_length=fabs(f2e[i]-f0e[i]);
-    }
-   //double edge_length = std::max(edge0_length, edge1_length);
-    c00=0;c10=0;c20=0;
-    c00=dl;c10=edge0_length;c20=edge1_length;
+//         if(dl<fabs(f2e[i]-f2s[i]))
+//             dl=fabs(f2e[i]-f2s[i]);
+
+//         if(edge0_length<fabs(f1s[i] - f0s[i]))
+//             edge0_length=fabs(f1s[i] - f0s[i]);
+
+//         if(edge0_length<fabs(f1e[i] - f0e[i]))
+//             edge0_length=fabs(f1e[i] - f0e[i]);
+
+//         if(edge1_length<fabs(f2s[i]-f0s[i]))
+//             edge1_length=fabs(f2s[i]-f0s[i]);
+
+//         if(edge1_length<fabs(f2e[i]-f0e[i]))
+//             edge1_length=fabs(f2e[i]-f0e[i]);
+//     }
+//    //double edge_length = std::max(edge0_length, edge1_length);
+//     c00=0;c10=0;c20=0;
+//     c00=dl;c10=edge0_length;c20=edge1_length;
    return Eigen::Vector3d(tolerance / dl, tolerance / edge0_length, tolerance / edge1_length);
 }
-
 
 //
 bool vertexFaceCCD(
@@ -412,46 +559,89 @@ Eigen::Vector3d compute_edge_edge_tolerance(
 
    return Eigen::Vector3d(CCD_LENGTH_TOL / dl, CCD_LENGTH_TOL / edge0_length, CCD_LENGTH_TOL / edge1_length);
 }
+
 Eigen::Vector3d compute_edge_edge_tolerance_new(
-   const Eigen::Vector3d& edge0_vertex0_start,
-   const Eigen::Vector3d& edge0_vertex1_start,
-   const Eigen::Vector3d& edge1_vertex0_start,
-   const Eigen::Vector3d& edge1_vertex1_start,
+   const Eigen::Vector3d& edge0_vertex0_start,//a0s
+   const Eigen::Vector3d& edge0_vertex1_start,//a1s
+   const Eigen::Vector3d& edge1_vertex0_start,//b0s
+   const Eigen::Vector3d& edge1_vertex1_start,//b1s
    const Eigen::Vector3d& edge0_vertex0_end,
    const Eigen::Vector3d& edge0_vertex1_end,
    const Eigen::Vector3d& edge1_vertex0_end,
    const Eigen::Vector3d& edge1_vertex1_end, const double tolerance)
 {
    
-   double dl=0;
-   double edge0_length=0;
-   double edge1_length=0;
-    for(int i=0;i<3;i++){
-        if(dl<fabs(edge0_vertex0_end[i]-edge0_vertex0_start[i]))
-            dl=fabs(edge0_vertex0_end[i]-edge0_vertex0_start[i]);
+    Eigen::Vector3d 
+    p000=edge0_vertex0_start-edge1_vertex0_start,
+    p001=edge0_vertex0_start-edge1_vertex1_start,
+    p011=edge0_vertex1_start-edge1_vertex1_start,
+    p010=edge0_vertex1_start-edge1_vertex0_start;
+    Eigen::Vector3d 
+    p100=edge0_vertex0_end-edge1_vertex0_end,
+    p101=edge0_vertex0_end-edge1_vertex1_end,
+    p111=edge0_vertex1_end-edge1_vertex1_end,
+    p110=edge0_vertex1_end-edge1_vertex0_end;
+    double dl=0;
+    double edge0_length=0;
+    double edge1_length=0;
+    // {
+    //     std::array<Eigen::Vector3d,2> t0box=bbd_4_pts_new({{p000,p001,p010,p011}});
+    // std::array<Eigen::Vector3d,2> t1box=bbd_4_pts_new({{p100,p101,p110,p111}});
+    // std::array<Eigen::Vector3d,2> u0box=bbd_4_pts_new({{p000,p001,p100,p101}});
+    // std::array<Eigen::Vector3d,2> u1box=bbd_4_pts_new({{p010,p011,p110,p111}});
+    // std::array<Eigen::Vector3d,2> v0box=bbd_4_pts_new({{p000,p100,p010,p110}});
+    // std::array<Eigen::Vector3d,2> v1box=bbd_4_pts_new({{p001,p101,p011,p111}});
+    // dl=get_max_axis_diff(t0box,t1box);
+    // edge0_length=get_max_axis_diff(u0box,u1box);
+    // edge1_length=get_max_axis_diff(v0box,v1box);
+    // }
+    
+    dl=3*max_linf_4(p000,p001,p011,p010,p100,p101,p111,p110);
+    edge0_length=3*max_linf_4(p000,p100,p101,p001,p010,p110,p111,p011);
+    edge1_length=3*max_linf_4(p000,p100,p110,p010,p001,p101,p111,p011);
+    // for(int i=0;i<3;i++){
+    //     if(fabs(p000[i]-p100[i])>dl)
+    //         dl=fabs(p000[i]-p100[i]);
+    //     if(fabs(p001[i]-p101[i])>dl)
+    //         dl=fabs(p001[i]-p101[i]);
+    //     if(fabs(p010[i]-p110[i])>dl)
+    //         dl=fabs(p010[i]-p110[i]);
+    //     if(fabs(p011[i]-p111[i])>dl)
+    //         dl=fabs(p011[i]-p111[i]);
+    // }
+    
 
-        if(dl<fabs(edge0_vertex1_end[i]-edge0_vertex1_start[i]))
-            dl=fabs(edge0_vertex1_end[i]-edge0_vertex1_start[i]);
-
-        if(dl<fabs(edge1_vertex0_end[i]-edge1_vertex0_start[i]))
-            dl=fabs(edge1_vertex0_end[i]-edge1_vertex0_start[i]);
-
-        if(dl<fabs(edge1_vertex1_end[i]-edge1_vertex1_start[i]))
-            dl=fabs(edge1_vertex1_end[i]-edge1_vertex1_start[i]);
-
-        if(edge0_length<fabs(edge0_vertex1_start[i] - edge0_vertex0_start[i]))
-            edge0_length=fabs(edge0_vertex1_start[i] - edge0_vertex0_start[i]);
-
-        if(edge0_length<fabs(edge0_vertex1_end[i] - edge0_vertex0_end[i]))
-            edge0_length=fabs(edge0_vertex1_end[i] - edge0_vertex0_end[i]);
 
 
-        if(edge1_length<fabs(edge1_vertex1_start[i] - edge1_vertex0_start[i]))
-            edge1_length=fabs(edge1_vertex1_start[i] - edge1_vertex0_start[i]);
+//    double dl=0;
+//    double edge0_length=0;
+//    double edge1_length=0;
+//     for(int i=0;i<3;i++){
+//         if(dl<fabs(edge0_vertex0_end[i]-edge0_vertex0_start[i]))
+//             dl=fabs(edge0_vertex0_end[i]-edge0_vertex0_start[i]);
 
-        if(edge1_length<fabs(edge1_vertex1_end[i] - edge1_vertex0_end[i]))
-            edge1_length=fabs(edge1_vertex1_end[i] - edge1_vertex0_end[i]);
-    }
+//         if(dl<fabs(edge0_vertex1_end[i]-edge0_vertex1_start[i]))
+//             dl=fabs(edge0_vertex1_end[i]-edge0_vertex1_start[i]);
+
+//         if(dl<fabs(edge1_vertex0_end[i]-edge1_vertex0_start[i]))
+//             dl=fabs(edge1_vertex0_end[i]-edge1_vertex0_start[i]);
+
+//         if(dl<fabs(edge1_vertex1_end[i]-edge1_vertex1_start[i]))
+//             dl=fabs(edge1_vertex1_end[i]-edge1_vertex1_start[i]);
+
+//         if(edge0_length<fabs(edge0_vertex1_start[i] - edge0_vertex0_start[i]))
+//             edge0_length=fabs(edge0_vertex1_start[i] - edge0_vertex0_start[i]);
+
+//         if(edge0_length<fabs(edge0_vertex1_end[i] - edge0_vertex0_end[i]))
+//             edge0_length=fabs(edge0_vertex1_end[i] - edge0_vertex0_end[i]);
+
+
+//         if(edge1_length<fabs(edge1_vertex1_start[i] - edge1_vertex0_start[i]))
+//             edge1_length=fabs(edge1_vertex1_start[i] - edge1_vertex0_start[i]);
+
+//         if(edge1_length<fabs(edge1_vertex1_end[i] - edge1_vertex0_end[i]))
+//             edge1_length=fabs(edge1_vertex1_end[i] - edge1_vertex0_end[i]);
+    // }
    return Eigen::Vector3d(tolerance / dl, tolerance / edge0_length, tolerance / edge1_length);
 }
 bool edgeEdgeCCD(
