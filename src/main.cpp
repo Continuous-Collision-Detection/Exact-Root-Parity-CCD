@@ -546,18 +546,27 @@ void case_check(){
     // dt.x1b = Vector3d(-0.3171693, 0.06104858, -0.0071334);
     // dt.x2b = Vector3d(-0.303199, 0.0314875, 0.0);
     // dt.x3b = Vector3d(-0.285488, 0.00900349, 0.0);
+const Eigen::Vector3d a0s(-30022200, 2362580, 165247);
+    const Eigen::Vector3d a1s(-32347850, 8312380, -1151003);
+    const Eigen::Vector3d a0e(-28995600, 345838, 638580);
+    const Eigen::Vector3d a1e(-31716930, 6104858, -713340);
+    const Eigen::Vector3d b0s(-30319900, 3148750, 0);
+    const Eigen::Vector3d b1s(-28548800, 900349, 0);
+    const Eigen::Vector3d b0e(-30319900, 3148750, 0);
+    const Eigen::Vector3d b1e(-28548800, 900349, 0);
+    // dt.x0 = Vector3d(0,0,1);
+    // dt.x1 = Vector3d(0,1,1);
+    // dt.x2 = Vector3d(0.1, 0.2, 2);
+    // dt.x3 = Vector3d(0.1, 0.2, -1);
 
-    dt.x0 = Vector3d(0,0,1);
-    dt.x1 = Vector3d(0,1,1);
-    dt.x2 = Vector3d(0.1, 0.2, 2);
-    dt.x3 = Vector3d(0.1, 0.2, -1);
-
-    dt.x0b = Vector3d(1,1,0);
-    dt.x1b = Vector3d(0,0,0);
-    dt.x2b = Vector3d(0.1, 0.2, 2);
-    dt.x3b = Vector3d(0.1, 0.2, -1);
+    // dt.x0b = Vector3d(1,1,0);
+    // dt.x1b = Vector3d(0,0,0);
+    // dt.x2b = Vector3d(0.1, 0.2, 2);
+    // dt.x3b = Vector3d(0.1, 0.2, -1);
     double toi;
-    std::cout<<"the ee ccd result is "<<intervalccd::edgeEdgeCCD(dt.x0,dt.x1,dt.x2,dt.x3,dt.x0b,dt.x1b,dt.x2b,dt.x3b,toi)<<std::endl;
+    std::cout<<"the ee ccd result is "<<intervalccd::edgeEdgeCCD_double(
+        a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,{{-1,0,0}},1e-8,toi,1e-6
+    )<<std::endl;
 }
 void get_multiple(string data,string method, string part, double ms){
 //double ms=1e-30;
@@ -663,7 +672,7 @@ void call_multi(){
 // }
 void test_small(){
     using namespace intervalccd;
-    int a;
+    long a;
     std::cout<<"reduction power "<<intervalccd::reduction(6,a)<<std::endl;
     std::cout<<"result, "<<a<<std::endl;
 
@@ -1107,7 +1116,7 @@ void generate_different_queries(){
 
 int main(int argc, char* argv[])
 {
-    generate_different_queries();
+    // generate_different_queries();
     // test_small();
 //     Eigen::MatrixXd Vout;
 //     std::array<std::array<std::string,6>,8> s;
@@ -1147,7 +1156,7 @@ int main(int argc, char* argv[])
     // const string filename="/home/bw1760/scratch/cow-head/edge-edge/edge-edge-collisions-part004.hdf5";
     // std::vector<Eigen::Matrix<double, 8, 3>> edge_edge_data;
 	// read_edge_edge_data(filename, edge_edge_data);
-    //case_check();
+    case_check();
     //check_false();
 //     for(int i=0;i<20;i++){
 //  doubleccd::Vector3d p0=Vector3d::Random(),p1=Vector3d::Random(),p2=Vector3d::Random(),p3=Vector3d::Random();

@@ -22,6 +22,6 @@ namespace intervalccd{
     const std::array<double,8>& t_up,const std::array<double,8>& t_dw,
     const std::array<double,8>& u_up,const std::array<double,8>& u_dw,
     const std::array<double,8>& v_up,const std::array<double,8>& v_dw);
-    int power(const int a, const int b);
+    long power(const long a, const int b);
     //class get_
 }

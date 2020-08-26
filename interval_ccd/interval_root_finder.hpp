@@ -71,7 +71,7 @@ bool interval_root_finder_double(
     const Eigen::Vector3d& b0e,
     const Eigen::Vector3d& b1e);
 // return power t. n=result*2^t
-int reduction(const int n, int& result);
+long reduction(const long n, long& result);
 std::pair<Singleinterval, Singleinterval> bisect(const Singleinterval& inter);
 // calculate the sign of f. dim is the dimension we are evaluating.
 template<typename T>

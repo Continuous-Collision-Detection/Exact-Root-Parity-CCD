@@ -46,8 +46,9 @@ namespace intervalccd{
 
 
 // calculate a*(2^b)
-int power(const int a, const int b){
-  return a<<b;
+long power(const int a, const int b){
+  long r= a<<b;
+  return r;
 }
 std::array<double,8> function_ee(
     const double& a0s,const double& a1s,const double& b0s,const double& b1s,

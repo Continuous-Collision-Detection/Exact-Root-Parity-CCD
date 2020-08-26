@@ -581,9 +581,9 @@ const Eigen::Vector3d& a0sd,
     const Eigen::Vector3d& b0ed,
     const Eigen::Vector3d& b1ed ) {
        
-       int tu = tpara.first, td=tpara.second;// t=tu/(2^td)
-       int uu = upara.first, ud=upara.second;
-       int vu = vpara.first, vd=vpara.second;
+       long tu = tpara.first; int td=tpara.second;// t=tu/(2^td)
+       long uu = upara.first; int ud=upara.second;
+       long vu = vpara.first; int vd=vpara.second;
         Vector3r 
         a0s(a0sd[0],a0sd[1],a0sd[2]), 
         a1s(a1sd[0],a1sd[1],a1sd[2]),
@@ -688,9 +688,9 @@ const Eigen::Vector3d& a0sd,
     const Eigen::Vector3d& b0ed,
     const Eigen::Vector3d& b1ed ) {
        
-       int tu = tpara.first, td=tpara.second;// t=tu/(2^td)
-       int uu = upara.first, ud=upara.second;
-       int vu = vpara.first, vd=vpara.second;
+       long tu = tpara.first; int td=tpara.second;// t=tu/(2^td)
+       long uu = upara.first; int ud=upara.second;
+       long vu = vpara.first; int vd=vpara.second;
         Vector3r 
         vs(a0sd[0],a0sd[1],a0sd[2]), 
         t0s(a1sd[0],a1sd[1],a1sd[2]),
@@ -1070,7 +1070,7 @@ bool Origin_in_function_bounding_box_Rational(
     
 }
 // return power t. n=result*2^t
-int reduction(const int n, int& result){
+long reduction(const long n, long& result){
     int t=0;
     int newn=n;
     while (newn%2==0){
@@ -1085,15 +1085,18 @@ std::pair<Singleinterval, Singleinterval> bisect(const Singleinterval& inter){
     Numccd up=inter.second;
 
     // interval is [k1/pow(2,n1), k2/pow(2,n2)], k1,k2,n1,n2 are all not negative
-    int k1=low.first;
+    long k1=low.first;
     int n1=low.second;
-    int k2=up.first;
+    long k2=up.first;
     int n2=up.second;
 
     assert(k1 >= 0 && k2 >= 0 && n1 >= 0 && n2 >= 0);
 
     std::pair<Singleinterval, Singleinterval> result;
-    int k,n, p,r;
+    long  k;
+    int n; 
+    int p;
+    long r;
     if(n2==n1){
         p=reduction(k1+k2,r);
         k=r;
@@ -1109,6 +1112,8 @@ std::pair<Singleinterval, Singleinterval> bisect(const Singleinterval& inter){
     }
     Numccd newnum(k,n);
     Singleinterval i1(low,newnum),i2(newnum,up);
+    // std::cout<<"low,"<<Numccd2double(low)<<",up,"<<Numccd2double(up)<<", num, "<<Numccd2double(newnum)<<std::endl;
+    // std::cout<<"new, k1, "<<newnum.first<<", n1, "<<newnum.second<<std::endl;
     assert(Numccd2double(newnum)>Numccd2double(low)&&Numccd2double(newnum)<Numccd2double(up));
     result.first=i1;result.second=i2;
     return result;
@@ -1124,11 +1129,11 @@ std::pair<std::pair<Rational,Rational>, std::pair<Rational,Rational>> bisect(con
     return result;
 }
 bool sum_no_larger_1(const Numccd& num1, const Numccd& num2){
-    int k1=num1.first;
+    long k1=num1.first;
     int n1=num1.second;
-    int k2=num2.first;
+    long k2=num2.first;
     int n2=num2.second;
-    int k,n;
+    long k; int n;
     if(n1==n2){
         k=k1+k2;
         n=n1;
@@ -1148,9 +1153,9 @@ bool sum_no_larger_1(const Numccd& num1, const Numccd& num2){
 }
 //check if num1<num2
 bool less_than(const Numccd& num1, const Numccd& num2){
-    int k1=num1.first;
+    long k1=num1.first;
     int n1=num1.second;
-    int k2=num2.first;
+    long k2=num2.first;
     int n2=num2.second;
     
     if(n1<n2){
@@ -1163,9 +1168,9 @@ bool less_than(const Numccd& num1, const Numccd& num2){
     return false;
 }
 bool sum_no_larger_1_Rational(const Numccd& num1, const Numccd& num2){
-    int k1=num1.first;
+    long k1=num1.first;
     int n1=num1.second;
-    int k2=num2.first;
+    long k2=num2.first;
     int n2=num2.second;
     Rational nbr1,nbr2;
     nbr1=Rational(k1)/Rational(power(1,n1));
@@ -1294,9 +1299,9 @@ const Eigen::Vector3d& a0s,
     const Eigen::Vector3d& b0e,
     const Eigen::Vector3d& b1e ) {
        
-       int tu = tpara.first, td=tpara.second;// t=tu/(2^td)
-       int uu = upara.first, ud=upara.second;
-       int vu = vpara.first, vd=vpara.second;
+       long tu = tpara.first; int td=tpara.second;// t=tu/(2^td)
+       long uu = upara.first; int ud=upara.second;
+       long vu = vpara.first; int vd=vpara.second;
 
        T edge0_vertex0
            = (T(a0e[dim]) - T(a0s[dim])) * tu/power(1,td)
@@ -1334,9 +1339,9 @@ const Numccd&tpara, const Numccd&upara, const Numccd&vpara,const T& type, const 
     const Eigen::Vector3d& t1e,
     const Eigen::Vector3d& t2e ) {
        
-       int tu = tpara.first, td=tpara.second;// t=tu/(2^td)
-       int uu = upara.first, ud=upara.second;
-       int vu = vpara.first, vd=vpara.second;
+       long tu = tpara.first; int td=tpara.second;// t=tu/(2^td)
+       long uu = upara.first; int ud=upara.second;
+       long vu = vpara.first; int vd=vpara.second;
 
         T v= (T(ve[dim])-T(vs[dim]))* tu/power(1,td)+T(vs[dim]);
         T t0=(T(t0e[dim])-T(t0s[dim]))* tu/power(1,td)+T(t0s[dim]);
