@@ -5,7 +5,8 @@
 
 #include <Eigen/Core>
 #include <boost/numeric/interval.hpp>
-#include<interval_ccd/Rational.hpp>
+#include <interval_ccd/Rational.hpp>
+
 namespace intervalccd {
 
 namespace interval_options {
@@ -44,7 +45,8 @@ typedef std::pair<Numccd,Numccd> Singleinterval;// a interval presented by two d
 typedef std::array<Singleinterval,3> Interval3; // 3 dimesional interval
 typedef Eigen::Matrix<Rational, 3, 1, Eigen::ColMajor | Eigen::DontAlign> Vector3r;
 
-} // namespace ccd
+
+} // namespace intervalccd
 
 namespace Eigen {
 typedef Matrix<intervalccd::Interval, 2, 1> Vector2I;

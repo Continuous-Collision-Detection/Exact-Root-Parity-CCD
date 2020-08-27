@@ -11,8 +11,7 @@ endif()
 
 # project-options
 option(CCD_WITH_UNIT_TESTS   "Build unit tests using Catch2"  ON)
-option(CCD_BUILD_RATIONAL    "Buil Rational Version"          ON)
-
+option(CCD_BUILD_RATIONAL    "Build Rational Version"         ON)
 
 # libigl
 option(LIBIGL_USE_STATIC_LIBRARY     "Use libigl as static library" OFF)
@@ -34,10 +33,8 @@ option(LIBIGL_WITH_TRIANGLE          "Use Triangle"                 OFF)
 option(LIBIGL_WITH_VIEWER            "Use OpenGL viewer"            OFF)
 option(LIBIGL_WITH_XML               "Use XML"                      OFF)
 option(LIBIGL_WITH_PREDICATES        "Use exact predicates"         ON )
+
 ################################################################################
-
-
-
 
 ### Configuration
 set(CCD_EXTERNAL "${CMAKE_CURRENT_SOURCE_DIR}/external")
@@ -94,9 +91,10 @@ target_link_libraries(${PROJECT_NAME}_double PRIVATE warnings::all)
 target_include_directories(${PROJECT_NAME}_double PUBLIC ${GMP_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME}_double PUBLIC ${GMP_LIBRARIES})
 
-###############################################################################
+################################################################################
+# Interval CCD
+################################################################################
 
-# interval CCD
 add_subdirectory(interval_ccd)
 prepend_current_path(INTERVAL_SOURCES)
 intervalCCD_copy_headers(${INTERVAL_SOURCES})
@@ -114,12 +112,15 @@ target_link_libraries(${PROJECT_NAME}_interval PUBLIC igl::core igl::predicates)
 
 # Extra warnings
 target_link_libraries(${PROJECT_NAME}_interval PRIVATE warnings::all)
+
 #GMP
 target_include_directories(${PROJECT_NAME}_interval PUBLIC ${GMP_INCLUDE_DIRS} src)
 target_link_libraries(${PROJECT_NAME}_interval PUBLIC ${GMP_LIBRARIES})
+
 ################################################################################
 # Executable
 ################################################################################
+
 if(CCD_TOPLEVEL_PROJECT AND CCD_BUILD_RATIONAL)
   add_executable(${PROJECT_NAME}_bin
     # Add executable source here
@@ -129,11 +130,11 @@ if(CCD_TOPLEVEL_PROJECT AND CCD_BUILD_RATIONAL)
 
   target_link_libraries(${PROJECT_NAME}_bin PUBLIC HighFive::HighFive)
 
-
-
   target_link_libraries(${PROJECT_NAME}_bin PUBLIC ${PROJECT_NAME}_rational)
   target_link_libraries(${PROJECT_NAME}_bin PUBLIC ${PROJECT_NAME}_double)
   target_link_libraries(${PROJECT_NAME}_bin PUBLIC ${PROJECT_NAME}_interval)
+  # WARNING: This requires a check  as it will break compatability with non-AVX
+  #          processors.
   target_compile_options(CCD_interval PUBLIC "-mavx2")
   set(DATA_PATH "${CMAKE_CURRENT_SOURCE_DIR}/data/")
   target_compile_definitions(${PROJECT_NAME}_bin PUBLIC -DCCD_DATA_PATH=\"${DATA_PATH}\")
@@ -144,7 +145,6 @@ endif()
 ################################################################################
 
 if(CCD_WITH_UNIT_TESTS)
-
   # Catch2
   if(NOT TARGET Catch2::Catch2)
       ccd_download_catch2()
