@@ -1491,7 +1491,14 @@ bool interval_root_finder_double(
         //     }
         // }
         std::pair<Singleinterval, Singleinterval> halves = bisect(current[split_i]);
-
+        if(!less_than(halves.first.first, halves.first.second)){
+                std::cout<<"OVERFLOW HAPPENS WHEN SPLITTING INTERVALS"<<std::endl;
+                return true;
+            }
+        if(!less_than(halves.second.first, halves.second.second)){
+            std::cout<<"OVERFLOW HAPPENS WHEN SPLITTING INTERVALS"<<std::endl;
+            return true;
+        }
         if(check_vf){
             //std::cout<<"*** check_vf"<<std::endl;
             if(split_i==1){
@@ -1529,6 +1536,7 @@ bool interval_root_finder_double(
                 current[split_i] = halves.first;
                 istack.emplace(current, split_i);
             }
+            
         }
         else{
             current[split_i] = halves.second;
