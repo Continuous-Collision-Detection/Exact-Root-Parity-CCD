@@ -6,9 +6,11 @@
 #include<iostream>
 #include<interval_ccd/Rational.hpp>
 #include <interval_ccd/avx.h>
+#include <queue>
+#include<fstream>
 // #define COMPARE_WITH_RATIONAL
 // #define USE_TIMER
-
+#define DEBUGING
 namespace intervalccd {
 double time20=0,time21=0,time22=0, time23=0,time24=0,time25=0,time_rational=0;
 int refine=0;
@@ -431,6 +433,7 @@ if(check_vf){// test
 }
 // eps is the interval [-eps,eps] we need to check
 // if [-eps,eps] overlap, return true
+// bbox_in_eps tell us if the box is totally in eps box
 bool evaluate_bbox_one_dimension_vector(
     std::array<double,8>& t_up,std::array<double,8>&t_dw,
     std::array<double,8>& u_up,std::array<double,8>&u_dw,
@@ -443,12 +446,13 @@ bool evaluate_bbox_one_dimension_vector(
     const Eigen::Vector3d& a1e,
     const Eigen::Vector3d& b0e,
     const Eigen::Vector3d& b1e,
-    const int dimension,const bool check_vf,const double eps){
+    const int dimension,const bool check_vf,const double eps, bool& bbox_in_eps){
 #ifdef USE_TIMER
     igl::Timer timer;
 #endif
     std::array<double,8> vs;
     int count=0;
+    bbox_in_eps=false;
 #ifdef USE_TIMER
     timer.start();
 #endif  
@@ -477,6 +481,9 @@ bool evaluate_bbox_one_dimension_vector(
     }
     if(minv>eps||maxv<-eps)
         return false;
+    if(minv>=-eps&&maxv<=eps){
+        bbox_in_eps=true;
+    }
     return true;
 
 }
@@ -849,10 +856,11 @@ bool Origin_in_function_bounding_box_double_vector(
     const Eigen::Vector3d& b0e,
     const Eigen::Vector3d& b1e,
     const bool check_vf,
-    const std::array<double,3>& box){
+    const std::array<double,3>& box, bool &box_in_eps){
 #ifdef USE_TIMER
     igl::Timer timer;
 #endif  
+    box_in_eps=false;
     std::array<double,8> t_up;std::array<double,8>t_dw;
     std::array<double,8> u_up;std::array<double,8>u_dw;
     std::array<double,8> v_up;std::array<double,8>v_dw;
@@ -865,18 +873,22 @@ bool Origin_in_function_bounding_box_double_vector(
     time24+=timer.getElapsedTimeInMicroSec();
 #endif
     bool ck;
+    bool box_in[3];
     for(int i=0;i<3;i++){
 #ifdef USE_TIMER
     timer.start();
 #endif
         ck=evaluate_bbox_one_dimension_vector(t_up,t_dw,u_up,u_dw,v_up,v_dw,
-    a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,i,check_vf,box[i]);
+    a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,i,check_vf,box[i],box_in[i]);
 #ifdef USE_TIMER
     timer.stop();
     time23+=timer.getElapsedTimeInMicroSec();
 #endif
      if(!ck)
         return false;
+    }
+    if(box_in[0]&&box_in[1]&&box_in[2]){
+        box_in_eps=true;
     }
     return true;
     
@@ -1369,7 +1381,9 @@ bool interval_root_finder_double(
     const Eigen::Vector3d& a1e,
     const Eigen::Vector3d& b0e,
     const Eigen::Vector3d& b1e){
-        
+    auto cmp = [](std::pair<Interval3,int> i1, std::pair<Interval3,int> i2) { 
+        return !(less_than(i1.first[0].first, i2.first[0].first));
+        };
     Numccd low_number; low_number.first=0; low_number.second=0;// low_number=0;
     Numccd up_number; up_number.first=1; up_number.second=0;// up_number=1;
     // initial interval [0,1]
@@ -1378,7 +1392,8 @@ bool interval_root_finder_double(
     Interval3 iset;
     iset[0]=init_interval;iset[1]=init_interval;iset[2]=init_interval;
     // Stack of intervals and the last split dimension
-    std::stack<std::pair<Interval3,int>> istack;
+    // std::stack<std::pair<Interval3,int>> istack;
+    std::priority_queue<std::pair<Interval3,int>, std::vector<std::pair<Interval3,int>>, decltype(cmp)> istack(cmp);
     istack.emplace(iset,-1);
 
     // current intervals
@@ -1397,10 +1412,17 @@ bool interval_root_finder_double(
         current=istack.top().first;
         int last_split=istack.top().second;
         istack.pop();
-
+        // if(rnbr>0&&less_than( current[0].first,TOI)){
+        //     std::cout<<"not the first"<<std::endl;
+        //     // continue;
+        // }
         if(!less_than(current[0].first,TOI)){
+            // std::cout<<"not the first"<<std::endl;
             continue;
         }
+        //TOI should always be no larger than current
+        
+            
         // if(Numccd2double(current[0].first)>=Numccd2double(TOI)){
         //     std::cout<<"here wrong, comparing"<<std::endl;
         // } 
@@ -1411,8 +1433,8 @@ bool interval_root_finder_double(
 #endif
         refine++;
         bool zero_in;
-       
-        zero_in= Origin_in_function_bounding_box_double_vector(current,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,check_vf,err_and_ms);
+       bool box_in;
+        zero_in= Origin_in_function_bounding_box_double_vector(current,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,check_vf,err_and_ms,box_in);
         
 #ifdef USE_TIMER
     
@@ -1437,7 +1459,17 @@ bool interval_root_finder_double(
             TOI=current[0].first;
             collision=true;
             rnbr++;
-            continue;
+            // continue;
+            toi=Numccd2double(TOI);
+            return true;
+        }
+        if(box_in){
+            TOI=current[0].first;
+            collision=true;
+            rnbr++;
+            // continue;
+            toi=Numccd2double(TOI);
+            return true;
         }
 
         std::array<bool , 3> check;
@@ -1553,9 +1585,396 @@ bool interval_root_finder_double(
     return false;
     
 }
+
+bool distance_less_than(const Numccd& n1,const Numccd& n2, const double nbr){
+    if(n1==n2) return false;//if distance ==0, we can continue to check
+    double r=fabs(Numccd2double(n1)-Numccd2double(n2));
+    return r<nbr;
+}
+bool interval_root_finder_double_two_stacks(
+    const Eigen::VectorX3d& tol,
+    //Eigen::VectorX3I& x,// result interval
+    // Interval3& final,
+    double& toi,
+    const bool check_vf,
+    const std::array<double,3> err,
+    const double ms,
+    const Eigen::Vector3d& a0s,
+    const Eigen::Vector3d& a1s,
+    const Eigen::Vector3d& b0s,
+    const Eigen::Vector3d& b1s,
+    const Eigen::Vector3d& a0e,
+    const Eigen::Vector3d& a1e,
+    const Eigen::Vector3d& b0e,
+    const Eigen::Vector3d& b1e){
+        auto cmp = [](std::pair<Interval3,int> i1, std::pair<Interval3,int> i2) { 
+        return !(less_than(i1.first[0].first, i2.first[0].first));
+        };
+        auto cmp3 = [](std::pair<Interval3,int> i1, std::pair<Interval3,int> i2) { 
+         if(i1.first[0].first!=i2.first[0].first) {
+             return !(less_than(i1.first[0].first, i2.first[0].first));
+         }  
+         else{
+             if(i1.first[1].first!=i2.first[1].first){
+                 return !(less_than(i1.first[1].first, i2.first[1].first));
+             }
+             else{
+                 return !(less_than(i1.first[2].first, i2.first[2].first));
+             }
+             
+         }
+        
+        };
+    Numccd low_number; low_number.first=0; low_number.second=0;// low_number=0;
+    Numccd up_number; up_number.first=1; up_number.second=0;// up_number=1;
+    // initial interval [0,1]
+    Singleinterval init_interval;init_interval.first=low_number;init_interval.second=up_number;
+    //build interval set [0,1]x[0,1]x[0,1]
+    Interval3 iset;
+    iset[0]=init_interval;iset[1]=init_interval;iset[2]=init_interval;
+    // Stack of intervals and the last split dimension
+    // std::stack<std::pair<Interval3,int>> istack, istack2; 
+    std::priority_queue<std::pair<Interval3,int>, 
+    std::vector<std::pair<Interval3,int>>, decltype(cmp3)> istack(cmp3), istack2(cmp3);
+    istack.emplace(iset,-1);
+    // std::cout<<"tol,"<<tol(0)<<","<<tol(1)<<","<<tol(2)<<std::endl;
+    // current intervals
+    Interval3 current;
+    std::array<double,3> err_and_ms;
+    err_and_ms[0]=err[0]+ms;
+    err_and_ms[1]=err[1]+ms;
+    err_and_ms[2]=err[2]+ms;
+    refine=0;
+    toi=std::numeric_limits<double>::infinity();
+    Numccd TOI; TOI.first=1;TOI.second=0;
+    //std::array<double,3> 
+    bool collision=false;
+    int rnbr=0;
+    bool check_stack_2=false;
+    double root_dis=tol(0)*10000;
+    
+    int last_split;
+    #ifdef DEBUGING
+    std::cout<<"root_dist, "<<root_dis<<std::endl;
+    std::ofstream fout;
+    
+    fout.open("uvt.csv");
+    #endif
+    while(!(istack.empty()&&istack2.empty())){
+        if(istack.empty()){
+            check_stack_2=true;
+        }
+        if(istack2.empty()){
+            check_stack_2=false;
+        }
+        if(check_stack_2){
+        current=istack2.top().first;
+        last_split=istack2.top().second;
+        istack2.pop();
+        }
+        else{
+            current=istack.top().first;
+        last_split=istack.top().second;
+        istack.pop();
+        }
+        
+
+        if(!less_than(current[0].first,TOI)){
+            continue;
+        }
+        // if(Numccd2double(current[0].first)>=Numccd2double(TOI)){
+        //     std::cout<<"here wrong, comparing"<<std::endl;
+        // } 
+#ifdef USE_TIMER
+        igl::Timer timer;
+
+        timer.start();
+#endif
+        
+        bool zero_in;
+       bool bbox_in;
+        zero_in= Origin_in_function_bounding_box_double_vector(current,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,check_vf,err_and_ms,bbox_in);
+        
+#ifdef USE_TIMER
+    
+        timer.stop();
+        time20+=timer.getElapsedTimeInMicroSec();
+#endif
+#ifdef COMPARE_WITH_RATIONAL// this is defined in the begining of this file
+        
+        zero_in=Origin_in_function_bounding_box_Rational(current,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,check_vf);
+
+#endif
+        if(!zero_in) continue;
+#ifdef USE_TIMER
+        timer.start();
+#endif
+        Eigen::VectorX3d widths = width(current);
+        #ifdef DEBUGING
+        fout<<Numccd2double(current[0].first)<<","<< Numccd2double(current[1].first)<<","<<
+        Numccd2double(current[2].first)<<","<<widths(0)<<","<<widths(1)<<","<<widths(2)<<"\n";
+        std::cout<<"t,"<<Numccd2double(current[0].first)<< "\r" << std::flush;
+        #endif
+#ifdef USE_TIMER
+        
+        // std::cout<<"width,"<<widths(0)<<","<<widths(1)<<","<<widths(1)<< "\r" << std::flush;
+        // std::cout<<"tuv,"<<widths(0)<<","<<widths(1)<<","<<widths(1)<< "\r" << std::flush;
+        
+        timer.stop();
+        time21+=timer.getElapsedTimeInMicroSec();
+#endif
+        if ((widths.array() <= tol.array()).all()) {
+            if(!less_than(current[0].first,TOI)){
+                std::cout<<"find bigger?"<<std::endl;
+            }
+            TOI=current[0].first;
+            collision=true;
+            rnbr++;
+            
+            // continue;
+            toi=Numccd2double(TOI);
+            return true;
+        }
+        if(bbox_in){
+            if(!less_than(current[0].first,TOI)){
+                std::cout<<"find bigger?"<<std::endl;
+            }
+            TOI=current[0].first;
+            collision=true;
+            rnbr++;
+            // continue;
+            toi=Numccd2double(TOI);
+            return true;
+        }
+        refine++;
+        #ifdef DEBUGING
+        if(refine>100000){
+            fout.close();
+        }
+        #endif
+        // std::cout << "roots"<<rnbr << "\r" << std::flush;
+        // std::cout << "refine"<<refine << "\r" << std::flush;
+        std::array<bool , 3> check;
+        Eigen::VectorX3d widthratio;
+        widthratio.resize(3);
+        check[0]=false;check[1]=false; check[2]=false;
+        for(int i=0;i<3;i++){
+            widthratio(i)=widths(i)/tol(i);
+            if(widths(i) > tol(i))
+                check[i]=true;// means this need to be checked
+        }
+        
+        int split_i=-1;
+        for(int i=0;i<3;i++){
+            if(check[i]){
+                if(check[(i+1)%3]&&check[(i+2)%3]){
+                    if(widthratio(i)>=widthratio((i+1)%3)&&widthratio(i)>=widthratio((i+2)%3)){
+                        split_i=i;
+                        break;
+                    }    
+                }
+                if(check[(i+1)%3]&&!check[(i+2)%3]){
+                    if(widthratio(i)>=widthratio((i+1)%3)){
+                        split_i=i;
+                        break;
+                    }
+                }
+                if(!check[(i+1)%3]&&check[(i+2)%3]){
+                    if(widthratio(i)>=widthratio((i+2)%3)){
+                        split_i=i;
+                        break;
+                    }
+                }
+                if(!check[(i+1)%3]&&!check[(i+2)%3]){
+                   
+                        split_i=i;
+                        break;
+                    
+                }
+            }
+        }
+        // for (int i = 1; i <= 3; i++) {
+        //     split_i = (last_split + i) % 3;
+        //     if (widths(split_i) > tol(split_i)) {
+        //         break;
+        //     }
+        // }
+        if(split_i<0){
+            std::cout<<"ERROR OCCURRED HERE, DID NOT FIND THE RIGHT DIMENSION TO SPLIT"<<std::endl;
+        }
+        // Bisect the next dimension that is greater than its tolerance
+        // int split_i;
+        // for (int i = 1; i <= 3; i++) {
+        //     split_i = (last_split + i) % 3;
+        //     if (widths(split_i) > tol(split_i)) {
+        //         break;
+        //     }
+        // }
+        std::pair<Singleinterval, Singleinterval> halves = bisect(current[split_i]);
+        if(!less_than(halves.first.first, halves.first.second)){
+                std::cout<<"OVERFLOW HAPPENS WHEN SPLITTING INTERVALS"<<std::endl;
+                return true;
+            }
+        if(!less_than(halves.second.first, halves.second.second)){
+            std::cout<<"OVERFLOW HAPPENS WHEN SPLITTING INTERVALS"<<std::endl;
+            return true;
+        }
+        if(check_vf){
+            //std::cout<<"*** check_vf"<<std::endl;
+            Interval3 Ipush1=current;
+            Interval3 Ipush2=current;
+            bool push1=false;
+            bool push2=false;
+            if(split_i==1){
+               // assert(sum_no_larger_1(halves.first.first, current[2].first)==sum_no_larger_1_Rational(halves.first.first, current[2].first));
+               // assert(sum_no_larger_1(halves.second.first, current[2].first)==sum_no_larger_1_Rational(halves.second.first, current[2].first));
+                
+                if(sum_no_larger_1(halves.second.first, current[2].first)){
+                    current[split_i]=halves.second;
+                    Ipush1=current;
+                    push1=true;
+                    //istack.emplace(current, split_i);
+                }
+                if(sum_no_larger_1(halves.first.first, current[2].first)){
+                    current[split_i]=halves.first;
+                    Ipush2=current;
+                    push2=true;
+                    //istack.emplace(current, split_i);
+                }
+                
+            }
+
+            if(split_i==2){
+                //assert(sum_no_larger_1(halves.first.first, current[1].first)==sum_no_larger_1_Rational(halves.first.first, current[1].first));
+                //assert(sum_no_larger_1(halves.second.first, current[1].first)==sum_no_larger_1_Rational(halves.second.first, current[1].first));
+                
+                if(sum_no_larger_1(halves.second.first, current[1].first)){
+                    current[split_i]=halves.second;
+                    Ipush1=current;
+                    push1=true;
+                    //istack.emplace(current, split_i);
+                }
+                if(sum_no_larger_1(halves.first.first, current[1].first)){
+                    current[split_i]=halves.first;
+                    Ipush2=current;
+                    push2=true;
+                    //istack.emplace(current, split_i);
+                }
+
+            }
+            if(split_i==0){
+                current[split_i] = halves.second;
+                Ipush1=current;
+                push1=true;
+                // istack.emplace(current, split_i);
+                current[split_i] = halves.first;
+                Ipush2=current;
+                push2=true;
+                // istack.emplace(current, split_i);
+            }
+            if(check_stack_2){
+                
+                if(push1){
+                    if (distance_less_than(Ipush1[0].first,TOI,root_dis)){
+                        istack.emplace(Ipush1,split_i);
+                    }
+                    else{
+                        istack2.emplace(Ipush1,split_i);
+                    }
+                }
+                if(push2){
+                    if (distance_less_than(Ipush2[0].first,TOI,root_dis)){
+                        istack.emplace(Ipush2,split_i);
+                    }
+                    else{
+                        istack2.emplace(Ipush2,split_i);
+                    }
+                }
+            }
+            if(!check_stack_2){
+                
+                if(push1){
+                    if (distance_less_than(Ipush1[0].first,TOI,root_dis)){
+                        istack2.emplace(Ipush1,split_i);
+                    }
+                    else{
+                        istack.emplace(Ipush1,split_i);
+                    }
+                }
+                if(push2){
+                    if (distance_less_than(Ipush2[0].first,TOI,root_dis)){
+                        istack2.emplace(Ipush2,split_i);
+                    }
+                    else{
+                        istack.emplace(Ipush2,split_i);
+                    }
+                }
+            }
+            
+        }
+        else{
+            
+            if(check_stack_2){
+                current[split_i] = halves.second;
+                if(less_than(current[0].first,TOI)){
+                    if (distance_less_than(current[0].first,TOI,root_dis)){
+                        istack.emplace(current, split_i);
+                    }
+                    else{
+                         istack2.emplace(current, split_i);
+                    }
+                }
+                
+                current[split_i] = halves.first;
+                if(less_than(current[0].first,TOI)){
+                    if(distance_less_than(current[0].first,TOI,root_dis)){
+                        istack.emplace(current, split_i);
+                    }
+                    else{
+                         istack2.emplace(current, split_i);
+                    }
+                }
+                
+            }
+            if(!check_stack_2){
+                current[split_i] = halves.second;
+                if(less_than(current[0].first,TOI)){
+                    if (distance_less_than(current[0].first,TOI,root_dis)){
+                        istack2.emplace(current, split_i);
+                    }
+                    else{
+                         istack.emplace(current, split_i);
+                    }
+                }
+                
+                current[split_i] = halves.first;
+                if(less_than(current[0].first,TOI)){
+                    if(distance_less_than(current[0].first,TOI,root_dis)){
+                        istack2.emplace(current, split_i);
+                    }
+                    else{
+                         istack.emplace(current, split_i);
+                    }
+                }
+                
+            }
+            
+            
+        }
+
+    }
+    if(collision) toi=Numccd2double(TOI);
+    // if(toi==0)std::cout<<"infinate roots, "<<std::endl;
+    // if(rnbr>5) std::cout<<"nbr of roots, "<<rnbr<<", time, "<<toi<<std::endl;
+    return collision;
+    return false;
+    
+}
 int print_refine(){
     return refine;
 }
+
+
 bool interval_root_finder_Rational(
     const Eigen::VectorX3d& tol,
     //Eigen::VectorX3I& x,// result interval
