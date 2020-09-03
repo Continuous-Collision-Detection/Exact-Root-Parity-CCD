@@ -537,23 +537,24 @@ void check_false(){
 }
 void case_check(){
     vf_pair dt;
-    // dt.x0 = Vector3d(-0.300222, 0.0236258, 0.00165247);
-    // dt.x1 = Vector3d(-0.3234785, 0.0831238, -0.01151003);
-    // dt.x2 = Vector3d(-0.303199, 0.0314875, 0.0);
-    // dt.x3 = Vector3d(-0.285488, 0.00900349, 0.0);
+    
+// const Eigen::Vector3d a0s(-30022200, 2362580, 165247);
+//     const Eigen::Vector3d a1s(-32347850, 8312380, -1151003);
+//     const Eigen::Vector3d a0e(-28995600, 345838, 638580);
+//     const Eigen::Vector3d a1e(-31716930, 6104858, -713340);
+//     const Eigen::Vector3d b0s(-30319900, 3148750, 0);
+//     const Eigen::Vector3d b1s(-28548800, 900349, 0);
+//     const Eigen::Vector3d b0e(-30319900, 3148750, 0);
+//     const Eigen::Vector3d b1e(-28548800, 900349, 0);
 
-    // dt.x0b = Vector3d(-0.289956, 0.00345838, 0.0063858);
-    // dt.x1b = Vector3d(-0.3171693, 0.06104858, -0.0071334);
-    // dt.x2b = Vector3d(-0.303199, 0.0314875, 0.0);
-    // dt.x3b = Vector3d(-0.285488, 0.00900349, 0.0);
-const Eigen::Vector3d a0s(-30022200, 2362580, 165247);
-    const Eigen::Vector3d a1s(-32347850, 8312380, -1151003);
-    const Eigen::Vector3d a0e(-28995600, 345838, 638580);
-    const Eigen::Vector3d a1e(-31716930, 6104858, -713340);
-    const Eigen::Vector3d b0s(-30319900, 3148750, 0);
-    const Eigen::Vector3d b1s(-28548800, 900349, 0);
-    const Eigen::Vector3d b0e(-30319900, 3148750, 0);
-    const Eigen::Vector3d b1e(-28548800, 900349, 0);
+    const Eigen::Vector3d a0s(5.55495e-11,    0.160014,    0.914204);
+    const Eigen::Vector3d a1s(0.098607, 0.160014, 0.898586);
+    const Eigen::Vector3d a0e(-1.02941e-07     ,0.470588          ,0.6);
+    const Eigen::Vector3d a1e(0.19509, -0.529412,   1.58079 );
+    const Eigen::Vector3d b0s(1.42931e-05 ,   0.159178,    0.914963);
+    const Eigen::Vector3d b1s(0.098703, 0.159491, 0.899153);
+    const Eigen::Vector3d b0e(-1.02941e-07,     0.470588,          0.6);
+    const Eigen::Vector3d b1e(0.19509, -0.529412,   1.58079);
     // dt.x0 = Vector3d(0,0,1);
     // dt.x1 = Vector3d(0,1,1);
     // dt.x2 = Vector3d(0.1, 0.2, 2);
@@ -564,9 +565,10 @@ const Eigen::Vector3d a0s(-30022200, 2362580, 165247);
     // dt.x2b = Vector3d(0.1, 0.2, 2);
     // dt.x3b = Vector3d(0.1, 0.2, -1);
     double toi;
-    std::cout<<"the ee ccd result is "<<intervalccd::edgeEdgeCCD_double(
-        a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,{{-1,0,0}},1e-8,toi,1e-6
-    )<<std::endl;
+    bool res=intervalccd::edgeEdgeCCD_double(
+        a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,{{4.9737991503207013e-11, 4.9737991503207013e-11, 4.9737991503207013e-11}},0,toi,1e-6
+    );
+    std::cout<<"the ee ccd result is "<<res<<", t, "<<toi<<std::endl;
 }
 void get_multiple(string data,string method, string part, double ms){
 //double ms=1e-30;

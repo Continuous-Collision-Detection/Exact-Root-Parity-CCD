@@ -66,6 +66,7 @@ bool interval_root_finder_double(
     const bool check_vf,
     const std::array<double, 3> err,
     const double ms,
+    
     const Eigen::Vector3d& a0s,
     const Eigen::Vector3d& a1s,
     const Eigen::Vector3d& b0s,
@@ -73,7 +74,8 @@ bool interval_root_finder_double(
     const Eigen::Vector3d& a0e,
     const Eigen::Vector3d& a1e,
     const Eigen::Vector3d& b0e,
-    const Eigen::Vector3d& b1e);
+    const Eigen::Vector3d& b1e,
+    const double pre_check_t=0);
 // return power t. n=result*2^t
 long reduction(const long n, long& result);
 std::pair<Singleinterval, Singleinterval> bisect(const Singleinterval& inter);

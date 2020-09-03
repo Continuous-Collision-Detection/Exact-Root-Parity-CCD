@@ -10,7 +10,7 @@
 #include<fstream>
 // #define COMPARE_WITH_RATIONAL
 // #define USE_TIMER
-#define DEBUGING
+// #define DEBUGING
 namespace intervalccd {
 double time20=0,time21=0,time22=0, time23=0,time24=0,time25=0,time_rational=0;
 int refine=0;
@@ -1180,6 +1180,19 @@ bool less_than(const Numccd& num1, const Numccd& num2){
     if(k1<k2) return true;
     return false;
 }
+bool less_than(const Numccd& num1, const double num2){
+    double res=Numccd2double(num1);
+    if(res<num2){
+        return true;
+    }
+    return false;
+}
+bool interval_overlap_region(const Singleinterval& itv, const double r1, const double r2){
+    double b1=Numccd2double(itv.first);
+    double b2=Numccd2double(itv.second);
+    if(b2<r1||b1>r2) return false;
+    return true;
+}
 bool sum_no_larger_1_Rational(const Numccd& num1, const Numccd& num2){
     long k1=num1.first;
     int n1=num1.second;
@@ -1620,6 +1633,9 @@ void t_tol_width( Numccd&x, const double tol){
     while (Numccd2double(x)>=tol){
         x.second+=1;
     }
+    while(Numccd2double(x)<tol){
+        x.first+=1;
+    }
   
 }
 bool interval_root_finder_double(
@@ -1637,7 +1653,8 @@ bool interval_root_finder_double(
     const Eigen::Vector3d& a0e,
     const Eigen::Vector3d& a1e,
     const Eigen::Vector3d& b0e,
-    const Eigen::Vector3d& b1e){
+    const Eigen::Vector3d& b1e,
+    const double pre_check_t){
     auto cmp = [](std::pair<Interval3,int> i1, std::pair<Interval3,int> i2) { 
         return !(less_than(i1.first[0].first, i2.first[0].first));
         };
@@ -1660,9 +1677,9 @@ bool interval_root_finder_double(
     err_and_ms[1]=err[1]+ms;
     err_and_ms[2]=err[2]+ms;
     refine=0;
-    double impact_ratio=0.8;
+    double impact_ratio=1/(1+2*tol(0)+pre_check_t);
     toi=std::numeric_limits<double>::infinity();
-    Numccd TOI; TOI.first=1;TOI.second=0;
+    Numccd TOI; TOI.first=2;TOI.second=0;
     //std::array<double,3> 
     bool collision=false;
     int rnbr=0;
@@ -1836,28 +1853,24 @@ bool interval_root_finder_double(
         }
 
     }
-    // if(collision) toi=Numccd2double(TOI);
-// std::cout<<"checking tail"<<std::endl;
-    Numccd delta_t;
-    t_tol_width(delta_t,2*tol(0)); // make delta larger to be conservative
     
+    if(pre_check_t>1||pre_check_t<0){
+        std::cout<<"ERROR: PRE_CHECK_T SHOULD IN [0,1], but the input is,"<<pre_check_t<<std::endl;
+    }
+
+
+    double t_upper_bound=1+2*tol(0)+pre_check_t;// 2*tol make it more conservative
+    Numccd new_up;
+    new_up.first=2;
+    new_up.second=0;// new_up=2
+    //set iset=[1,2]
     iset[0].first=up_number;//t0=1;
-    Numccd tail;
-    sum_up(up_number,delta_t,tail);// t1=1+delta
-    iset[0].second=tail;
-    TOI=tail;
+    iset[0].second=new_up;//t1=2
     // now we get the interval. next 
     /////////////////////////////////////////////////////////////////////////////////////
     if(!istack.empty()) std::cout<<"ERROR HERE, STACK SHOULD BE EMPTY"<<std::endl;
     istack.emplace(iset,-1);
 
-    // current intervals
-    
-    // toi=std::numeric_limits<double>::infinity();
-    // Numccd TOI; TOI.first=1;TOI.second=0;
-    //std::array<double,3> 
-    // bool collision=false;
-    // int rnbr=0;
     while(!istack.empty()){
         current=istack.top().first;
         int last_split=istack.top().second;
@@ -2001,18 +2014,40 @@ bool interval_root_finder_double(
 
             }
             if(split_i==0){
+                // if split 0, then check if it overlaps [1, t_upper_bound]
+                if(interval_overlap_region(halves.second,1,t_upper_bound)){
+                    current[split_i] = halves.second;
+                    istack.emplace(current, split_i);
+                }
+                if(interval_overlap_region(halves.first,1,t_upper_bound)){
+                    current[split_i] = halves.first;
+                    istack.emplace(current, split_i);
+                }
+                
+            }
+            
+        }
+        else{
+            //if split t, check overlaps; else, push bisected intervals directly into the stack
+            if(split_i==0){
+                // if split 0, then check if it overlaps [1, t_upper_bound]
+                if(interval_overlap_region(halves.second,1,t_upper_bound)){
+                    current[split_i] = halves.second;
+                    istack.emplace(current, split_i);
+                }
+                if(interval_overlap_region(halves.first,1,t_upper_bound)){
+                    current[split_i] = halves.first;
+                    istack.emplace(current, split_i);
+                }
+                
+            }
+            else{
                 current[split_i] = halves.second;
                 istack.emplace(current, split_i);
                 current[split_i] = halves.first;
                 istack.emplace(current, split_i);
             }
             
-        }
-        else{
-            current[split_i] = halves.second;
-            istack.emplace(current, split_i);
-            current[split_i] = halves.first;
-            istack.emplace(current, split_i);
         }
 
     }

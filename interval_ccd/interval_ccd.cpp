@@ -858,7 +858,8 @@ bool edgeEdgeCCD_double(
     const std::array<double, 3>& err,
     const double ms,
     double& toi,
-    const double tolerance)
+    const double tolerance,
+    const double pre_check_t)
 {
     // tol0=0;tol1=0;tol2=0;
     Eigen::Vector3d tol = compute_edge_edge_tolerance_new(
@@ -899,7 +900,7 @@ bool edgeEdgeCCD_double(
     igl::Timer timer;
     timer.start();
     bool is_impacting = interval_root_finder_double(
-        tol, toi, false, err1, ms, a0s, a1s, b0s, b1s, a0e, a1e, b0e, b1e);
+        tol, toi, false, err1, ms,a0s, a1s, b0s, b1s, a0e, a1e, b0e, b1e, pre_check_t);
     time0 += timer.getElapsedTimeInMicroSec();
     // Return a conservative time-of-impact
     //    if (is_impacting) {
@@ -924,7 +925,8 @@ bool vertexFaceCCD_double(
     const std::array<double, 3>& err,
     const double ms,
     double& toi,
-    const double tolerance)
+    const double tolerance,
+    const double pre_check_t)
 {
     Eigen::Vector3d tol = compute_face_vertex_tolerance_3d_new(
         vertex_start, face_vertex0_start, face_vertex1_start,
@@ -970,7 +972,7 @@ bool vertexFaceCCD_double(
     bool is_impacting = interval_root_finder_double(
         tol, toi, true, err1, ms, vertex_start, face_vertex0_start,
         face_vertex1_start, face_vertex2_start, vertex_end, face_vertex0_end,
-        face_vertex1_end, face_vertex2_end);
+        face_vertex1_end, face_vertex2_end,pre_check_t);
     time0 += timer.getElapsedTimeInMicroSec();
     // Return a conservative time-of-impact
     //    if (is_impacting) {
