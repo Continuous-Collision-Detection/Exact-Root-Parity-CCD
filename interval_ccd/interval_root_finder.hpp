@@ -58,7 +58,33 @@ bool interval_root_finder_opt(
     Interval3& final,
     const bool check_vf);
 
-bool interval_root_finder_double(
+
+// this version cannot give the impact time at t=1, although this collision can 
+// be detected at t=0 of the next time step, but still may cause problems in 
+// line-search based physical simulation
+bool interval_root_finder_double_normalCCD(
+    const Eigen::VectorX3d& tol,
+    //Eigen::VectorX3I& x,// result interval
+    // Interval3& final,
+    double& toi,
+    const bool check_vf,
+    const std::array<double,3> err,
+    const double ms,
+    const Eigen::Vector3d& a0s,
+    const Eigen::Vector3d& a1s,
+    const Eigen::Vector3d& b0s,
+    const Eigen::Vector3d& b1s,
+    const Eigen::Vector3d& a0e,
+    const Eigen::Vector3d& a1e,
+    const Eigen::Vector3d& b0e,
+    const Eigen::Vector3d& b1e);
+
+
+// this version can give the impact time at t=1. to be conservative,
+// returned time t will be smaller than real impact time t.
+// it uses interval [0, 1+2*tol(t)+pre_check_t] instead of [0,1]
+// 0<=pre_check_t <=1
+bool interval_root_finder_double_pre_check(
     const Eigen::VectorX3d& tol,
     // Eigen::VectorX3I& x,// result interval
     // Interval3& final,
@@ -67,6 +93,28 @@ bool interval_root_finder_double(
     const std::array<double, 3> err,
     const double ms,
     
+    const Eigen::Vector3d& a0s,
+    const Eigen::Vector3d& a1s,
+    const Eigen::Vector3d& b0s,
+    const Eigen::Vector3d& b1s,
+    const Eigen::Vector3d& a0e,
+    const Eigen::Vector3d& a1e,
+    const Eigen::Vector3d& b0e,
+    const Eigen::Vector3d& b1e,
+    const double pre_check_t=0);
+
+// this version can give the impact time at t=1. 
+// it uses interval t = [0, 1+2*tol(t)+pre_check_t] instead of t = [0,1]
+// 0<=pre_check_t <=1
+// tree searching order is horizontal
+bool interval_root_finder_double_horizontal_tree(
+    const Eigen::VectorX3d& tol,
+    //Eigen::VectorX3I& x,// result interval
+    // Interval3& final,
+    double& toi,
+    const bool check_vf,
+    const std::array<double,3> err,
+    const double ms,
     const Eigen::Vector3d& a0s,
     const Eigen::Vector3d& a1s,
     const Eigen::Vector3d& b0s,

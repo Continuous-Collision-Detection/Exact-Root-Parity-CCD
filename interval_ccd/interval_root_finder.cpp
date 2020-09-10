@@ -1381,7 +1381,7 @@ const Numccd&tpara, const Numccd&upara, const Numccd&vpara,const T& type, const 
 // this version cannot give the impact time at t=1, although this collision can 
 // be detected at t=0 of the next time step, but still may cause problems in 
 // line-search based physical simulation
-bool interval_root_finder_double_(
+bool interval_root_finder_double_normalCCD(
     const Eigen::VectorX3d& tol,
     //Eigen::VectorX3I& x,// result interval
     // Interval3& final,
@@ -1629,7 +1629,7 @@ void sum_up(const Numccd& nbr1, const Numccd& nbr2, Numccd& result){
     result.second=n;
     return;
 }
-// find a t value that t<tol
+// find a t value that t<tol TODO need to be fixed
 void t_tol_width( Numccd&x, const double tol){
     x.first=1;x.second=0;
     while (Numccd2double(x)>=tol){
@@ -1645,7 +1645,7 @@ void t_tol_width( Numccd&x, const double tol){
 // returned time t will be smaller than real impact time t.
 // it uses interval [0, 1+2*tol(t)+pre_check_t] instead of [0,1]
 // 0<=pre_check_t <=1
-bool interval_root_finder_double(
+bool interval_root_finder_double_pre_check(
     const Eigen::VectorX3d& tol,
     //Eigen::VectorX3I& x,// result interval
     // Interval3& final,
@@ -2084,9 +2084,25 @@ bool interval_root_finder_double_horizontal_tree(
     const Eigen::Vector3d& b0e,
     const Eigen::Vector3d& b1e,
     const double pre_check_t){
-    auto cmp = [](std::pair<Interval3,int> i1, std::pair<Interval3,int> i2) { 
+
+        //return time1 >= time2
+    auto time_cmp = [](std::pair<Interval3,int> i1, std::pair<Interval3,int> i2) { 
         return !(less_than(i1.first[0].first, i2.first[0].first));
         };
+
+        // check the tree level by level instead of going deep
+        //(if level 1 != level 2, return level 1 >= level 2;
+        // else, return time1 >= time2)
+    auto horiz_cmp=[](std::pair<Interval3,int> i1, std::pair<Interval3,int> i2){
+        if (i1.second != i2.second){
+            {
+                return (i1.second>=i2.second);
+            }
+        }
+        else{
+            return !(less_than(i1.first[0].first, i2.first[0].first));
+        }
+    };
     Numccd low_number; low_number.first=0; low_number.second=0;// low_number=0;
     Numccd up_number; up_number.first=1; up_number.second=0;// up_number=1;
     // initial interval [0,1]
@@ -2096,6 +2112,7 @@ bool interval_root_finder_double_horizontal_tree(
     iset[0]=init_interval;iset[1]=init_interval;iset[2]=init_interval;
     // Stack of intervals and the last split dimension
     // std::stack<std::pair<Interval3,int>> istack;
+    auto cmp=horiz_cmp;
     std::priority_queue<std::pair<Interval3,int>, std::vector<std::pair<Interval3,int>>, decltype(cmp)> istack(cmp);
     istack.emplace(iset,-1);
 
@@ -2112,9 +2129,10 @@ bool interval_root_finder_double_horizontal_tree(
     //std::array<double,3> 
     bool collision=false;
     int rnbr=0;
+    int current_level=-2;
     while(!istack.empty()){
         current=istack.top().first;
-        int last_split=istack.top().second;
+        int level=istack.top().second;
         istack.pop();
         // if(rnbr>0&&less_than( current[0].first,TOI)){
         //     std::cout<<"not the first"<<std::endl;
@@ -2243,11 +2261,11 @@ bool interval_root_finder_double_horizontal_tree(
                 
                 if(sum_no_larger_1(halves.second.first, current[2].first)){
                     current[split_i]=halves.second;
-                    istack.emplace(current, split_i);
+                    istack.emplace(current, level+1);
                 }
                 if(sum_no_larger_1(halves.first.first, current[2].first)){
                     current[split_i]=halves.first;
-                    istack.emplace(current, split_i);
+                    istack.emplace(current, level+1);
                 }
                 
             }
@@ -2258,27 +2276,27 @@ bool interval_root_finder_double_horizontal_tree(
                 
                 if(sum_no_larger_1(halves.second.first, current[1].first)){
                     current[split_i]=halves.second;
-                    istack.emplace(current, split_i);
+                    istack.emplace(current, level+1);
                 }
                 if(sum_no_larger_1(halves.first.first, current[1].first)){
                     current[split_i]=halves.first;
-                    istack.emplace(current, split_i);
+                    istack.emplace(current, level+1);
                 }
 
             }
             if(split_i==0){
                 current[split_i] = halves.second;
-                istack.emplace(current, split_i);
+                istack.emplace(current, level+1);
                 current[split_i] = halves.first;
-                istack.emplace(current, split_i);
+                istack.emplace(current, level+1);
             }
             
         }
         else{
             current[split_i] = halves.second;
-            istack.emplace(current, split_i);
+            istack.emplace(current, level+1);
             current[split_i] = halves.first;
-            istack.emplace(current, split_i);
+            istack.emplace(current, level+1);
         }
 
     }
@@ -2287,7 +2305,7 @@ bool interval_root_finder_double_horizontal_tree(
         std::cout<<"ERROR: PRE_CHECK_T SHOULD IN [0,1], but the input is,"<<pre_check_t<<std::endl;
     }
 
-
+    //TODO need to reset current level
     double t_upper_bound=1+2*tol(0)+pre_check_t;// 2*tol make it more conservative
     Numccd new_up;
     new_up.first=2;
@@ -2302,7 +2320,7 @@ bool interval_root_finder_double_horizontal_tree(
 
     while(!istack.empty()){
         current=istack.top().first;
-        int last_split=istack.top().second;
+        int level=istack.top().second;
         istack.pop();
  
 
@@ -2419,11 +2437,11 @@ bool interval_root_finder_double_horizontal_tree(
                 
                 if(sum_no_larger_1(halves.second.first, current[2].first)){
                     current[split_i]=halves.second;
-                    istack.emplace(current, split_i);
+                    istack.emplace(current, level+1);
                 }
                 if(sum_no_larger_1(halves.first.first, current[2].first)){
                     current[split_i]=halves.first;
-                    istack.emplace(current, split_i);
+                    istack.emplace(current, level+1);
                 }
                 
             }
@@ -2434,11 +2452,11 @@ bool interval_root_finder_double_horizontal_tree(
                 
                 if(sum_no_larger_1(halves.second.first, current[1].first)){
                     current[split_i]=halves.second;
-                    istack.emplace(current, split_i);
+                    istack.emplace(current,  level+1);
                 }
                 if(sum_no_larger_1(halves.first.first, current[1].first)){
                     current[split_i]=halves.first;
-                    istack.emplace(current, split_i);
+                    istack.emplace(current,  level+1);
                 }
 
             }
@@ -2446,11 +2464,11 @@ bool interval_root_finder_double_horizontal_tree(
                 // if split 0, then check if it overlaps [1, t_upper_bound]
                 if(interval_overlap_region(halves.second,1,t_upper_bound)){
                     current[split_i] = halves.second;
-                    istack.emplace(current, split_i);
+                    istack.emplace(current,  level+1);
                 }
                 if(interval_overlap_region(halves.first,1,t_upper_bound)){
                     current[split_i] = halves.first;
-                    istack.emplace(current, split_i);
+                    istack.emplace(current,  level+1);
                 }
                 
             }
@@ -2462,19 +2480,19 @@ bool interval_root_finder_double_horizontal_tree(
                 // if split 0, then check if it overlaps [1, t_upper_bound]
                 if(interval_overlap_region(halves.second,1,t_upper_bound)){
                     current[split_i] = halves.second;
-                    istack.emplace(current, split_i);
+                    istack.emplace(current,  level+1);
                 }
                 if(interval_overlap_region(halves.first,1,t_upper_bound)){
                     current[split_i] = halves.first;
-                    istack.emplace(current, split_i);
+                    istack.emplace(current,  level+1);
                 }
                 
             }
             else{
                 current[split_i] = halves.second;
-                istack.emplace(current, split_i);
+                istack.emplace(current,  level+1);
                 current[split_i] = halves.first;
-                istack.emplace(current, split_i);
+                istack.emplace(current,  level+1);
             }
             
         }

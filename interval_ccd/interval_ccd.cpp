@@ -861,22 +861,11 @@ bool edgeEdgeCCD_double(
     const double tolerance,
     const double pre_check_t)
 {
-    // tol0=0;tol1=0;tol2=0;
+
     Eigen::Vector3d tol = compute_edge_edge_tolerance_new(
         a0s, a1s, b0s, b1s, a0e, a1e, b0e, b1e, tolerance);
-    // tol0=tol[0];
-    // tol1=tol[1];
-    // tol2=tol[2];
-    // bool flag=false;
-    // for(int i=0;i<3;i++){
-    //     if (tol[i]==0)
-    //     flag=true;
-    // }
-    // if(flag==true){
-
-    // }
-    //////////////////////////////////////////////////////////
-    // TODO this should be the error of the whole mesh
+    
+    //this should be the error of the whole mesh
     std::array<double, 3> err1;
     if (err[0] < 0) { // if error[0]<0, means we need to calculate error here
         std::vector<Eigen::Vector3d> vlist;
@@ -899,8 +888,23 @@ bool edgeEdgeCCD_double(
 
     igl::Timer timer;
     timer.start();
-    bool is_impacting = interval_root_finder_double(
+    bool is_impacting;
+
+    // 0 is normal ccd without pre-check, 1 is ccd with pre-check, 2 is ccd with pre-check and horizontal tree
+    int CCD_TYPE=2;
+    if(CCD_TYPE==0){
+        is_impacting = interval_root_finder_double_normalCCD(
+        tol, toi, false, err1, ms,a0s, a1s, b0s, b1s, a0e, a1e, b0e, b1e);
+    }
+    if(CCD_TYPE==1){
+        is_impacting = interval_root_finder_double_pre_check(
         tol, toi, false, err1, ms,a0s, a1s, b0s, b1s, a0e, a1e, b0e, b1e, pre_check_t);
+    }
+    if(CCD_TYPE==2){
+        is_impacting = interval_root_finder_double_horizontal_tree(
+        tol, toi, false, err1, ms,a0s, a1s, b0s, b1s, a0e, a1e, b0e, b1e, pre_check_t);
+    }
+    
     time0 += timer.getElapsedTimeInMicroSec();
     // Return a conservative time-of-impact
     //    if (is_impacting) {
@@ -908,7 +912,7 @@ bool edgeEdgeCCD_double(
     //        double(toi_interval[0].first.first)/pow(2,toi_interval[0].first.second);
     //    }
     // This time of impact is very dangerous for convergence
-    // assert(!is_impacting || toi > 0);
+    assert(!is_impacting || toi >= 0);
     return is_impacting;
     return false;
 }
@@ -969,11 +973,22 @@ bool vertexFaceCCD_double(
     // Interval3 toi_interval;
     igl::Timer timer;
     timer.start();
-    bool is_impacting = interval_root_finder_double(
-        tol, toi, true, err1, ms, vertex_start, face_vertex0_start,
-        face_vertex1_start, face_vertex2_start, vertex_end, face_vertex0_end,
-        face_vertex1_end, face_vertex2_end,pre_check_t);
-    time0 += timer.getElapsedTimeInMicroSec();
+    bool is_impacting;
+
+    // 0 is normal ccd without pre-check, 1 is ccd with pre-check, 2 is ccd with pre-check and horizontal tree
+    int CCD_TYPE=2;
+    if(CCD_TYPE==0){
+        is_impacting = interval_root_finder_double_normalCCD(
+        tol, toi, false, err1, ms,a0s, a1s, b0s, b1s, a0e, a1e, b0e, b1e);
+    }
+    if(CCD_TYPE==1){
+        is_impacting = interval_root_finder_double_pre_check(
+        tol, toi, false, err1, ms,a0s, a1s, b0s, b1s, a0e, a1e, b0e, b1e, pre_check_t);
+    }
+    if(CCD_TYPE==2){
+        is_impacting = interval_root_finder_double_horizontal_tree(
+        tol, toi, false, err1, ms,a0s, a1s, b0s, b1s, a0e, a1e, b0e, b1e, pre_check_t);
+    }
     // Return a conservative time-of-impact
     //    if (is_impacting) {
     //        toi =
