@@ -979,19 +979,19 @@ bool vertexFaceCCD_double(
     int CCD_TYPE=2;
     if(CCD_TYPE==0){
         is_impacting = interval_root_finder_double_normalCCD(
-        tol, toi, false, err1, ms,vertex_start, face_vertex0_start, face_vertex1_start,
+        tol, toi, true, err1, ms,vertex_start, face_vertex0_start, face_vertex1_start,
         face_vertex2_start, vertex_end, face_vertex0_end, face_vertex1_end,
         face_vertex2_end);
     }
     if(CCD_TYPE==1){
         is_impacting = interval_root_finder_double_pre_check(
-        tol, toi, false, err1, ms,vertex_start, face_vertex0_start, face_vertex1_start,
+        tol, toi, true, err1, ms,vertex_start, face_vertex0_start, face_vertex1_start,
         face_vertex2_start, vertex_end, face_vertex0_end, face_vertex1_end,
         face_vertex2_end, pre_check_t);
     }
     if(CCD_TYPE==2){
         is_impacting = interval_root_finder_double_horizontal_tree(
-        tol, toi, false, err1, ms,vertex_start, face_vertex0_start, face_vertex1_start,
+        tol, toi, true, err1, ms,vertex_start, face_vertex0_start, face_vertex1_start,
         face_vertex2_start, vertex_end, face_vertex0_end, face_vertex1_end,
         face_vertex2_end, pre_check_t);
     }
