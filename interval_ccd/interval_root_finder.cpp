@@ -975,7 +975,7 @@ bool Origin_in_function_bounding_box_double_vector_return_tolerance(
     const Eigen::Vector3d& b1e,
     const bool check_vf,
     const std::array<double,3>& box, bool &box_in_eps, 
-    std::array<double,3> &tolerace){
+    std::array<double,3> &tolerance){
 #ifdef USE_TIMER
     igl::Timer timer;
 #endif  

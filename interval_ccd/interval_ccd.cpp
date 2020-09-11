@@ -936,20 +936,11 @@ bool vertexFaceCCD_double(
         vertex_start, face_vertex0_start, face_vertex1_start,
         face_vertex2_start, vertex_end, face_vertex0_end, face_vertex1_end,
         face_vertex2_end, tolerance);
-    // tol0 = tol[0];
-    // tol1 = tol[1];
-    // tol2 = tol[2];
-    // Eigen::Vector3d toln=compute_face_vertex_tolerance_3d_new(
-    //     vertex_start, face_vertex0_start, face_vertex1_start,
-    //     face_vertex2_start, vertex_end, face_vertex0_end, face_vertex1_end,
-    //     face_vertex2_end);
-    // tol0n=toln[0];
-    // tol1n=toln[1];
-    // tol2n=toln[2];
-    // std::cout<<"get tolerance successfully"<<std::endl;
+    
+    
+    
     //////////////////////////////////////////////////////////
-    // TODO this should be the error of the whole mesh
-
+    // this is the error of the whole mesh
     std::array<double, 3> err1;
     if (err[0] < 0) { // if error[0]<0, means we need to calculate error here
         std::vector<Eigen::Vector3d> vlist;
