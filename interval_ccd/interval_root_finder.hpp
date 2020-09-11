@@ -109,6 +109,7 @@ bool interval_root_finder_double_pre_check(
 // tree searching order is horizontal
 bool interval_root_finder_double_horizontal_tree(
     const Eigen::VectorX3d& tol,
+    const double co_domain_tolerance,
     //Eigen::VectorX3I& x,// result interval
     // Interval3& final,
     double& toi,

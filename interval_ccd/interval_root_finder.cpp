@@ -489,6 +489,65 @@ bool evaluate_bbox_one_dimension_vector(
 
 }
 
+// ** this version can return the true x or y or z tolerance of the co-domain **
+// eps is the interval [-eps,eps] we need to check
+// if [-eps,eps] overlap, return true
+// bbox_in_eps tell us if the box is totally in eps box
+bool evaluate_bbox_one_dimension_vector_return_tolerance(
+    std::array<double,8>& t_up,std::array<double,8>&t_dw,
+    std::array<double,8>& u_up,std::array<double,8>&u_dw,
+    std::array<double,8>& v_up,std::array<double,8>&v_dw,
+    const Eigen::Vector3d& a0s,
+    const Eigen::Vector3d& a1s,
+    const Eigen::Vector3d& b0s,
+    const Eigen::Vector3d& b1s,
+    const Eigen::Vector3d& a0e,
+    const Eigen::Vector3d& a1e,
+    const Eigen::Vector3d& b0e,
+    const Eigen::Vector3d& b1e,
+    const int dimension,const bool check_vf,const double eps, bool& bbox_in_eps, 
+    double & tol){
+#ifdef USE_TIMER
+    igl::Timer timer;
+#endif
+    std::array<double,8> vs;
+    int count=0;
+    bbox_in_eps=false;
+#ifdef USE_TIMER
+    timer.start();
+#endif  
+    if(check_vf){
+        vs=function_vf(a0s[dimension],a1s[dimension],b0s[dimension],b1s[dimension],a0e[dimension],a1e[dimension],b0e[dimension],b1e[dimension],t_up,t_dw,
+        u_up,u_dw,v_up,v_dw);
+    }
+    else{
+        vs=function_ee(a0s[dimension],a1s[dimension],b0s[dimension],b1s[dimension],a0e[dimension],a1e[dimension],b0e[dimension],b1e[dimension],t_up,t_dw,
+        u_up,u_dw,v_up,v_dw);
+    }
+#ifdef USE_TIMER
+                    timer.stop();
+                    time25+=timer.getElapsedTimeInMicroSec();
+                    
+#endif
+    double minv=vs[0], maxv=vs[0];
+    
+    for(int i=1;i<8;i++){
+        if(minv>vs[i]){
+            minv=vs[i];
+        }
+        if(maxv<vs[i]){
+            maxv=vs[i];
+        }
+    }
+    tol= maxv-minv;// this is the real tolerance
+    if(minv>eps||maxv<-eps)
+        return false;
+    if(minv>=-eps&&maxv<=eps){
+        bbox_in_eps=true;
+    }
+    return true;
+
+}
 // the bounding boxes generated are t0, t1, u, u1, v0, v1 boxes
 template<typename T>
 void evaluate_tuv_bboxes(
@@ -846,6 +905,10 @@ bool Origin_in_function_bounding_box_double(
     return true;
     
 }
+
+// give the result of if the hex overlaps the input box around Origin
+// use vectorized hex-vertex-solving function for acceleration
+// box_in_eps shows if this hex is totally inside box. if so, no need to do further bisection
 bool Origin_in_function_bounding_box_double_vector(
     const Interval3& paras,
     const Eigen::Vector3d& a0s,
@@ -881,6 +944,61 @@ bool Origin_in_function_bounding_box_double_vector(
 #endif
         ck=evaluate_bbox_one_dimension_vector(t_up,t_dw,u_up,u_dw,v_up,v_dw,
     a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,i,check_vf,box[i],box_in[i]);
+#ifdef USE_TIMER
+    timer.stop();
+    time23+=timer.getElapsedTimeInMicroSec();
+#endif
+     if(!ck)
+        return false;
+    }
+    if(box_in[0]&&box_in[1]&&box_in[2]){
+        box_in_eps=true;
+    }
+    return true;
+    
+    
+}
+
+// ** this version can return the true tolerance of the co-domain **
+// give the result of if the hex overlaps the input box around Origin
+// use vectorized hex-vertex-solving function for acceleration
+// box_in_eps shows if this hex is totally inside box. if so, no need to do further bisection
+bool Origin_in_function_bounding_box_double_vector_return_tolerance(
+    const Interval3& paras,
+    const Eigen::Vector3d& a0s,
+    const Eigen::Vector3d& a1s,
+    const Eigen::Vector3d& b0s,
+    const Eigen::Vector3d& b1s,
+    const Eigen::Vector3d& a0e,
+    const Eigen::Vector3d& a1e,
+    const Eigen::Vector3d& b0e,
+    const Eigen::Vector3d& b1e,
+    const bool check_vf,
+    const std::array<double,3>& box, bool &box_in_eps, 
+    std::array<double,3> &tolerace){
+#ifdef USE_TIMER
+    igl::Timer timer;
+#endif  
+    box_in_eps=false;
+    std::array<double,8> t_up;std::array<double,8>t_dw;
+    std::array<double,8> u_up;std::array<double,8>u_dw;
+    std::array<double,8> v_up;std::array<double,8>v_dw;
+#ifdef USE_TIMER
+    timer.start();
+#endif
+    convert_tuv_to_array(paras,t_up,t_dw,u_up,u_dw,v_up,v_dw);
+#ifdef USE_TIMER
+    timer.stop();
+    time24+=timer.getElapsedTimeInMicroSec();
+#endif
+    bool ck;
+    bool box_in[3];
+    for(int i=0;i<3;i++){
+#ifdef USE_TIMER
+    timer.start();
+#endif
+        ck=evaluate_bbox_one_dimension_vector_return_tolerance(t_up,t_dw,u_up,u_dw,v_up,v_dw,
+    a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,i,check_vf,box[i],box_in[i],tolerance[i]);
 #ifdef USE_TIMER
     timer.stop();
     time23+=timer.getElapsedTimeInMicroSec();
@@ -2069,6 +2187,7 @@ bool interval_root_finder_double_pre_check(
 // tree searching order is horizontal
 bool interval_root_finder_double_horizontal_tree(
     const Eigen::VectorX3d& tol,
+    const double co_domain_tolerance,
     //Eigen::VectorX3I& x,// result interval
     // Interval3& final,
     double& toi,
@@ -2156,7 +2275,8 @@ bool interval_root_finder_double_horizontal_tree(
         refine++;
         bool zero_in;
        bool box_in;
-        zero_in= Origin_in_function_bounding_box_double_vector(current,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,check_vf,err_and_ms,box_in);
+       std::array<double,3> true_tol;
+        zero_in= Origin_in_function_bounding_box_double_vector_return_tolerance(current,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,check_vf,err_and_ms,box_in,true_tol);
         
 #ifdef USE_TIMER
     
@@ -2186,6 +2306,14 @@ bool interval_root_finder_double_horizontal_tree(
             return true;
         }
         if(box_in){
+            TOI=current[0].first;
+            collision=true;
+            rnbr++;
+            // continue;
+            toi=Numccd2double(TOI)*impact_ratio;
+            return true;
+        }
+        if(true_tol[0]<=co_domain_tolerance&&true_tol[1]<=co_domain_tolerance&&true_tol[2]<=co_domain_tolerance){
             TOI=current[0].first;
             collision=true;
             rnbr++;
@@ -2332,7 +2460,9 @@ bool interval_root_finder_double_horizontal_tree(
         refine++;
         bool zero_in;
        bool box_in;
-        zero_in= Origin_in_function_bounding_box_double_vector(current,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,check_vf,err_and_ms,box_in);
+       std::array<double,3> true_tol;
+        zero_in= Origin_in_function_bounding_box_double_vector_return_tolerance(current,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,check_vf,err_and_ms,box_in,true_tol);
+        
         
 #ifdef USE_TIMER
     
@@ -2362,6 +2492,14 @@ bool interval_root_finder_double_horizontal_tree(
             return true;
         }
         if(box_in){
+            TOI=current[0].first;
+            collision=true;
+            rnbr++;
+            // continue;
+            toi=Numccd2double(TOI)*impact_ratio;
+            return true;
+        }
+        if(true_tol[0]<=co_domain_tolerance&&true_tol[1]<=co_domain_tolerance&&true_tol[2]<=co_domain_tolerance){
             TOI=current[0].first;
             collision=true;
             rnbr++;

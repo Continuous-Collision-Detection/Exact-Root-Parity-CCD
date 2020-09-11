@@ -902,7 +902,7 @@ bool edgeEdgeCCD_double(
     }
     if(CCD_TYPE==2){
         is_impacting = interval_root_finder_double_horizontal_tree(
-        tol, toi, false, err1, ms,a0s, a1s, b0s, b1s, a0e, a1e, b0e, b1e, pre_check_t);
+        tol,tolerance, toi, false, err1, ms,a0s, a1s, b0s, b1s, a0e, a1e, b0e, b1e, pre_check_t);
     }
     
     time0 += timer.getElapsedTimeInMicroSec();
@@ -936,9 +936,9 @@ bool vertexFaceCCD_double(
         vertex_start, face_vertex0_start, face_vertex1_start,
         face_vertex2_start, vertex_end, face_vertex0_end, face_vertex1_end,
         face_vertex2_end, tolerance);
-    tol0 = tol[0];
-    tol1 = tol[1];
-    tol2 = tol[2];
+    // tol0 = tol[0];
+    // tol1 = tol[1];
+    // tol2 = tol[2];
     // Eigen::Vector3d toln=compute_face_vertex_tolerance_3d_new(
     //     vertex_start, face_vertex0_start, face_vertex1_start,
     //     face_vertex2_start, vertex_end, face_vertex0_end, face_vertex1_end,
@@ -991,7 +991,7 @@ bool vertexFaceCCD_double(
     }
     if(CCD_TYPE==2){
         is_impacting = interval_root_finder_double_horizontal_tree(
-        tol, toi, true, err1, ms,vertex_start, face_vertex0_start, face_vertex1_start,
+        tol,tolerance, toi, true, err1, ms,vertex_start, face_vertex0_start, face_vertex1_start,
         face_vertex2_start, vertex_end, face_vertex0_end, face_vertex1_end,
         face_vertex2_end, pre_check_t);
     }
