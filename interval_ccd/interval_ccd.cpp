@@ -850,7 +850,7 @@ bool edgeEdgeCCD_opt(
 // seperation, and the earlist collision time if collision happens.
 // err is the filters calculated using the bounding box of the simulation scene.
 // If you are checking a single query without a scene, please set it as [-1,-1,-1].
-// ms is the minimum seperation. should set: ms < max(abs(x)), ms < max(abs(y)), ms < max(abs(z)) of the scene.
+// ms is the minimum seperation. should set: ms < max(abs(x),1), ms < max(abs(y),1), ms < max(abs(z),1) of the QUERY (NOT THE SCENE!).
 // toi is the earlist time of collision if collision happens. If there is no collision, toi will be infinate.
 // tolerance is a user - input solving precision. we suggest to use 1e-6.
 // pre_check_t is a number that allows you to check collision for time =[0, 1+2*tol_x+pre],
@@ -897,8 +897,8 @@ bool edgeEdgeCCD_double(
         vlist.emplace_back(a1e);
         vlist.emplace_back(b0e);
         vlist.emplace_back(b1e);
-
-        err1 = get_numerical_error(vlist, false);
+        bool use_ms= ms > 0;
+        err1 = get_numerical_error(vlist, false, use_ms);
     } else {
         err1 = err;
     }
@@ -940,7 +940,7 @@ bool edgeEdgeCCD_double(
 // seperation, and the earlist collision time if collision happens.
 // err is the filters calculated using the bounding box of the simulation scene.
 // If you are checking a single query without a scene, please set it as [-1,-1,-1].
-// ms is the minimum seperation. should set: ms < max(abs(x)), ms < max(abs(y)), ms < max(abs(z)) of the scene.
+// ms is the minimum seperation. should set: ms < max(abs(x),1), ms < max(abs(y),1), ms < max(abs(z),1) of the QUERY (NOT THE SCENE!).
 // toi is the earlist time of collision if collision happens. If there is no collision, toi will be infinate.
 // tolerance is a user - input solving precision. we suggest to use 1e-6.
 // pre_check_t is a number that allows you to check collision for time =[0, 1+2*tol_x+pre],
@@ -991,8 +991,8 @@ bool vertexFaceCCD_double(
         vlist.emplace_back(face_vertex0_end);
         vlist.emplace_back(face_vertex1_end);
         vlist.emplace_back(face_vertex2_end);
-
-        err1 = get_numerical_error(vlist, false);
+        bool use_ms= ms > 0;
+        err1 = get_numerical_error(vlist, false, use_ms);
 
     } else {
         err1 = err;
@@ -1066,7 +1066,8 @@ bool edgeEdgeCCD_rational(
     vlist.emplace_back(b1e);
 
     std::array<double, 3> err1;
-    err1 = get_numerical_error(vlist, false);
+    bool use_ms= ms > 0;
+    err1 = get_numerical_error(vlist, false, use_ms);
     //////////////////////////////////////////////////////////
 
     std::array<std::pair<Rational, Rational>, 3> toi_interval;
@@ -1119,7 +1120,8 @@ bool vertexFaceCCD_rational(
     vlist.emplace_back(face_vertex2_end);
 
     std::array<double, 3> err1;
-    err1 = get_numerical_error(vlist, false);
+    bool use_ms= ms > 0;
+    err1 = get_numerical_error(vlist, false, use_ms);
     // std::cout<<"get error successfully"<<std::endl;
     //////////////////////////////////////////////////////////
 

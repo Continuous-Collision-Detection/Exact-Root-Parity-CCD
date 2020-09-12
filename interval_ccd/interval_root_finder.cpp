@@ -3182,7 +3182,19 @@ double print_time_rational(){
     return time_rational;
 }
 
-std::array<double, 3> get_numerical_error(const std::vector<Eigen::Vector3d> &vertices,const bool& check_vf){
+std::array<double, 3> get_numerical_error(const std::vector<Eigen::Vector3d> &vertices,
+const bool& check_vf, const bool using_minimum_separation){
+    double eefilter;
+    double vffilter;
+    if(!using_minimum_separation){
+        eefilter=6.217248937900877e-15;
+        vffilter=6.661338147750939e-15
+    }
+    else{
+        eefilter=7.105427357601002e−15;
+        vffilter=7.549516567451064e−15;
+    }
+    
     double xmax=fabs(vertices[0][0]);
     double ymax=fabs(vertices[0][1]);
     double zmax=fabs(vertices[0][2]);
@@ -3202,14 +3214,14 @@ std::array<double, 3> get_numerical_error(const std::vector<Eigen::Vector3d> &ve
     double delta_z=zmax>1?zmax:1;
     std::array<double, 3> result;
     if(!check_vf){
-        result[0]=delta_x*delta_x*delta_x*6.217248937900877e-15;
-        result[1]=delta_y*delta_y*delta_y*6.217248937900877e-15;
-        result[2]=delta_z*delta_z*delta_z*6.217248937900877e-15;
+        result[0]=delta_x*delta_x*delta_x*eefilter;
+        result[1]=delta_y*delta_y*delta_y*eefilter;
+        result[2]=delta_z*delta_z*delta_z*eefilter;
     }
     else{
-        result[0]=delta_x*delta_x*delta_x*6.661338147750939e-15;
-        result[1]=delta_y*delta_y*delta_y*6.661338147750939e-15;
-        result[2]=delta_z*delta_z*delta_z*6.661338147750939e-15;
+        result[0]=delta_x*delta_x*delta_x*vffilter;
+        result[1]=delta_y*delta_y*delta_y*vffilter;
+        result[2]=delta_z*delta_z*delta_z*vffilter;
     }
     return result;
 }

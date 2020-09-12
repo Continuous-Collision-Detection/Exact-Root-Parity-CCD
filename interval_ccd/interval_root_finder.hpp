@@ -184,6 +184,8 @@ bool interval_root_finder_Rational(
 void print_time_2();
 double print_time_rational();
 int print_refine();
+
+// get the filter of ccd. the inputs are the vertices of the bounding box of the simulation scene
 std::array<double, 3> get_numerical_error(
-    const std::vector<Eigen::Vector3d>& vertices, const bool& check_vf);
+    const std::vector<Eigen::Vector3d>& vertices, const bool& check_vf,const bool using_minimum_separation);
 } // namespace intervalccd
