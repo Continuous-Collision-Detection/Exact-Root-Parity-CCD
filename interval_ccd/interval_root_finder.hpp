@@ -103,7 +103,10 @@ bool interval_root_finder_double_pre_check(
     const Eigen::Vector3d& b1e,
     const double pre_check_t=0);
 
-// this version can give the impact time at t=1. 
+// this version can give the impact time at t=1.
+// max_itr is a user defined maximum iteration time. if < 0, then 
+// it will run until stack empty; otherwise the algorithm will stop when 
+// iteration time reaches max_itr, and return a solution precision output_tolerance
 // it uses interval t = [0, 1+2*tol(t)+pre_check_t] instead of t = [0,1]
 // 0<=pre_check_t <=1
 // tree searching order is horizontal
@@ -124,7 +127,9 @@ bool interval_root_finder_double_horizontal_tree(
     const Eigen::Vector3d& a1e,
     const Eigen::Vector3d& b0e,
     const Eigen::Vector3d& b1e,
-    const double pre_check_t=0);
+    const double pre_check_t,
+    const int max_itr,
+    double &output_tolerance);
 // return power t. n=result*2^t
 long reduction(const long n, long& result);
 std::pair<Singleinterval, Singleinterval> bisect(const Singleinterval& inter);

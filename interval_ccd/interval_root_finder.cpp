@@ -2181,7 +2181,10 @@ bool interval_root_finder_double_pre_check(
     
 }
 
-// this version can give the impact time at t=1. 
+// this version can give the impact time at t=1.
+// max_itr is a user defined maximum iteration time. if < 0, then 
+// it will run until stack empty; otherwise the algorithm will stop when 
+// iteration time reaches max_itr, and return a solution precision output_tolerance
 // it uses interval t = [0, 1+2*tol(t)+pre_check_t] instead of t = [0,1]
 // 0<=pre_check_t <=1
 // tree searching order is horizontal
@@ -2202,8 +2205,12 @@ bool interval_root_finder_double_horizontal_tree(
     const Eigen::Vector3d& a1e,
     const Eigen::Vector3d& b0e,
     const Eigen::Vector3d& b1e,
-    const double pre_check_t){
-
+    const double pre_check_t,
+    const int max_itr,
+    double &output_tolerance){
+        // if max_itr <0, output_tolerance= co_domain_tolerance;
+        // else, output_tolerance will be the precision after iteration time > max_itr
+        output_tolerance= co_domain_tolerance; 
         //return time1 >= time2
     auto time_cmp = [](std::pair<Interval3,int> i1, std::pair<Interval3,int> i2) { 
         return !(less_than(i1.first[0].first, i2.first[0].first));
@@ -2249,6 +2256,8 @@ bool interval_root_finder_double_horizontal_tree(
     bool collision=false;
     int rnbr=0;
     int current_level=-2;
+    bool find_level_root=false; 
+    double current_tolerance=std::numeric_limits<double>::infinity();
     while(!istack.empty()){
         current=istack.top().first;
         int level=istack.top().second;
@@ -2297,7 +2306,10 @@ bool interval_root_finder_double_horizontal_tree(
         timer.stop();
         time21+=timer.getElapsedTimeInMicroSec();
 #endif
-        if ((widths.array() <= tol.array()).all()) {
+        bool condition1=(widths.array() <= tol.array()).all();
+        bool condition2=box_in;
+        bool condition3=true_tol[0]<=co_domain_tolerance&&true_tol[1]<=co_domain_tolerance&&true_tol[2]<=co_domain_tolerance;
+        if (condition1||condition2||condition3) {
             TOI=current[0].first;
             collision=true;
             rnbr++;
@@ -2305,21 +2317,29 @@ bool interval_root_finder_double_horizontal_tree(
             toi=Numccd2double(TOI)*impact_ratio;
             return true;
         }
-        if(box_in){
-            TOI=current[0].first;
-            collision=true;
-            rnbr++;
-            // continue;
-            toi=Numccd2double(TOI)*impact_ratio;
-            return true;
-        }
-        if(true_tol[0]<=co_domain_tolerance&&true_tol[1]<=co_domain_tolerance&&true_tol[2]<=co_domain_tolerance){
-            TOI=current[0].first;
-            collision=true;
-            rnbr++;
-            // continue;
-            toi=Numccd2double(TOI)*impact_ratio;
-            return true;
+        
+        if(max_itr>0){// if max_itr < 0, then stop until stack empty
+            if(current_level!=level){
+                output_tolerance=current_tolerance;
+                current_tolerance=0;
+                find_level_root=false;
+            }
+            current_tolerance=std::max(
+            std::max(std::max(current_tolerance,true_tol[0]),true_tol[1]),true_tol[2]
+            );
+            if(!find_level_root){
+                TOI=current[0].first;
+                collision=true;
+                rnbr++;
+                // continue;
+                toi=Numccd2double(TOI)*impact_ratio;
+                find_level_root=true;// this ensures always find the earlist root
+
+            }
+            if(refine>max_itr){
+                return true;
+            }
+            // get the time of impact down here
         }
 
         std::array<bool , 3> check;
@@ -2445,7 +2465,9 @@ bool interval_root_finder_double_horizontal_tree(
     /////////////////////////////////////////////////////////////////////////////////////
     if(!istack.empty()) std::cout<<"ERROR HERE, STACK SHOULD BE EMPTY"<<std::endl;
     istack.emplace(iset,-1);
-
+    current_level=-2;
+    find_level_root=false;
+    current_tolerance=std::numeric_limits<double>::infinity();
     while(!istack.empty()){
         current=istack.top().first;
         int level=istack.top().second;
@@ -2483,7 +2505,10 @@ bool interval_root_finder_double_horizontal_tree(
         timer.stop();
         time21+=timer.getElapsedTimeInMicroSec();
 #endif
-        if ((widths.array() <= tol.array()).all()) {
+        bool condition1=(widths.array() <= tol.array()).all();
+        bool condition2=box_in;
+        bool condition3=true_tol[0]<=co_domain_tolerance&&true_tol[1]<=co_domain_tolerance&&true_tol[2]<=co_domain_tolerance;
+        if (condition1||condition2||condition3) {
             TOI=current[0].first;
             collision=true;
             rnbr++;
@@ -2491,21 +2516,29 @@ bool interval_root_finder_double_horizontal_tree(
             toi=Numccd2double(TOI)*impact_ratio;
             return true;
         }
-        if(box_in){
-            TOI=current[0].first;
-            collision=true;
-            rnbr++;
-            // continue;
-            toi=Numccd2double(TOI)*impact_ratio;
-            return true;
-        }
-        if(true_tol[0]<=co_domain_tolerance&&true_tol[1]<=co_domain_tolerance&&true_tol[2]<=co_domain_tolerance){
-            TOI=current[0].first;
-            collision=true;
-            rnbr++;
-            // continue;
-            toi=Numccd2double(TOI)*impact_ratio;
-            return true;
+        
+        if(max_itr>0){// if max_itr < 0, then stop until stack empty
+            if(current_level!=level){
+                output_tolerance=current_tolerance;
+                current_tolerance=0;
+                find_level_root=false;
+            }
+            current_tolerance=std::max(
+            std::max(std::max(current_tolerance,true_tol[0]),true_tol[1]),true_tol[2]
+            );
+            if(!find_level_root){
+                TOI=current[0].first;
+                collision=true;
+                rnbr++;
+                // continue;
+                toi=Numccd2double(TOI)*impact_ratio;
+                find_level_root=true;// this ensures always find the earlist root
+
+            }
+            if(refine>max_itr){
+                return true;
+            }
+            // get the time of impact down here
         }
 
         std::array<bool , 3> check;

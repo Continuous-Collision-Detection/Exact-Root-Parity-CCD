@@ -60,6 +60,19 @@ bool edgeEdgeCCD_opt(
     const Eigen::Vector3d& b1e,
     double& toi);
 
+// This function can give you the answer of continous collision detection with minimum 
+// seperation, and the earlist collision time if collision happens.
+// err is the filters calculated using the bounding box of the simulation scene.
+// If you are checking a single query without a scene, please set it as [-1,-1,-1].
+// ms is the minimum seperation. should set: ms < max(abs(x)), ms < max(abs(y)), ms < max(abs(z)) of the scene.
+// toi is the earlist time of collision if collision happens. If there is no collision, toi will be infinate.
+// tolerance is a user - input solving precision. we suggest to use 1e-6.
+// pre_check_t is a number that allows you to check collision for time =[0, 1+2*tol_x+pre],
+// to avoid collision time = 0 for next time step, which is useful in simulations using line-search
+// max_itr is a user-defined value to terminate the algorithm earlier, and return a result under current 
+// precision. please set max_itr either a big number like 1e7, or -1 which means it will not be terminated
+// earlier and the precision will be user-defined precision -- tolerance.
+// output_tolerance is the precision under max_itr ( > 0). if max_itr < 0, output_tolerance = tolerance;
 bool edgeEdgeCCD_double(
     const Eigen::Vector3d& a0s,
     const Eigen::Vector3d& a1s,
@@ -72,9 +85,24 @@ bool edgeEdgeCCD_double(
     const std::array<double, 3>& err,
     const double ms,
     double& toi,
-    const double tolerance = 1e-6,
-    const double pre_check_t=0);
+    const double tolerance,
+    const double pre_check_t,
+    const int max_itr,
+    double &output_tolerance);
 
+// This function can give you the answer of continous collision detection with minimum 
+// seperation, and the earlist collision time if collision happens.
+// err is the filters calculated using the bounding box of the simulation scene.
+// If you are checking a single query without a scene, please set it as [-1,-1,-1].
+// ms is the minimum seperation. should set: ms < max(abs(x)), ms < max(abs(y)), ms < max(abs(z)) of the scene.
+// toi is the earlist time of collision if collision happens. If there is no collision, toi will be infinate.
+// tolerance is a user - input solving precision. we suggest to use 1e-6.
+// pre_check_t is a number that allows you to check collision for time =[0, 1+2*tol_x+pre],
+// to avoid collision time = 0 for next time step, which is useful in simulations using line-search
+// max_itr is a user-defined value to terminate the algorithm earlier, and return a result under current 
+// precision. please set max_itr either a big number like 1e7, or -1 which means it will not be terminated
+// earlier and the precision will be user-defined precision -- tolerance.
+// output_tolerance is the precision under max_itr ( > 0). if max_itr < 0, output_tolerance = tolerance;
 bool vertexFaceCCD_double(
     const Eigen::Vector3d& vertex_start,
     const Eigen::Vector3d& face_vertex0_start,
@@ -87,8 +115,10 @@ bool vertexFaceCCD_double(
     const std::array<double, 3>& err,
     const double ms,
     double& toi,
-    const double tolerance = 1e-6,
-    const double pre_check_t=0);
+    const double tolerance,
+    const double pre_check_t,
+    const int max_itr,
+    double &output_tolerance);
 
 bool edgeEdgeCCD_rational(
     const Eigen::Vector3d& a0s,
