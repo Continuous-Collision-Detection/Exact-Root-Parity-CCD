@@ -921,7 +921,7 @@ bool edgeEdgeCCD_double(
     }
     if(CCD_TYPE==2){
         is_impacting = interval_root_finder_double_horizontal_tree(
-        tol,tolerance, toi, false, err1, ms,a0s, a1s, b0s, b1s, a0e, a1e, b0e, b1e, pre_check_t);
+        tol,tolerance, toi, false, err1, ms,a0s, a1s, b0s, b1s, a0e, a1e, b0e, b1e, pre_check_t,max_itr,output_tolerance);
     }
     
     time0 += timer.getElapsedTimeInMicroSec();
@@ -1022,7 +1022,7 @@ bool vertexFaceCCD_double(
         is_impacting = interval_root_finder_double_horizontal_tree(
         tol,tolerance, toi, true, err1, ms,vertex_start, face_vertex0_start, face_vertex1_start,
         face_vertex2_start, vertex_end, face_vertex0_end, face_vertex1_end,
-        face_vertex2_end, pre_check_t);
+        face_vertex2_end, pre_check_t,max_itr,output_tolerance);
     }
     // Return a conservative time-of-impact
     //    if (is_impacting) {
