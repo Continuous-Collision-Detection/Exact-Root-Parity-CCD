@@ -565,10 +565,10 @@ void case_check(){
     // dt.x2b = Vector3d(0.1, 0.2, 2);
     // dt.x3b = Vector3d(0.1, 0.2, -1);
     double toi;
-    bool res=intervalccd::edgeEdgeCCD_double(
-        a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,{{4.9737991503207013e-11, 4.9737991503207013e-11, 4.9737991503207013e-11}},0,toi,1e-6
-    );
-    std::cout<<"the ee ccd result is "<<res<<", t, "<<toi<<std::endl;
+    // bool res=intervalccd::edgeEdgeCCD_double(
+    //     a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,{{4.9737991503207013e-11, 4.9737991503207013e-11, 4.9737991503207013e-11}},0,toi,1e-6
+    // );
+    // std::cout<<"the ee ccd result is "<<res<<", t, "<<toi<<std::endl;
 }
 void get_multiple(string data,string method, string part, double ms){
 //double ms=1e-30;
