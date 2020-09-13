@@ -3188,11 +3188,11 @@ const bool& check_vf, const bool using_minimum_separation){
     double vffilter;
     if(!using_minimum_separation){
         eefilter=6.217248937900877e-15;
-        vffilter=6.661338147750939e-15
+        vffilter=6.661338147750939e-15;
     }
     else{
-        eefilter=7.105427357601002e−15;
-        vffilter=7.549516567451064e−15;
+        eefilter=7.105427357601002e-15;
+        vffilter=7.549516567451064e-15;
     }
     
     double xmax=fabs(vertices[0][0]);
