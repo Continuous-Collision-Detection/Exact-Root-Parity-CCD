@@ -14,6 +14,7 @@
 namespace intervalccd {
 double time20=0,time21=0,time22=0, time23=0,time24=0,time25=0,time_rational=0;
 int refine=0;
+int refine_return=0;
 bool interval_root_finder(
     const std::function<Interval(const Interval&)>& f,
     const Interval& x0,
@@ -2176,10 +2177,11 @@ bool interval_root_finder_double_pre_check(
         }
 
     }
-    return collision;
+    // return collision;
     return false;
     
 }
+
 
 // this version can give the impact time at t=1.
 // max_itr is a user defined maximum iteration time. if < 0, then 
@@ -2266,10 +2268,10 @@ bool interval_root_finder_double_horizontal_tree(
         //     std::cout<<"not the first"<<std::endl;
         //     // continue;
         // }
-        if(!less_than(current[0].first,TOI)){
-            // std::cout<<"not the first"<<std::endl;
-            continue;
-        }
+        // if(!less_than(current[0].first,TOI)){
+        //     std::cout<<"not the first"<<std::endl;
+        //     continue;
+        // }
         //TOI should always be no larger than current
         
             
@@ -2329,7 +2331,7 @@ bool interval_root_finder_double_horizontal_tree(
             );
             if(!find_level_root){
                 TOI=current[0].first;
-                collision=true;
+                // collision=true;
                 rnbr++;
                 // continue;
                 toi=Numccd2double(TOI)*impact_ratio;
@@ -2337,6 +2339,8 @@ bool interval_root_finder_double_horizontal_tree(
 
             }
             if(refine>max_itr){
+                refine_return++;
+                // std::cout<<"return from refine"<<std::endl;
                 return true;
             }
             // get the time of impact down here
@@ -2528,7 +2532,7 @@ bool interval_root_finder_double_horizontal_tree(
             );
             if(!find_level_root){
                 TOI=current[0].first;
-                collision=true;
+                // collision=true;
                 rnbr++;
                 // continue;
                 toi=Numccd2double(TOI)*impact_ratio;
@@ -2669,7 +2673,7 @@ bool interval_root_finder_double_horizontal_tree(
         }
 
     }
-    return collision;
+    // return collision;
     return false;
     
 }
@@ -3170,6 +3174,7 @@ bool interval_root_finder_Rational(
 
 
 void print_time_2(){
+    std::cout<<"how many times return from max_itr, "<<refine_return<<std::endl;
     std::cout<<"origin predicates, "<<time20<<std::endl;
     std::cout<<"width, "<<time21<<std::endl;
     std::cout<<"bisect, "<<time22<<std::endl;
