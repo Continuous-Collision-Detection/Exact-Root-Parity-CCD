@@ -1760,6 +1760,382 @@ void t_tol_width( Numccd&x, const double tol){
   
 }
 
+bool interval_root_finder_double_horizontal_tree(
+    const Eigen::VectorX3d& tol,
+    const double co_domain_tolerance,
+    const Interval3 &iset,
+    const bool pre_check_for_line_search,
+    const bool checking_tail,
+    //Eigen::VectorX3I& x,// result interval
+    // Interval3& final,
+    double& toi,
+    const bool check_vf,
+    const std::array<double,3> err,
+    const double ms,
+    const Eigen::Vector3d& a0s,
+    const Eigen::Vector3d& a1s,
+    const Eigen::Vector3d& b0s,
+    const Eigen::Vector3d& b1s,
+    const Eigen::Vector3d& a0e,
+    const Eigen::Vector3d& a1e,
+    const Eigen::Vector3d& b0e,
+    const Eigen::Vector3d& b1e,
+    const double pre_check_t,
+    const int max_itr,
+    double &output_tolerance){
+        if(!pre_check_for_line_search){
+            if(checking_tail){
+                std::cout<<"ERROR, pre_check_for_line_search = false and checking_tail = true is invalid input combination "<<std::endl;
+                exit(0);
+            }
+        }
+        // if max_itr <0, output_tolerance= co_domain_tolerance;
+        // else, output_tolearancewill be the precision after iteration time > max_itr
+        output_tolerance= co_domain_tolerance; 
+        //return time1 >= time2
+    auto time_cmp = [](std::pair<Interval3,int> i1, std::pair<Interval3,int> i2) { 
+        return !(less_than(i1.first[0].first, i2.first[0].first));
+        };
+
+        // check the tree level by level instead of going deep
+        //(if level 1 != level 2, return level 1 >= level 2;
+        // else, return time1 >= time2)
+    auto horiz_cmp=[](std::pair<Interval3,int> i1, std::pair<Interval3,int> i2){
+        if (i1.second != i2.second){
+            {
+                return (i1.second>=i2.second);
+            }
+        }
+        else{
+            return !(less_than(i1.first[0].first, i2.first[0].first));
+        }
+    };
+    
+    // Stack of intervals and the last split dimension
+    // std::stack<std::pair<Interval3,int>> istack;
+    auto cmp=horiz_cmp;
+    std::priority_queue<std::pair<Interval3,int>, std::vector<std::pair<Interval3,int>>, decltype(cmp)> istack(cmp);
+    istack.emplace(iset,-1);
+
+    // current intervals
+    Interval3 current;
+    std::array<double,3> err_and_ms;
+    err_and_ms[0]=err[0]+ms;
+    err_and_ms[1]=err[1]+ms;
+    err_and_ms[2]=err[2]+ms;
+    refine=0;
+    double impact_ratio;
+    if(pre_check_for_line_search){
+        impact_ratio=1/(1+2*tol(0)+pre_check_t);
+    }
+    else{
+        impact_ratio=1;
+    }
+    toi=std::numeric_limits<double>::infinity();
+    Numccd TOI; TOI.first=2;TOI.second=0;
+    //std::array<double,3> 
+    bool collision=false;
+    int rnbr=0;
+    int current_level=-2;
+    bool find_level_root=false; 
+    double current_tolerance=std::numeric_limits<double>::infinity();
+    double t_upper_bound=1+2*tol(0)+pre_check_t;// 2*tol make it more conservative
+    while(!istack.empty()){
+        current=istack.top().first;
+        int level=istack.top().second;
+        istack.pop();
+        // if(rnbr>0&&less_than( current[0].first,TOI)){
+        //     std::cout<<"not the first"<<std::endl;
+        //     // continue;
+        // }
+        // if(!less_than(current[0].first,TOI)){
+        //     std::cout<<"not the first"<<std::endl;
+        //     continue;
+        // }
+        //TOI should always be no larger than current
+        
+            
+        // if(Numccd2double(current[0].first)>=Numccd2double(TOI)){
+        //     std::cout<<"here wrong, comparing"<<std::endl;
+        // } 
+#ifdef USE_TIMER
+        igl::Timer timer;
+
+        timer.start();
+#endif
+        refine++;
+        bool zero_in;
+       bool box_in;
+       std::array<double,3> true_tol;
+        zero_in= Origin_in_function_bounding_box_double_vector_return_tolerance(current,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,check_vf,err_and_ms,box_in,true_tol);
+        
+#ifdef USE_TIMER
+    
+        timer.stop();
+        time20+=timer.getElapsedTimeInMicroSec();
+#endif
+#ifdef COMPARE_WITH_RATIONAL// this is defined in the begining of this file
+        
+        zero_in=Origin_in_function_bounding_box_Rational(current,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,check_vf);
+
+#endif
+        if(!zero_in) continue;
+#ifdef USE_TIMER
+        timer.start();
+#endif
+        Eigen::VectorX3d widths = width(current);
+#ifdef USE_TIMER
+        timer.stop();
+        time21+=timer.getElapsedTimeInMicroSec();
+#endif
+        bool condition1=(widths.array() <= tol.array()).all();
+        bool condition2=box_in;
+        bool condition3=true_tol[0]<=co_domain_tolerance&&true_tol[1]<=co_domain_tolerance&&true_tol[2]<=co_domain_tolerance;
+        if (condition1||condition2||condition3) {
+            TOI=current[0].first;
+            collision=true;
+            rnbr++;
+            // continue;
+            toi=Numccd2double(TOI)*impact_ratio;
+            return true;
+        }
+        
+        if(max_itr>0){// if max_itr < 0, then stop until stack empty
+            if(current_level!=level){
+                output_tolerance=current_tolerance;
+                current_tolerance=0;
+                find_level_root=false;
+            }
+            current_tolerance=std::max(
+            std::max(std::max(current_tolerance,true_tol[0]),true_tol[1]),true_tol[2]
+            );
+            if(!find_level_root){
+                TOI=current[0].first;
+                // collision=true;
+                rnbr++;
+                // continue;
+                toi=Numccd2double(TOI)*impact_ratio;
+                find_level_root=true;// this ensures always find the earlist root
+
+            }
+            if(refine>max_itr){
+                refine_return++;
+                // std::cout<<"return from refine"<<std::endl;
+                return true;
+            }
+            // get the time of impact down here
+        }
+
+        std::array<bool , 3> check;
+        Eigen::VectorX3d widthratio;
+        widthratio.resize(3);
+        check[0]=false;check[1]=false; check[2]=false;
+        for(int i=0;i<3;i++){
+            widthratio(i)=widths(i)/tol(i);
+            if(widths(i) > tol(i))
+                check[i]=true;// means this need to be checked
+        }
+        
+        int split_i=-1;
+        for(int i=0;i<3;i++){
+            if(check[i]){
+                if(check[(i+1)%3]&&check[(i+2)%3]){
+                    if(widthratio(i)>=widthratio((i+1)%3)&&widthratio(i)>=widthratio((i+2)%3)){
+                        split_i=i;
+                        break;
+                    }    
+                }
+                if(check[(i+1)%3]&&!check[(i+2)%3]){
+                    if(widthratio(i)>=widthratio((i+1)%3)){
+                        split_i=i;
+                        break;
+                    }
+                }
+                if(!check[(i+1)%3]&&check[(i+2)%3]){
+                    if(widthratio(i)>=widthratio((i+2)%3)){
+                        split_i=i;
+                        break;
+                    }
+                }
+                if(!check[(i+1)%3]&&!check[(i+2)%3]){
+                   
+                        split_i=i;
+                        break;
+                    
+                }
+            }
+        }
+        if(split_i<0){
+            std::cout<<"ERROR OCCURRED HERE, DID NOT FIND THE RIGHT DIMENSION TO SPLIT"<<std::endl;
+        }
+        // Bisect the next dimension that is greater than its tolerance
+        // int split_i;
+        // for (int i = 1; i <= 3; i++) {
+        //     split_i = (last_split + i) % 3;
+        //     if (widths(split_i) > tol(split_i)) {
+        //         break;
+        //     }
+        // }
+        std::pair<Singleinterval, Singleinterval> halves = bisect(current[split_i]);
+        if(!less_than(halves.first.first, halves.first.second)){
+                std::cout<<"OVERFLOW HAPPENS WHEN SPLITTING INTERVALS"<<std::endl;
+                return true;
+            }
+        if(!less_than(halves.second.first, halves.second.second)){
+            std::cout<<"OVERFLOW HAPPENS WHEN SPLITTING INTERVALS"<<std::endl;
+            return true;
+        }
+        if(check_vf){
+            //std::cout<<"*** check_vf"<<std::endl;
+            if(split_i==1){
+               // assert(sum_no_larger_1(halves.first.first, current[2].first)==sum_no_larger_1_Rational(halves.first.first, current[2].first));
+               // assert(sum_no_larger_1(halves.second.first, current[2].first)==sum_no_larger_1_Rational(halves.second.first, current[2].first));
+                
+                if(sum_no_larger_1(halves.second.first, current[2].first)){
+                    current[split_i]=halves.second;
+                    istack.emplace(current, level+1);
+                }
+                if(sum_no_larger_1(halves.first.first, current[2].first)){
+                    current[split_i]=halves.first;
+                    istack.emplace(current, level+1);
+                }
+                
+            }
+
+            if(split_i==2){
+                //assert(sum_no_larger_1(halves.first.first, current[1].first)==sum_no_larger_1_Rational(halves.first.first, current[1].first));
+                //assert(sum_no_larger_1(halves.second.first, current[1].first)==sum_no_larger_1_Rational(halves.second.first, current[1].first));
+                
+                if(sum_no_larger_1(halves.second.first, current[1].first)){
+                    current[split_i]=halves.second;
+                    istack.emplace(current, level+1);
+                }
+                if(sum_no_larger_1(halves.first.first, current[1].first)){
+                    current[split_i]=halves.first;
+                    istack.emplace(current, level+1);
+                }
+
+            }
+            if(split_i==0){
+                if(checking_tail){
+                    if(interval_overlap_region(halves.second,1,t_upper_bound)){
+                        current[split_i] = halves.second;
+                        istack.emplace(current,  level+1);
+                    }
+                    if(interval_overlap_region(halves.first,1,t_upper_bound)){
+                        current[split_i] = halves.first;
+                        istack.emplace(current,  level+1);
+                    }
+                }
+                else{
+                    current[split_i] = halves.second;
+                    istack.emplace(current, level+1);
+                    current[split_i] = halves.first;
+                    istack.emplace(current, level+1);
+                }
+                
+            }
+            
+        }
+        else{
+            if(checking_tail&&split_i==0){
+                if(interval_overlap_region(halves.second,1,t_upper_bound)){
+                    current[split_i] = halves.second;
+                    istack.emplace(current,  level+1);
+                }
+                if(interval_overlap_region(halves.first,1,t_upper_bound)){
+                    current[split_i] = halves.first;
+                    istack.emplace(current,  level+1);
+                }
+            }
+            else{
+                current[split_i] = halves.second;
+            istack.emplace(current, level+1);
+            current[split_i] = halves.first;
+            istack.emplace(current, level+1);
+            }
+            
+        }
+
+    }
+    
+    return false;
+}
+
+bool interval_root_finder_double_horizontal_tree(
+    const Eigen::VectorX3d& tol,
+    const double co_domain_tolerance,
+    //Eigen::VectorX3I& x,// result interval
+    // Interval3& final,
+    double& toi,
+    const bool check_vf,
+    const std::array<double,3> err,
+    const double ms,
+    const Eigen::Vector3d& a0s,
+    const Eigen::Vector3d& a1s,
+    const Eigen::Vector3d& b0s,
+    const Eigen::Vector3d& b1s,
+    const Eigen::Vector3d& a0e,
+    const Eigen::Vector3d& a1e,
+    const Eigen::Vector3d& b0e,
+    const Eigen::Vector3d& b1e,
+    //const bool pre_check_for_line_search,
+    const double pre_check_t,
+    const int max_itr,
+    double &output_tolerance
+    ){
+
+    bool pre_check_for_line_search= false;
+    
+    
+    bool checking_tail= false;
+    Numccd low_number; low_number.first=0; low_number.second=0;// low_number=0;
+    Numccd up_number; up_number.first=1; up_number.second=0;// up_number=1;
+    // initial interval [0,1]
+    Singleinterval init_interval;init_interval.first=low_number;init_interval.second=up_number;
+    //build interval set [0,1]x[0,1]x[0,1]
+    Interval3 iset;
+    iset[0]=init_interval;iset[1]=init_interval;iset[2]=init_interval;
+
+    bool result = interval_root_finder_double_horizontal_tree(
+    tol,co_domain_tolerance,iset,pre_check_for_line_search,checking_tail,toi,check_vf,
+    err,ms,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,pre_check_t,max_itr,output_tolerance);
+    if (result) 
+        return true;
+
+
+    if(!pre_check_for_line_search){
+        return false;
+    }
+    
+    
+    // check for line - search tail
+    
+    checking_tail= true;
+
+    
+    if(pre_check_t>1||pre_check_t<0){
+        std::cout<<"ERROR: PRE_CHECK_T SHOULD IN [0,1], but the input is,"<<pre_check_t<<std::endl;
+    }
+
+    //TODO need to reset current level
+    
+    Numccd new_up;
+    new_up.first=2;
+    new_up.second=0;// new_up=2
+    //set iset=[1,2]
+    iset[0].first=up_number;//t0=1;
+    iset[0].second=new_up;//t1=2
+     bool result_tail = interval_root_finder_double_horizontal_tree(
+    tol,co_domain_tolerance,iset,pre_check_for_line_search,checking_tail,toi,check_vf,
+    err,ms,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,pre_check_t,max_itr,output_tolerance);
+    return result_tail;
+
+    }
+
+
+
+
 // this version can give the impact time at t=1. to be conservative,
 // returned time t will be smaller than real impact time t.
 // it uses interval [0, 1+2*tol(t)+pre_check_t] instead of [0,1]
@@ -2190,7 +2566,7 @@ bool interval_root_finder_double_pre_check(
 // it uses interval t = [0, 1+2*tol(t)+pre_check_t] instead of t = [0,1]
 // 0<=pre_check_t <=1
 // tree searching order is horizontal
-bool interval_root_finder_double_horizontal_tree(
+bool interval_root_finder_double_horizontal_tree_(
     const Eigen::VectorX3d& tol,
     const double co_domain_tolerance,
     //Eigen::VectorX3I& x,// result interval
@@ -2207,9 +2583,11 @@ bool interval_root_finder_double_horizontal_tree(
     const Eigen::Vector3d& a1e,
     const Eigen::Vector3d& b0e,
     const Eigen::Vector3d& b1e,
+    //const bool pre_check_for_line_search,
     const double pre_check_t,
     const int max_itr,
-    double &output_tolerance){
+    double &output_tolerance
+    ){
         // if max_itr <0, output_tolerance= co_domain_tolerance;
         // else, output_tolerance will be the precision after iteration time > max_itr
         output_tolerance= co_domain_tolerance; 
@@ -2251,15 +2629,24 @@ bool interval_root_finder_double_horizontal_tree(
     err_and_ms[1]=err[1]+ms;
     err_and_ms[2]=err[2]+ms;
     refine=0;
-    double impact_ratio=1/(1+2*tol(0)+pre_check_t);
-    toi=std::numeric_limits<double>::infinity();
-    Numccd TOI; TOI.first=2;TOI.second=0;
+    double impact_ratio;
+    // if (pre_check_for_line_search){
+        impact_ratio=1/(1+2*tol(0)+pre_check_t);
+    // }
+    // else{
+        // impact_ratio=1;
+    // }
+    toi=std::numeric_limits<double>::infinity(); //set toi as infinate 
+    Numccd TOI; TOI.first=4;TOI.second=0; // set TOI as 4
     //std::array<double,3> 
     bool collision=false;
     int rnbr=0;
-    int current_level=-2;
+    int current_level=-2; // in the begining, current_level != level
+    int box_in_level = -2; // this checks if all the boxes before this 
+    // level < tolerance. only true, we can return when we find one overlaps eps box and smaller than tolerance or eps-box
+    bool this_level_less_tol=true;
     bool find_level_root=false; 
-    double current_tolerance=std::numeric_limits<double>::infinity();
+    double current_tolerance=std::numeric_limits<double>::infinity(); // set returned tolerance as infinite
     while(!istack.empty()){
         current=istack.top().first;
         int level=istack.top().second;
@@ -2278,6 +2665,12 @@ bool interval_root_finder_double_horizontal_tree(
         // if(Numccd2double(current[0].first)>=Numccd2double(TOI)){
         //     std::cout<<"here wrong, comparing"<<std::endl;
         // } 
+
+        if(box_in_level!=level){// before check a new level, set this_level_less_tol=true
+            box_in_level=level;
+            this_level_less_tol=true;
+        }
+        
 #ifdef USE_TIMER
         igl::Timer timer;
 
@@ -2299,6 +2692,7 @@ bool interval_root_finder_double_horizontal_tree(
         zero_in=Origin_in_function_bounding_box_Rational(current,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,check_vf);
 
 #endif
+        
         if(!zero_in) continue;
 #ifdef USE_TIMER
         timer.start();
@@ -2308,9 +2702,23 @@ bool interval_root_finder_double_horizontal_tree(
         timer.stop();
         time21+=timer.getElapsedTimeInMicroSec();
 #endif
+        bool tol_condition=true_tol[0]<=co_domain_tolerance&&true_tol[1]<=co_domain_tolerance&&true_tol[2]<=co_domain_tolerance;
+        
+        // Condition 1, stopping condition on t, u and v is satisfied
         bool condition1=(widths.array() <= tol.array()).all();
-        bool condition2=box_in;
-        bool condition3=true_tol[0]<=co_domain_tolerance&&true_tol[1]<=co_domain_tolerance&&true_tol[2]<=co_domain_tolerance;
+
+        // Condition 2, zero_in = true, box inside eps-box and in this level,
+        // no box whose zero_in is true but box size larger than tolerance, can return
+        bool condition2=box_in&&this_level_less_tol;
+        if(!tol_condition){
+            this_level_less_tol=false;
+            // this level has at least one box whose size > tolerance, thus we 
+            // cannot directly return if find one box whose size < tolerance or box-in
+            // but  this_level_less_tol = false
+        }
+        // Condition 3, in this level, we find a box that zero-in and size < tolerance.
+        // and no other boxes whose zero-in is true in this level before this one is larger than tolerance, can return
+        bool condition3=this_level_less_tol;
         if (condition1||condition2||condition3) {
             TOI=current[0].first;
             collision=true;
