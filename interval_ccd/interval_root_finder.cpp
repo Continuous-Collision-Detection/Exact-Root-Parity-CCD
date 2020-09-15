@@ -1831,14 +1831,17 @@ bool interval_root_finder_double_horizontal_tree(
     else{
         impact_ratio=1;
     }
-    toi=std::numeric_limits<double>::infinity();
-    Numccd TOI; TOI.first=2;TOI.second=0;
+    toi=std::numeric_limits<double>::infinity();//set toi as infinate 
+    Numccd TOI; TOI.first=4;TOI.second=0;// set TOI as 4
     //std::array<double,3> 
     bool collision=false;
     int rnbr=0;
-    int current_level=-2;
+    int current_level=-2;// in the begining, current_level != level
+    int box_in_level = -2; // this checks if all the boxes before this 
+    // level < tolerance. only true, we can return when we find one overlaps eps box and smaller than tolerance or eps-box
+    bool this_level_less_tol=true;
     bool find_level_root=false; 
-    double current_tolerance=std::numeric_limits<double>::infinity();
+    // double current_tolerance=std::numeric_limits<double>::infinity(); // set returned tolerance as infinite
     double t_upper_bound=1+2*tol(0)+pre_check_t;// 2*tol make it more conservative
     while(!istack.empty()){
         current=istack.top().first;
@@ -1858,6 +1861,10 @@ bool interval_root_finder_double_horizontal_tree(
         // if(Numccd2double(current[0].first)>=Numccd2double(TOI)){
         //     std::cout<<"here wrong, comparing"<<std::endl;
         // } 
+        if(box_in_level!=level){// before check a new level, set this_level_less_tol=true
+            box_in_level=level;
+            this_level_less_tol=true;
+        }
 #ifdef USE_TIMER
         igl::Timer timer;
 
@@ -1888,9 +1895,25 @@ bool interval_root_finder_double_horizontal_tree(
         timer.stop();
         time21+=timer.getElapsedTimeInMicroSec();
 #endif
+
+        bool tol_condition=true_tol[0]<=co_domain_tolerance&&true_tol[1]<=co_domain_tolerance&&true_tol[2]<=co_domain_tolerance;
+        
+        // Condition 1, stopping condition on t, u and v is satisfied
         bool condition1=(widths.array() <= tol.array()).all();
-        bool condition2=box_in;
-        bool condition3=true_tol[0]<=co_domain_tolerance&&true_tol[1]<=co_domain_tolerance&&true_tol[2]<=co_domain_tolerance;
+        
+        // Condition 2, zero_in = true, box inside eps-box and in this level,
+        // no box whose zero_in is true but box size larger than tolerance, can return
+       bool condition2=box_in&&this_level_less_tol;
+        if(!tol_condition){
+            this_level_less_tol=false;
+            // this level has at least one box whose size > tolerance, thus we 
+            // cannot directly return if find one box whose size < tolerance or box-in
+            // but  this_level_less_tol = false
+        }
+
+        // Condition 3, in this level, we find a box that zero-in and size < tolerance.
+        // and no other boxes whose zero-in is true in this level before this one is larger than tolerance, can return
+        bool condition3=this_level_less_tol;
         if (condition1||condition2||condition3) {
             TOI=current[0].first;
             collision=true;
@@ -1902,19 +1925,20 @@ bool interval_root_finder_double_horizontal_tree(
         
         if(max_itr>0){// if max_itr < 0, then stop until stack empty
             if(current_level!=level){
-                output_tolerance=current_tolerance;
-                current_tolerance=0;
+                // output_tolerance=current_tolerance;
+                // current_tolerance=0;
                 find_level_root=false;
             }
-            current_tolerance=std::max(
-            std::max(std::max(current_tolerance,true_tol[0]),true_tol[1]),true_tol[2]
-            );
+            // current_tolerance=std::max(
+            // std::max(std::max(current_tolerance,true_tol[0]),true_tol[1]),true_tol[2]
+            // );
             if(!find_level_root){
                 TOI=current[0].first;
                 // collision=true;
                 rnbr++;
                 // continue;
                 toi=Numccd2double(TOI)*impact_ratio;
+                output_tolerance=std::max(std::max(true_tol[0],true_tol[1]),true_tol[2]);
                 find_level_root=true;// this ensures always find the earlist root
 
             }
@@ -2558,7 +2582,7 @@ bool interval_root_finder_double_pre_check(
     
 }
 
-
+//DO NOT USE THIS VERSION, IT IS NOT COMPLETELY MODIFIED
 // this version can give the impact time at t=1.
 // max_itr is a user defined maximum iteration time. if < 0, then 
 // it will run until stack empty; otherwise the algorithm will stop when 
