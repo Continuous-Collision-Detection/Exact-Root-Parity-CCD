@@ -73,9 +73,10 @@ bool edgeEdgeCCD_opt(
 // precision. please set max_itr either a big number like 1e7, or -1 which means it will not be terminated
 // earlier and the precision will be user-defined precision -- tolerance.
 // output_tolerance is the precision under max_itr ( > 0). if max_itr < 0, output_tolerance = tolerance;
-// CCD_TYPE is a switch to choose root-finding methods. 0 is the normal CCD root finding which cannot be used 
-// for line - search; 1 is the un-optimized pre-check method which can be used for line - search; 2 is the method 
-// can be used for line - search, and has a user - input max_itr.
+// CCD_TYPE is a switch to choose root-finding methods. 
+// 0 is normal ccd without pre-check, 
+// 1 is ccd without pre-check, using real tolerance and horizontal tree,
+// 2 is ccd with pre-check, using real tolerance and  horizontal tree
 bool edgeEdgeCCD_double(
     const Eigen::Vector3d& a0s,
     const Eigen::Vector3d& a1s,
@@ -107,9 +108,10 @@ bool edgeEdgeCCD_double(
 // precision. please set max_itr either a big number like 1e7, or -1 which means it will not be terminated
 // earlier and the precision will be user-defined precision -- tolerance.
 // output_tolerance is the precision under max_itr ( > 0). if max_itr < 0, output_tolerance = tolerance;
-// CCD_TYPE is a switch to choose root-finding methods. 0 is the normal CCD root finding which cannot be used 
-// for line - search; 1 is the un-optimized pre-check method which can be used for line - search; 2 is the method 
-// can be used for line - search, and has a user - input max_itr.
+// CCD_TYPE is a switch to choose root-finding methods.
+// 0 is normal ccd without pre-check, 
+// 1 is ccd without pre-check, using real tolerance and horizontal tree,
+// 2 is ccd with pre-check, using real tolerance and  horizontal tree
 bool vertexFaceCCD_double(
     const Eigen::Vector3d& vertex_start,
     const Eigen::Vector3d& face_vertex0_start,

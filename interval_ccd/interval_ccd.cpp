@@ -859,9 +859,10 @@ bool edgeEdgeCCD_opt(
 // precision. please set max_itr either a big number like 1e7, or -1 which means it will not be terminated
 // earlier and the precision will be user-defined precision -- tolerance.
 // output_tolerance is the precision under max_itr ( > 0). if max_itr < 0, output_tolerance = tolerance;
-// CCD_TYPE is a switch to choose root-finding methods. 0 is the normal CCD root finding which cannot be used 
-// for line - search; 1 is the un-optimized pre-check method which can be used for line - search; 2 is the method 
-// can be used for line - search, and has a user - input max_itr.
+// CCD_TYPE is a switch to choose root-finding methods. 
+// 0 is normal ccd without pre-check, 
+// 1 is ccd without pre-check, using real tolerance and horizontal tree,
+// 2 is ccd with pre-check, using real tolerance and  horizontal tree
 bool edgeEdgeCCD_double(
     const Eigen::Vector3d& a0s,
     const Eigen::Vector3d& a1s,
@@ -909,19 +910,21 @@ bool edgeEdgeCCD_double(
     timer.start();
     bool is_impacting;
 
-    // 0 is normal ccd without pre-check, 1 is ccd with pre-check, 2 is ccd with pre-check and horizontal tree
+    // 0 is normal ccd without pre-check, 
+    // 1 is ccd without pre-check, using real tolerance and horizontal tree,
+    // 2 is ccd with pre-check, using real tolerance and  horizontal tree
     // int CCD_TYPE=2;
     if(CCD_TYPE==0){
         is_impacting = interval_root_finder_double_normalCCD(
         tol, toi, false, err1, ms,a0s, a1s, b0s, b1s, a0e, a1e, b0e, b1e);
     }
     if(CCD_TYPE==1){
-        is_impacting = interval_root_finder_double_pre_check(
-        tol, toi, false, err1, ms,a0s, a1s, b0s, b1s, a0e, a1e, b0e, b1e, pre_check_t);
+        is_impacting = interval_root_finder_double_horizontal_tree(
+        tol,tolerance, toi, false, err1, ms,a0s, a1s, b0s, b1s, a0e, a1e, b0e, b1e,false, pre_check_t,max_itr,output_tolerance);
     }
     if(CCD_TYPE==2){
         is_impacting = interval_root_finder_double_horizontal_tree(
-        tol,tolerance, toi, false, err1, ms,a0s, a1s, b0s, b1s, a0e, a1e, b0e, b1e, pre_check_t,max_itr,output_tolerance);
+        tol,tolerance, toi, false, err1, ms,a0s, a1s, b0s, b1s, a0e, a1e, b0e, b1e,true, pre_check_t,max_itr,output_tolerance);
     }
     
     time0 += timer.getElapsedTimeInMicroSec();
@@ -949,9 +952,10 @@ bool edgeEdgeCCD_double(
 // precision. please set max_itr either a big number like 1e7, or -1 which means it will not be terminated
 // earlier and the precision will be user-defined precision -- tolerance.
 // output_tolerance is the precision under max_itr ( > 0). if max_itr < 0, output_tolerance = tolerance;
-// CCD_TYPE is a switch to choose root-finding methods. 0 is the normal CCD root finding which cannot be used 
-// for line - search; 1 is the un-optimized pre-check method which can be used for line - search; 2 is the method 
-// can be used for line - search, and has a user - input max_itr.
+// CCD_TYPE is a switch to choose root-finding methods. 
+// 0 is normal ccd without pre-check, 
+// 1 is ccd without pre-check, using real tolerance and horizontal tree,
+// 2 is ccd with pre-check, using real tolerance and  horizontal tree
 bool vertexFaceCCD_double(
     const Eigen::Vector3d& vertex_start,
     const Eigen::Vector3d& face_vertex0_start,
@@ -1004,7 +1008,9 @@ bool vertexFaceCCD_double(
     timer.start();
     bool is_impacting;
 
-    // 0 is normal ccd without pre-check, 1 is ccd with pre-check, 2 is ccd with pre-check and horizontal tree
+    // 0 is normal ccd without pre-check, 
+    // 1 is ccd without pre-check, using real tolerance and horizontal tree,
+    // 2 is ccd with pre-check, using real tolerance and  horizontal tree
     // int CCD_TYPE=2;
     if(CCD_TYPE==0){
         is_impacting = interval_root_finder_double_normalCCD(
@@ -1013,16 +1019,16 @@ bool vertexFaceCCD_double(
         face_vertex2_end);
     }
     if(CCD_TYPE==1){
-        is_impacting = interval_root_finder_double_pre_check(
-        tol, toi, true, err1, ms,vertex_start, face_vertex0_start, face_vertex1_start,
+        is_impacting = interval_root_finder_double_horizontal_tree(
+        tol,tolerance, toi, true, err1, ms,vertex_start, face_vertex0_start, face_vertex1_start,
         face_vertex2_start, vertex_end, face_vertex0_end, face_vertex1_end,
-        face_vertex2_end, pre_check_t);
+        face_vertex2_end, false,  pre_check_t,max_itr,output_tolerance);
     }
     if(CCD_TYPE==2){
         is_impacting = interval_root_finder_double_horizontal_tree(
         tol,tolerance, toi, true, err1, ms,vertex_start, face_vertex0_start, face_vertex1_start,
         face_vertex2_start, vertex_end, face_vertex0_end, face_vertex1_end,
-        face_vertex2_end, pre_check_t,max_itr,output_tolerance);
+        face_vertex2_end, true,  pre_check_t,max_itr,output_tolerance);
     }
     // Return a conservative time-of-impact
     //    if (is_impacting) {

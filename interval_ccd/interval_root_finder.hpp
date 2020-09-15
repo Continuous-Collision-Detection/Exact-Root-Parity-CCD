@@ -127,6 +127,7 @@ bool interval_root_finder_double_horizontal_tree(
     const Eigen::Vector3d& a1e,
     const Eigen::Vector3d& b0e,
     const Eigen::Vector3d& b1e,
+    const bool pre_check_for_line_search,
     const double pre_check_t,
     const int max_itr,
     double &output_tolerance);
