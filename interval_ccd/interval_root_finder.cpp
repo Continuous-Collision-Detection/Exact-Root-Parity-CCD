@@ -1832,7 +1832,8 @@ bool interval_root_finder_double_horizontal_tree(
         impact_ratio=1;
     }
     toi=std::numeric_limits<double>::infinity();//set toi as infinate 
-    Numccd TOI; TOI.first=4;TOI.second=0;// set TOI as 4
+    Numccd TOI; TOI.first=4;TOI.second=0;// set TOI as 4. this is to record the impact time of this level
+    Numccd TOI_SKIP=TOI; // this is to record the element that already small enough or contained in eps-box
     //std::array<double,3> 
     bool collision=false;
     int rnbr=0;
@@ -1847,20 +1848,13 @@ bool interval_root_finder_double_horizontal_tree(
         current=istack.top().first;
         int level=istack.top().second;
         istack.pop();
-        // if(rnbr>0&&less_than( current[0].first,TOI)){
-        //     std::cout<<"not the first"<<std::endl;
-        //     // continue;
-        // }
-        // if(!less_than(current[0].first,TOI)){
-        //     std::cout<<"not the first"<<std::endl;
-        //     continue;
-        // }
-        //TOI should always be no larger than current
-        
-            
-        // if(Numccd2double(current[0].first)>=Numccd2double(TOI)){
-        //     std::cout<<"here wrong, comparing"<<std::endl;
-        // } 
+    
+
+        // if this box is later than TOI_SKIP in time, we can skip this one.
+        // TOI_SKIP is only updated when the box is small enough or totally contained in eps-box
+        if(!less_than(current[0].first,TOI_SKIP)){
+                continue;
+            }
         if(box_in_level!=level){// before check a new level, set this_level_less_tol=true
             box_in_level=level;
             this_level_less_tol=true;
@@ -1898,7 +1892,7 @@ bool interval_root_finder_double_horizontal_tree(
 
         bool tol_condition=true_tol[0]<=co_domain_tolerance&&true_tol[1]<=co_domain_tolerance&&true_tol[2]<=co_domain_tolerance;
         
-        // Condition 1, stopping condition on t, u and v is satisfied
+        // Condition 1, stopping condition on t, u and v is satisfied. this is useless now since we have condition 2
         bool condition1=(widths.array() <= tol.array()).all();
         
         // Condition 2, zero_in = true, box inside eps-box and in this level,
@@ -1908,7 +1902,6 @@ bool interval_root_finder_double_horizontal_tree(
             this_level_less_tol=false;
             // this level has at least one box whose size > tolerance, thus we 
             // cannot directly return if find one box whose size < tolerance or box-in
-            // but  this_level_less_tol = false
         }
 
         // Condition 3, in this level, we find a box that zero-in and size < tolerance.
@@ -1927,6 +1920,7 @@ bool interval_root_finder_double_horizontal_tree(
             if(current_level!=level){
                 // output_tolerance=current_tolerance;
                 // current_tolerance=0;
+                current_level=level;
                 find_level_root=false;
             }
             // current_tolerance=std::max(
@@ -1949,6 +1943,16 @@ bool interval_root_finder_double_horizontal_tree(
             }
             // get the time of impact down here
         }
+
+        // if this box is small enough, or inside of eps-box, then just continue, 
+        // but we need to record the collision time
+        if(tol_condition||box_in){
+            if(less_than(current[0].first,TOI_SKIP)){
+                TOI_SKIP=current[0].first;
+            }
+            continue;
+        }
+
 
         std::array<bool , 3> check;
         Eigen::VectorX3d widthratio;
