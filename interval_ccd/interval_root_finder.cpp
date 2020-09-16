@@ -1907,13 +1907,15 @@ bool interval_root_finder_double_horizontal_tree(
         // Condition 3, in this level, we find a box that zero-in and size < tolerance.
         // and no other boxes whose zero-in is true in this level before this one is larger than tolerance, can return
         bool condition3=this_level_less_tol;
-        if (condition1||condition2||condition3) {
+        if (condition1||condition2||condition3) { 
             TOI=current[0].first;
             collision=true;
             rnbr++;
             // continue;
             toi=Numccd2double(TOI)*impact_ratio;
             return true;
+            // we don't need to compare with TOI_SKIP because we already continue 
+            // when t>=TOI_SKIP
         }
         
         if(max_itr>0){// if max_itr < 0, then stop until stack empty
