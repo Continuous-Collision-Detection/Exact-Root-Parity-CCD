@@ -1133,6 +1133,88 @@ bool Origin_in_function_bounding_box_Rational(
     
 }
 
+// can be used for minumum seperation. in that case, box will be ms-box instead of ms+err-box
+bool Origin_in_function_bounding_box_Rational_return_tolerance(
+    const Interval3& paras,
+    const Eigen::Vector3d& a0s,
+    const Eigen::Vector3d& a1s,
+    const Eigen::Vector3d& b0s,
+    const Eigen::Vector3d& b1s,
+    const Eigen::Vector3d& a0e,
+    const Eigen::Vector3d& a1e,
+    const Eigen::Vector3d& b0e,
+    const Eigen::Vector3d& b1e,
+    const bool check_vf,
+    const std::array<double,3>& box, bool &box_in_eps, 
+    std::array<double,3> &tolerance){
+    //igl::Timer timer;
+    std::array<Numccd,2> t,u,v;
+    box_in_eps=true;
+    t[0]=paras[0].first;
+    t[1]=paras[0].second;
+    u[0]=paras[1].first;
+    u[1]=paras[1].second;
+    v[0]=paras[2].first;
+    v[1]=paras[2].second;
+    //std::cout<<"t, ["<<t[0].first/pow(2,t[0].second)<<","<<t[1].first/pow(2,t[1].second)<<"]"<<std::endl;
+    //std::cout<<"u, ["<<u[0].first/pow(2,u[0].second)<<","<<u[1].first/pow(2,u[1].second)<<"]"<<std::endl;
+    //std::cout<<"v, ["<<v[0].first/pow(2,v[0].second)<<","<<v[1].first/pow(2,v[1].second)<<"]"<<std::endl<<std::endl;
+    Vector3r minv, maxv;
+    std::array<Vector3r,8> pts;
+    int c=0;
+    for(int i=0;i<2;i++){
+        for(int j=0;j<2;j++){
+            for(int k=0;k<2;k++){
+                //std::cout<<"c="<<c<<std::endl;
+                if(!check_vf){
+                    //std::cout<<"ee"<<std::endl;
+                    pts[c]=function_f_ee_Rational(t[i],u[j],v[k],a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
+                }
+                else{
+                    pts[c]=function_f_vf_Rational(t[i],u[j],v[k],a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e);
+                }
+                
+                c++;
+            }
+        }
+    }
+    minv=pts[0]; maxv=pts[0];
+    for(int i=0;i<8;i++){
+        if(minv[0]>pts[i][0]){
+            minv[0]=pts[i][0];
+        }
+        if(minv[1]>pts[i][1]){
+            minv[1]=pts[i][1];
+        }
+        if(minv[2]>pts[i][2]){
+            minv[2]=pts[i][2];
+        }
+        if(maxv[0]<pts[i][0]){
+            maxv[0]=pts[i][0];
+        }
+        if(maxv[1]<pts[i][1]){
+            maxv[1]=pts[i][1];
+        }
+        if(maxv[2]<pts[i][2]){
+            maxv[2]=pts[i][2];
+        }
+    }
+    for(int i=0;i<3;i++){
+        if(maxv[i]>box[i]||minv[i]<-box[i]){
+            box_in_eps=false;
+        }
+        tolerance[i]=(maxv[i]-minv[i]).to_double();
+    }
+    for(int i=0;i<3;i++){
+        if(maxv[i]<-box[i]||minv[i]>box[i]){
+            return false;
+        }
+        
+    }
+    return true;
+    
+}
+
 bool Origin_in_function_bounding_box_Rational(
     const std::array<std::pair<Rational,Rational>, 3>& paras,
     const Eigen::Vector3d& a0s,
@@ -1792,6 +1874,9 @@ bool interval_root_finder_double_horizontal_tree(
         // if max_itr <0, output_tolerance= co_domain_tolerance;
         // else, output_tolearancewill be the precision after iteration time > max_itr
         output_tolerance= co_domain_tolerance; 
+
+        // this is used to catch the tolerance for each level
+        double temp_output_tolerance=co_domain_tolerance;
         //return time1 >= time2
     auto time_cmp = [](std::pair<Interval3,int> i1, std::pair<Interval3,int> i2) { 
         return !(less_than(i1.first[0].first, i2.first[0].first));
@@ -1832,8 +1917,11 @@ bool interval_root_finder_double_horizontal_tree(
         impact_ratio=1;
     }
     toi=std::numeric_limits<double>::infinity();//set toi as infinate 
+    // temp_toi is to catch the toi of each level
+    double temp_toi=toi;
     Numccd TOI; TOI.first=4;TOI.second=0;// set TOI as 4. this is to record the impact time of this level
     Numccd TOI_SKIP=TOI; // this is to record the element that already small enough or contained in eps-box
+    bool use_skip=false; // this is to record if TOI_SKIP is used.
     //std::array<double,3> 
     bool collision=false;
     int rnbr=0;
@@ -1868,18 +1956,20 @@ bool interval_root_finder_double_horizontal_tree(
         bool zero_in;
        bool box_in;
        std::array<double,3> true_tol;
+#ifdef COMPARE_WITH_RATIONAL// this is defined in the begining of this file
+        std::array<double,3> ms_3d;
+        ms_3d[0]=ms;ms_3d[1]=ms;ms_3d[2]=ms;
+        zero_in=Origin_in_function_bounding_box_Rational_return_tolerance(current,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,check_vf,err_and_ms,box_in,true_tol);
+
+#else
         zero_in= Origin_in_function_bounding_box_double_vector_return_tolerance(current,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,check_vf,err_and_ms,box_in,true_tol);
-        
+#endif   
 #ifdef USE_TIMER
     
         timer.stop();
         time20+=timer.getElapsedTimeInMicroSec();
 #endif
-#ifdef COMPARE_WITH_RATIONAL// this is defined in the begining of this file
-        
-        zero_in=Origin_in_function_bounding_box_Rational(current,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,check_vf);
 
-#endif
         if(!zero_in) continue;
 #ifdef USE_TIMER
         timer.start();
@@ -1933,12 +2023,17 @@ bool interval_root_finder_double_horizontal_tree(
                 // collision=true;
                 rnbr++;
                 // continue;
-                toi=Numccd2double(TOI)*impact_ratio;
-                output_tolerance=std::max(std::max(true_tol[0],true_tol[1]),true_tol[2]);
+                temp_toi=Numccd2double(TOI)*impact_ratio;
+
+                // if the real tolerance is larger than input, use the real one;
+                // if the real tolerance is smaller than input, use input
+                temp_output_tolerance=std::max(std::max(std::max(true_tol[0],true_tol[1]),true_tol[2]),co_domain_tolerance);
                 find_level_root=true;// this ensures always find the earlist root
 
             }
             if(refine>max_itr){
+                toi=temp_toi;    
+                output_tolerance=temp_output_tolerance;
                 refine_return++;
                 // std::cout<<"return from refine"<<std::endl;
                 return true;
@@ -1952,6 +2047,7 @@ bool interval_root_finder_double_horizontal_tree(
             if(less_than(current[0].first,TOI_SKIP)){
                 TOI_SKIP=current[0].first;
             }
+            use_skip=true;
             continue;
         }
 
@@ -2087,6 +2183,11 @@ bool interval_root_finder_double_horizontal_tree(
             
         }
 
+    }
+
+    if(use_skip){
+        toi=Numccd2double(TOI_SKIP)*impact_ratio;
+        return true;
     }
     
     return false;
