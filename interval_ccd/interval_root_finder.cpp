@@ -1843,12 +1843,13 @@ void t_tol_width( Numccd&x, const double tol){
   
 }
 
+// when check_t_overlap = false, check [0,1]x[0,1]x[0,1]; otherwise, check [0, t_max]x[0,1]x[0,1]
 bool interval_root_finder_double_horizontal_tree(
     const Eigen::VectorX3d& tol,
     const double co_domain_tolerance,
     const Interval3 &iset,
-    const bool pre_check_for_line_search,
-    const bool checking_tail,
+    const bool check_t_overlap,
+    const double max_t,// check interval [0, max_t] when check_t_overlap is set as TRUE
     //Eigen::VectorX3I& x,// result interval
     // Interval3& final,
     double& toi,
@@ -1863,15 +1864,9 @@ bool interval_root_finder_double_horizontal_tree(
     const Eigen::Vector3d& a1e,
     const Eigen::Vector3d& b0e,
     const Eigen::Vector3d& b1e,
-    const double pre_check_t,
     const int max_itr,
     double &output_tolerance){
-        if(!pre_check_for_line_search){
-            if(checking_tail){
-                std::cout<<"ERROR, pre_check_for_line_search = false and checking_tail = true is invalid input combination "<<std::endl;
-                exit(0);
-            }
-        }
+        
         // if max_itr <0, output_tolerance= co_domain_tolerance;
         // else, output_tolearancewill be the precision after iteration time > max_itr
         output_tolerance= co_domain_tolerance; 
@@ -1907,12 +1902,9 @@ bool interval_root_finder_double_horizontal_tree(
     Interval3 current;
     refine=0;
     double impact_ratio;
-    if(pre_check_for_line_search){
-        impact_ratio=1/(1+2*tol(0)+pre_check_t);
-    }
-    else{
-        impact_ratio=1;
-    }
+
+    impact_ratio=1;
+    
     toi=std::numeric_limits<double>::infinity();//set toi as infinate 
     // temp_toi is to catch the toi of each level
     double temp_toi=toi;
@@ -1928,7 +1920,7 @@ bool interval_root_finder_double_horizontal_tree(
     bool this_level_less_tol=true;
     bool find_level_root=false; 
     // double current_tolerance=std::numeric_limits<double>::infinity(); // set returned tolerance as infinite
-    double t_upper_bound=1+2*tol(0)+pre_check_t;// 2*tol make it more conservative
+    double t_upper_bound=max_t;// 2*tol make it more conservative
     while(!istack.empty()){
         current=istack.top().first;
         int level=istack.top().second;
@@ -2140,12 +2132,12 @@ bool interval_root_finder_double_horizontal_tree(
 
             }
             if(split_i==0){
-                if(checking_tail){
-                    if(interval_overlap_region(halves.second,1,t_upper_bound)){
+                if(check_t_overlap){
+                    if(interval_overlap_region(halves.second,0,t_upper_bound)){
                         current[split_i] = halves.second;
                         istack.emplace(current,  level+1);
                     }
-                    if(interval_overlap_region(halves.first,1,t_upper_bound)){
+                    if(interval_overlap_region(halves.first,0,t_upper_bound)){
                         current[split_i] = halves.first;
                         istack.emplace(current,  level+1);
                     }
@@ -2161,12 +2153,12 @@ bool interval_root_finder_double_horizontal_tree(
             
         }
         else{
-            if(checking_tail&&split_i==0){
-                if(interval_overlap_region(halves.second,1,t_upper_bound)){
+            if(check_t_overlap&&split_i==0){
+                if(interval_overlap_region(halves.second,0,t_upper_bound)){
                     current[split_i] = halves.second;
                     istack.emplace(current,  level+1);
                 }
-                if(interval_overlap_region(halves.first,1,t_upper_bound)){
+                if(interval_overlap_region(halves.first,0,t_upper_bound)){
                     current[split_i] = halves.first;
                     istack.emplace(current,  level+1);
                 }
@@ -2197,7 +2189,7 @@ bool interval_root_finder_double_horizontal_tree(
     // Interval3& final,
     double& toi,
     const bool check_vf,
-    const std::array<double,3> err,
+    const std::array<double,3> err,// this is the maximum error on each axis when calculating the vertices, err, aka, filter
     const double ms,
     const Eigen::Vector3d& a0s,
     const Eigen::Vector3d& a1s,
@@ -2207,16 +2199,13 @@ bool interval_root_finder_double_horizontal_tree(
     const Eigen::Vector3d& a1e,
     const Eigen::Vector3d& b0e,
     const Eigen::Vector3d& b1e,
-    const bool pre_check_for_line_search,
-    const double pre_check_t,
+    const double max_time,
     const int max_itr,
     double &output_tolerance
     ){
 
-    // bool pre_check_for_line_search= false;
+    bool check_t_overlap=max_time==1?false:true;// if input max_time = 1, then no need to check overlap
     
-    
-    bool checking_tail= false;
     Numccd low_number; low_number.first=0; low_number.second=0;// low_number=0;
     Numccd up_number; up_number.first=1; up_number.second=0;// up_number=1;
     // initial interval [0,1]
@@ -2226,38 +2215,14 @@ bool interval_root_finder_double_horizontal_tree(
     iset[0]=init_interval;iset[1]=init_interval;iset[2]=init_interval;
 
     bool result = interval_root_finder_double_horizontal_tree(
-    tol,co_domain_tolerance,iset,pre_check_for_line_search,checking_tail,toi,check_vf,
-    err,ms,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,pre_check_t,max_itr,output_tolerance);
+    tol,co_domain_tolerance,iset,check_t_overlap,max_time,toi,check_vf,
+    err,ms,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,max_itr,output_tolerance);
     if (result) 
         return true;
 
 
-    if(!pre_check_for_line_search){
-        return false;
-    }
     
-    
-    // check for line - search tail
-    
-    checking_tail= true;
-
-    
-    if(pre_check_t>1||pre_check_t<0){
-        std::cout<<"ERROR: PRE_CHECK_T SHOULD IN [0,1], but the input is,"<<pre_check_t<<std::endl;
-    }
-
-    //TODO need to reset current level
-    
-    Numccd new_up;
-    new_up.first=2;
-    new_up.second=0;// new_up=2
-    //set iset=[1,2]
-    iset[0].first=up_number;//t0=1;
-    iset[0].second=new_up;//t1=2
-     bool result_tail = interval_root_finder_double_horizontal_tree(
-    tol,co_domain_tolerance,iset,pre_check_for_line_search,checking_tail,toi,check_vf,
-    err,ms,a0s,a1s,b0s,b1s,a0e,a1e,b0e,b1e,pre_check_t,max_itr,output_tolerance);
-    return result_tail;
+    return false;
 
     }
 

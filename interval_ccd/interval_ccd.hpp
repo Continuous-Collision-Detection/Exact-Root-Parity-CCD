@@ -67,16 +67,14 @@ bool edgeEdgeCCD_opt(
 // ms is the minimum seperation. should set: ms < max(abs(x),1), ms < max(abs(y),1), ms < max(abs(z),1) of the QUERY (NOT THE SCENE!).
 // toi is the earlist time of collision if collision happens. If there is no collision, toi will be infinate.
 // tolerance is a user - input solving precision. we suggest to use 1e-6.
-// pre_check_t is a number that allows you to check collision for time =[0, 1+2*tol_x+pre],
-// to avoid collision time = 0 for next time step, which is useful in simulations using line-search
+// t_max is the upper bound of the time interval [0,t_max] to be checked. 0<=t_max<=1
 // max_itr is a user-defined value to terminate the algorithm earlier, and return a result under current 
 // precision. please set max_itr either a big number like 1e7, or -1 which means it will not be terminated
 // earlier and the precision will be user-defined precision -- tolerance.
 // output_tolerance is the precision under max_itr ( > 0). if max_itr < 0, output_tolerance = tolerance;
 // CCD_TYPE is a switch to choose root-finding methods. 
-// 0 is normal ccd without pre-check, 
-// 1 is ccd without pre-check, using real tolerance and horizontal tree,
-// 2 is ccd with pre-check, using real tolerance and  horizontal tree
+// 0 is normal ccd, 
+// 1 is ccd with input time interval upper bound, using real tolerance, max_itr and horizontal tree,
 bool edgeEdgeCCD_double(
     const Eigen::Vector3d& a0s,
     const Eigen::Vector3d& a1s,
@@ -90,7 +88,7 @@ bool edgeEdgeCCD_double(
     const double ms,
     double& toi,
     const double tolerance,
-    const double pre_check_t,
+    const double t_max,
     const int max_itr,
     double &output_tolerance,
     const int CCD_TYPE);
@@ -102,16 +100,14 @@ bool edgeEdgeCCD_double(
 // ms is the minimum seperation. should set: ms < max(abs(x),1), ms < max(abs(y),1), ms < max(abs(z),1) of the QUERY (NOT THE SCENE!).
 // toi is the earlist time of collision if collision happens. If there is no collision, toi will be infinate.
 // tolerance is a user - input solving precision. we suggest to use 1e-6.
-// pre_check_t is a number that allows you to check collision for time =[0, 1+2*tol_x+pre],
-// to avoid collision time = 0 for next time step, which is useful in simulations using line-search
+// t_max is the upper bound of the time interval [0,t_max] to be checked. 0<=t_max<=1
 // max_itr is a user-defined value to terminate the algorithm earlier, and return a result under current 
 // precision. please set max_itr either a big number like 1e7, or -1 which means it will not be terminated
 // earlier and the precision will be user-defined precision -- tolerance.
 // output_tolerance is the precision under max_itr ( > 0). if max_itr < 0, output_tolerance = tolerance;
-// CCD_TYPE is a switch to choose root-finding methods.
-// 0 is normal ccd without pre-check, 
-// 1 is ccd without pre-check, using real tolerance and horizontal tree,
-// 2 is ccd with pre-check, using real tolerance and  horizontal tree
+// CCD_TYPE is a switch to choose root-finding methods. 
+// 0 is normal ccd, 
+// 1 is ccd with input time interval upper bound, using real tolerance, max_itr and horizontal tree,
 bool vertexFaceCCD_double(
     const Eigen::Vector3d& vertex_start,
     const Eigen::Vector3d& face_vertex0_start,
@@ -122,10 +118,10 @@ bool vertexFaceCCD_double(
     const Eigen::Vector3d& face_vertex1_end,
     const Eigen::Vector3d& face_vertex2_end,
     const std::array<double, 3>& err,
-    const double ms,//TODO maybe add an assertion to check if ms is too big?
+    const double ms,
     double& toi,
     const double tolerance,
-    const double pre_check_t,
+    const double t_max,
     const int max_itr,
     double &output_tolerance,
     const int CCD_TYPE);

@@ -84,31 +84,31 @@ bool interval_root_finder_double_normalCCD(
 // returned time t will be smaller than real impact time t.
 // it uses interval [0, 1+2*tol(t)+pre_check_t] instead of [0,1]
 // 0<=pre_check_t <=1
-bool interval_root_finder_double_pre_check(
-    const Eigen::VectorX3d& tol,
-    // Eigen::VectorX3I& x,// result interval
-    // Interval3& final,
-    double& toi,
-    const bool check_vf,
-    const std::array<double, 3> err,
-    const double ms,
+// bool interval_root_finder_double_pre_check(
+//     const Eigen::VectorX3d& tol,
+//     // Eigen::VectorX3I& x,// result interval
+//     // Interval3& final,
+//     double& toi,
+//     const bool check_vf,
+//     const std::array<double, 3> err,
+//     const double ms,
     
-    const Eigen::Vector3d& a0s,
-    const Eigen::Vector3d& a1s,
-    const Eigen::Vector3d& b0s,
-    const Eigen::Vector3d& b1s,
-    const Eigen::Vector3d& a0e,
-    const Eigen::Vector3d& a1e,
-    const Eigen::Vector3d& b0e,
-    const Eigen::Vector3d& b1e,
-    const double pre_check_t=0);
+//     const Eigen::Vector3d& a0s,
+//     const Eigen::Vector3d& a1s,
+//     const Eigen::Vector3d& b0s,
+//     const Eigen::Vector3d& b1s,
+//     const Eigen::Vector3d& a0e,
+//     const Eigen::Vector3d& a1e,
+//     const Eigen::Vector3d& b0e,
+//     const Eigen::Vector3d& b1e,
+//     const double pre_check_t=0);
 
-// this version can give the impact time at t=1.
+// this version cannot give the impact time at t=1.
 // max_itr is a user defined maximum iteration time. if < 0, then 
 // it will run until stack empty; otherwise the algorithm will stop when 
 // iteration time reaches max_itr, and return a solution precision output_tolerance
-// it uses interval t = [0, 1+2*tol(t)+pre_check_t] instead of t = [0,1]
-// 0<=pre_check_t <=1
+// it uses interval t = [0, max_time] instead of t = [0,1]
+// 0<=max_time <=1
 // tree searching order is horizontal
 bool interval_root_finder_double_horizontal_tree(
     const Eigen::VectorX3d& tol,
@@ -117,7 +117,7 @@ bool interval_root_finder_double_horizontal_tree(
     // Interval3& final,
     double& toi,
     const bool check_vf,
-    const std::array<double,3> err,
+    const std::array<double,3> err,// this is the maximum error on each axis when calculating the vertices, err, aka, filter
     const double ms,
     const Eigen::Vector3d& a0s,
     const Eigen::Vector3d& a1s,
@@ -127,10 +127,10 @@ bool interval_root_finder_double_horizontal_tree(
     const Eigen::Vector3d& a1e,
     const Eigen::Vector3d& b0e,
     const Eigen::Vector3d& b1e,
-    const bool pre_check_for_line_search,
-    const double pre_check_t,
+    const double max_time,
     const int max_itr,
-    double &output_tolerance);
+    double &output_tolerance
+    );
 // return power t. n=result*2^t
 long reduction(const long n, long& result);
 std::pair<Singleinterval, Singleinterval> bisect(const Singleinterval& inter);
