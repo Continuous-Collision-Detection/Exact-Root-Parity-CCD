@@ -23,14 +23,14 @@ if(NOT TARGET igl)
 endif()
 
 # HDF5 Reader
-if(NOT TARGET HighFive::HighFive)
-  option(HIGHFIVE_UNIT_TESTS "Enable unit tests" OFF)
-  option(HIGHFIVE_EXAMPLES "Compile examples" OFF)
-  set(USE_EIGEN TRUE CACHE BOOL "Enable Eigen testing" FORCE)
-  ccd_download_high_five()
-  add_subdirectory(${CCD_EXTERNAL}/HighFive EXCLUDE_FROM_ALL)
-  add_library(HighFive::HighFive ALIAS HighFive)
-endif()
+# if(NOT TARGET HighFive::HighFive)
+#   option(HIGHFIVE_UNIT_TESTS "Enable unit tests" OFF)
+#   option(HIGHFIVE_EXAMPLES "Compile examples" OFF)
+#   set(USE_EIGEN TRUE CACHE BOOL "Enable Eigen testing" FORCE)
+#   ccd_download_high_five()
+#   add_subdirectory(${CCD_EXTERNAL}/HighFive EXCLUDE_FROM_ALL)
+#   add_library(HighFive::HighFive ALIAS HighFive)
+# endif()
 
 
 #GMP

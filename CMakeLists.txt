@@ -95,27 +95,27 @@ target_link_libraries(${PROJECT_NAME}_double PUBLIC ${GMP_LIBRARIES})
 # Interval CCD
 ################################################################################
 
-add_subdirectory(interval_ccd)
-prepend_current_path(INTERVAL_SOURCES)
-intervalCCD_copy_headers(${INTERVAL_SOURCES})
-CCD_set_source_group(${INTERVAL_SOURCES})
-add_library(${PROJECT_NAME}_interval ${INTERVAL_SOURCES})
-target_include_directories(${PROJECT_NAME}_interval PUBLIC ${PROJECT_BINARY_DIR}/include)
-target_include_directories(${PROJECT_NAME}_interval PUBLIC interval_ccd)
+# add_subdirectory(interval_ccd)
+# prepend_current_path(INTERVAL_SOURCES)
+# intervalCCD_copy_headers(${INTERVAL_SOURCES})
+# CCD_set_source_group(${INTERVAL_SOURCES})
+# add_library(${PROJECT_NAME}_interval ${INTERVAL_SOURCES})
+# target_include_directories(${PROJECT_NAME}_interval PUBLIC ${PROJECT_BINARY_DIR}/include)
+# target_include_directories(${PROJECT_NAME}_interval PUBLIC interval_ccd)
 
-# boost
-find_package(Boost REQUIRED)
-target_link_libraries(${PROJECT_NAME}_interval PUBLIC Boost::boost)
+# # boost
+# find_package(Boost REQUIRED)
+# target_link_libraries(${PROJECT_NAME}_interval PUBLIC Boost::boost)
 
-# libigl
-target_link_libraries(${PROJECT_NAME}_interval PUBLIC igl::core igl::predicates)
+# # libigl
+# target_link_libraries(${PROJECT_NAME}_interval PUBLIC igl::core igl::predicates)
 
-# Extra warnings
-target_link_libraries(${PROJECT_NAME}_interval PRIVATE warnings::all)
+# # Extra warnings
+# target_link_libraries(${PROJECT_NAME}_interval PRIVATE warnings::all)
 
-#GMP
-target_include_directories(${PROJECT_NAME}_interval PUBLIC ${GMP_INCLUDE_DIRS} src)
-target_link_libraries(${PROJECT_NAME}_interval PUBLIC ${GMP_LIBRARIES})
+# #GMP
+# target_include_directories(${PROJECT_NAME}_interval PUBLIC ${GMP_INCLUDE_DIRS} src)
+# target_link_libraries(${PROJECT_NAME}_interval PUBLIC ${GMP_LIBRARIES})
 
 ################################################################################
 # Executable
@@ -125,17 +125,17 @@ if(CCD_TOPLEVEL_PROJECT AND CCD_BUILD_RATIONAL)
   add_executable(${PROJECT_NAME}_bin
     # Add executable source here
     src/main.cpp
-    src/read_collision_data.cpp
+    # src/read_collision_data.cpp
   )
 
-  target_link_libraries(${PROJECT_NAME}_bin PUBLIC HighFive::HighFive)
+  # target_link_libraries(${PROJECT_NAME}_bin PUBLIC HighFive::HighFive)
 
   target_link_libraries(${PROJECT_NAME}_bin PUBLIC ${PROJECT_NAME}_rational)
   target_link_libraries(${PROJECT_NAME}_bin PUBLIC ${PROJECT_NAME}_double)
-  target_link_libraries(${PROJECT_NAME}_bin PUBLIC ${PROJECT_NAME}_interval)
+  # target_link_libraries(${PROJECT_NAME}_bin PUBLIC ${PROJECT_NAME}_interval)
   # WARNING: This requires a check  as it will break compatability with non-AVX
   #          processors.
-  target_compile_options(CCD_interval PUBLIC "-mavx2")
+  # target_compile_options(CCD_interval PUBLIC "-mavx2")
   set(DATA_PATH "${CMAKE_CURRENT_SOURCE_DIR}/data/")
   target_compile_definitions(${PROJECT_NAME}_bin PUBLIC -DCCD_DATA_PATH=\"${DATA_PATH}\")
 endif()

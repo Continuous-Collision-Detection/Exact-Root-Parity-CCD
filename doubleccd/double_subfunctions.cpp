@@ -615,40 +615,40 @@ double get_whole_mesh_shifted(
 }
 
 // x0 is the point, x1, x2, x3 is the triangle
-double get_whole_mesh_shifted(
-    const std::vector<vf_pair>& data1,
-    const std::vector<ee_pair>& data2,
-    Eigen::MatrixX3d& vertices)
-{
-    std::vector<std::pair<double, double>> whole, suback;
+// double get_whole_mesh_shifted(
+//     const std::vector<vf_pair>& data1,
+//     const std::vector<ee_pair>& data2,
+//     Eigen::MatrixX3d& vertices)
+// {
+//     // std::vector<std::pair<double, double>> whole, suback;
 
-    push_vers_into_subtract_pair(data1, data2, suback);
-    int subsize = suback.size();
-    push_mesh_vers_into_sub_pair(vertices, whole);
-    // suback = sub;// this is for shift back
-    // k = displaceSubtractions_double(sub);
-    suback.insert(suback.end(), whole.begin(), whole.end());
-    perturbSubtractions(suback); // get shifted back data
+//     // push_vers_into_subtract_pair(data1, data2, suback);
+//     // int subsize = suback.size();
+//     // push_mesh_vers_into_sub_pair(vertices, whole);
+//     // // suback = sub;// this is for shift back
+//     // // k = displaceSubtractions_double(sub);
+//     // suback.insert(suback.end(), whole.begin(), whole.end());
+//     // perturbSubtractions(suback); // get shifted back data
 
-    std::vector<std::pair<double, double>> vernew;
-    vernew.resize(vertices.size());
-    int c = 0;
-    for (int i = subsize; i < suback.size(); i++) {
-        vernew[c] = suback[i];
-        c++;
-    }
-    assert(whole.size() == vernew.size());
-    double err = 0;
-    for (int i = 0; i < whole.size(); i++) {
-        if (fabs(whole[i].first - vernew[i].first) > err) {
-            err = fabs(whole[i].first - vernew[i].first);
-        }
-    }
+//     // std::vector<std::pair<double, double>> vernew;
+//     // vernew.resize(vertices.size());
+//     // int c = 0;
+//     // for (int i = subsize; i < suback.size(); i++) {
+//     //     vernew[c] = suback[i];
+//     //     c++;
+//     // }
+//     // assert(whole.size() == vernew.size());
+//     double err = 0;
+//     // for (int i = 0; i < whole.size(); i++) {
+//     //     if (fabs(whole[i].first - vernew[i].first) > err) {
+//     //         err = fabs(whole[i].first - vernew[i].first);
+//     //     }
+//     // }
 
-    convert_sub_pairs_to_mesh_vers(vernew, vertices);
+//     // convert_sub_pairs_to_mesh_vers(vernew, vertices);
 
-    return err;
-}
+//     return err;
+// }
 
 double shift_vertex_face(const vf_pair& input_vf_pair, vf_pair& shifted_vf_pair)
 {
@@ -738,7 +738,17 @@ bool have_no_truncation(const Vector3d&p1,const Vector3d&p2){
     for (int i=0;i<3;i++){
         double x=p1[i]-p2[i];
         Rational xr=Rational(p1[i])-Rational(p2[i]);
-        if(xr>x||xr<x) return false;
+        if(xr>x||xr<x) {
+            std::cout<<"double, "<<x<<std::endl;
+            std::cout<<"rational, "<<xr<<std::endl;
+            if(xr>x){
+                std::cout<<"larger"<<std::endl;
+            }
+            if(xr<x){
+                std::cout<<"smaller"<<std::endl;
+            }
+            std::cout<<"diff,"<<xr-x<<std::endl;
+            return false;}
     }
     return true;
 
