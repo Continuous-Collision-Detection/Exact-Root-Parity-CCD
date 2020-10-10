@@ -21,8 +21,8 @@ bool vertexFaceCCD(
     //std::cout<<"ori 0 "<<orient3d(Vector3r(0,0,0),vfprism.p_vertices[0],vfprism.p_vertices[1],vfprism.p_vertices[2])<<std::endl;
     //std::cout<<"ori 1 "<<orient3d(Vector3r(0,0,0),vfprism.p_vertices[3],vfprism.p_vertices[4],vfprism.p_vertices[5])<<std::endl;
     // step 1. bounding box checking
-    Vector3r bmin(-minimum_distance, -minimum_distance, -minimum_distance),
-        bmax(minimum_distance, minimum_distance, minimum_distance);
+    Vector3r bmin(0, 0, 0),
+        bmax(0, 0, 0);
     bool intersection = vfprism.is_prism_bbox_cut_bbox(bmin, bmax);
     if (!intersection){
         //std::cout<<"bounding box not intersected"<<std::endl;
@@ -31,7 +31,15 @@ bool vertexFaceCCD(
 
          return false; // if bounding box not intersected, then not intersected
     }
-       
+    bilinear bl0(
+        vfprism.p_vertices[0], vfprism.p_vertices[1], vfprism.p_vertices[4],
+        vfprism.p_vertices[3]);
+    bilinear bl1(
+        vfprism.p_vertices[1], vfprism.p_vertices[2], vfprism.p_vertices[5],
+        vfprism.p_vertices[4]);
+    bilinear bl2(
+        vfprism.p_vertices[0], vfprism.p_vertices[2], vfprism.p_vertices[5],
+        vfprism.p_vertices[3]);   
 
     // step 2. prism edges & prism bottom triangles check
     // prism edges test, segment degenerate cases already handled
@@ -66,15 +74,7 @@ bool vertexFaceCCD(
     std::array<std::array<bool, 8>, 3>
         v_tet; // cube vertices - tets positions
                
-    bilinear bl0(
-        vfprism.p_vertices[0], vfprism.p_vertices[1], vfprism.p_vertices[4],
-        vfprism.p_vertices[3]);
-    bilinear bl1(
-        vfprism.p_vertices[1], vfprism.p_vertices[2], vfprism.p_vertices[5],
-        vfprism.p_vertices[4]);
-    bilinear bl2(
-        vfprism.p_vertices[0], vfprism.p_vertices[2], vfprism.p_vertices[5],
-        vfprism.p_vertices[3]);
+    
     std::array<bilinear, 3> bls = { { bl0, bl1, bl2 } };
     bool cube_inter_tet[3];
     if (is_cube_intersect_tet_opposite_faces(

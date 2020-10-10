@@ -586,7 +586,7 @@ void case_check(){
     shift_vertex_face(dt,dtshift);
     dt=dtshift;
     bool res=doubleccd::vertexFaceCCD(
-        dt.x0,dt.x1,dt.x2,dt.x3,dt.x0b,dt.x1b,dt.x2b,dt.x3b,0
+        dt.x0,dt.x1,dt.x2,dt.x3,dt.x0b,dt.x1b,dt.x2b,dt.x3b
     );
     std::cout<<"the ccd result is "<<res<<std::endl;
 }

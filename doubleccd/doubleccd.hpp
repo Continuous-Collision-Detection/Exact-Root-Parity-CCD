@@ -36,8 +36,7 @@ bool vertexFaceCCD(
     const Vector3d& vertex_end,
     const Vector3d& face_vertex0_end,
     const Vector3d& face_vertex1_end,
-    const Vector3d& face_vertex2_end,
-    const double minimum_distance);
+    const Vector3d& face_vertex2_end);
 
 /**
  * @brief Detect collisions between two edges as they move.
@@ -73,8 +72,7 @@ bool edgeEdgeCCD(
     const Vector3d& edge0_vertex0_end,
     const Vector3d& edge0_vertex1_end,
     const Vector3d& edge1_vertex0_end,
-    const Vector3d& edge1_vertex1_end,
-    const double minimum_distance);
+    const Vector3d& edge1_vertex1_end);
 
 void test();
 

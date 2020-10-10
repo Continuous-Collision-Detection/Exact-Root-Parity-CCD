@@ -40,7 +40,7 @@ TEST_CASE(
     CHECK(hit == ((-u0y + u1y >= 1) && (v0z + u0z >= v3.z())));
 
     hit = doubleccd::vertexFaceCCD(
-        v0, v1, v2, v3, v0 + u0, v1 + u1, v2 + u1, v3 + u1, MIN_DIST);
+        v0, v1, v2, v3, v0 + u0, v1 + u1, v2 + u1, v3 + u1);
 
     CAPTURE(v0z, u0y, u1y, u0z, EPSILON);
     CHECK(hit == ((-u0y + u1y >= 1) && (v0z + u0z >= v3.z())));
@@ -73,7 +73,7 @@ TEST_CASE("Test Edge-Edge Continuous Collision Detection", "[ccd][edge-edge]")
     }
 
     bool hit = doubleccd::edgeEdgeCCD(
-        v0, v1, v2, v3, v0 + u0, v1 + u0, v2 + u1, v3 + u1, MIN_DIST);
+        v0, v1, v2, v3, v0 + u0, v1 + u0, v2 + u1, v3 + u1);
     CAPTURE(y_displacement, e1x);
     CHECK(hit == (y_displacement >= 1.0 && e1x >= -1 && e1x <= 1));
 }
