@@ -34,7 +34,7 @@ TEST_CASE(
     SECTION("Counter-clockwise triangle") { std::swap(v1, v2); }
 
     bool hit = ccd::vertexFaceCCD(
-        v0, v1, v2, v3, v0 + u0, v1 + u1, v2 + u1, v3 + u1, MIN_DIST);
+        v0, v1, v2, v3, v0 + u0, v1 + u1, v2 + u1, v3 + u1);
 
     CAPTURE(v0z, u0y, u1y, u0z, EPSILON);
     CHECK(hit == ((-u0y + u1y >= 1) && (v0z + u0z >= v3.z())));
@@ -66,7 +66,7 @@ TEST_CASE("Test Edge-Edge Continuous Collision Detection", "[ccd][edge-edge]")
 
     try {
         bool hit = ccd::edgeEdgeCCD(
-            v0, v1, v2, v3, v0 + u0, v1 + u0, v2 + u1, v3 + u1, MIN_DIST);
+            v0, v1, v2, v3, v0 + u0, v1 + u0, v2 + u1, v3 + u1);
         CAPTURE(y_displacement, e1x);
         CHECK(hit == (y_displacement >= 1.0 && e1x >= -1 && e1x <= 1));
     } catch (...) {
@@ -102,11 +102,11 @@ TEST_CASE("Zhongshi test case", "[ccd][point-triangle]")
     Eigen::Vector3d q1;
     q1 << 0, qy, 0;
 
-    bool hit = ccd::vertexFaceCCD(q, b0, b1, b2, q1, t0, t1, t2, MIN_DIST);
+    bool hit = ccd::vertexFaceCCD(q, b0, b1, b2, q1, t0, t1, t2);
     CAPTURE(qy);
     CHECK(hit == q.y() >= 0);
 
-    hit = ccd::vertexFaceCCD(q, b0, b1, b2, q1, t0, t1, t2, MIN_DIST);
+    hit = ccd::vertexFaceCCD(q, b0, b1, b2, q1, t0, t1, t2);
     CAPTURE(qy);
     CHECK(hit == q.y() >= 0);
 }

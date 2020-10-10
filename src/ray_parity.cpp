@@ -361,4 +361,85 @@ namespace ccd {
 
 		return res >= 1; // >=1 means point inside of prism
 	}
+	bool shoot_origin_ray_prism(prism& psm, std::array<bilinear, 3>& bls){
+			static const int max_trials = 8;
+
+		// if a/2<=b<=2*a, then a-b is exact.
+		std::vector<bool> is_pt_in_tet;
+		is_pt_in_tet.resize(3);
+		for(int i=0;i<3;i++){
+			if(bls[i].is_degenerated)
+				is_pt_in_tet[i]=false;
+			else
+				is_pt_in_tet[i]=is_point_inside_tet(bls[i],ORIGIN);
+		}
+		
+		
+		Vector3r  dir(1,0,0);
+		
+		
+		int res = -1;
+		int trials;
+		
+		
+		for (trials = 0; trials < max_trials; ++trials) {
+			res = point_inside_prism(psm, bls, ORIGIN, dir, is_pt_in_tet);
+
+			if (res >= 0)
+				break;
+
+			Vector3d dir1 = Vector3d::Random();
+			dir[0] = dir1[0];
+			dir[1] = dir1[1];
+			dir[2] = dir1[2];
+		}
+
+		if (trials == max_trials) {
+
+			std::cout << "All rays are on edges, increase trials" << std::endl;
+			throw "All rays are on edges, increase trials";
+			return false;
+		}
+
+		return res >= 1; // >=1 means point inside of prism
+	}
+	bool shoot_origin_ray_hex( std::array<bilinear, 6>& bls){
+			static const int max_trials = 8;
+
+		// if a/2<=b<=2*a, then a-b is exact.
+		std::vector<bool> is_pt_in_tet;
+		is_pt_in_tet.resize(6);
+		for(int i=0;i<6;i++){
+			if(bls[i].is_degenerated)
+				is_pt_in_tet[i]=false;
+			else
+				is_pt_in_tet[i]=is_point_inside_tet(bls[i],ORIGIN);
+		}
+		Vector3r  dir(1,0,0);
+
+		int res = -1;
+		int trials;
+
+		for (trials = 0; trials < max_trials; ++trials) {
+			res = point_inside_hex(bls, ORIGIN, dir, is_pt_in_tet);
+			
+			if (res >= 0)
+				break;
+
+			Vector3d dir1 = Vector3d::Random();
+			dir[0] = dir1[0];
+			dir[1] = dir1[1];
+			dir[2] = dir1[2];
+
+		}
+
+		if (trials == max_trials) {
+
+			std::cout << "All rays are on edges, increase trials" << std::endl;
+			throw "All rays are on edges, increase trials";
+			return false;
+		}
+
+		return res >= 1; // >=1 means point inside of prism
+		}
 }

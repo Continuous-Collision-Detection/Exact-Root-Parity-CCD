@@ -588,7 +588,10 @@ void case_check(){
     bool res=doubleccd::vertexFaceCCD(
         dt.x0,dt.x1,dt.x2,dt.x3,dt.x0b,dt.x1b,dt.x2b,dt.x3b
     );
-    std::cout<<"the ccd result is "<<res<<std::endl;
+    std::cout<<"the double ccd result is "<<res<<std::endl;
+    std::cout<<"the rational ccd result is "<<ccd::vertexFaceCCD(
+        ccd::Vector3d(dt.x0),ccd::Vector3d(dt.x1),ccd::Vector3d(dt.x2),ccd::Vector3d(dt.x3),
+        ccd::Vector3d(dt.x0b),ccd::Vector3d(dt.x1b),ccd::Vector3d(dt.x2b),ccd::Vector3d(dt.x3b))<<std::endl;
 }
 // void get_multiple(string data,string method, string part, double ms){
 // //double ms=1e-30;
