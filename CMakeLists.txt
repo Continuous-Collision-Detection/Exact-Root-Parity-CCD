@@ -124,7 +124,7 @@ target_link_libraries(${PROJECT_NAME}_double PUBLIC ${GMP_LIBRARIES})
 if(CCD_TOPLEVEL_PROJECT AND CCD_BUILD_RATIONAL)
   add_executable(${PROJECT_NAME}_bin
     # Add executable source here
-    src/main.cpp
+    app/main.cpp
     # src/read_collision_data.cpp
   )
 
