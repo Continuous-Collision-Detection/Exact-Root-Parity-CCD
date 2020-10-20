@@ -94,12 +94,12 @@ target_link_libraries(${PROJECT_NAME}_double PUBLIC ${GMP_LIBRARIES})
 # For perturbation vertices
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 # grant IEEE 754 compliance
-	target_compile_options(${PROJECT_NAME} PUBLIC -frounding-math)
+	target_compile_options(${PROJECT_NAME}_double PUBLIC -frounding-math)
 # use intrinsic functions (CHECK WHAT TO DO FOR GCC !!!!!!!!)
 #	target_compile_options(${PROJECT_NAME} PUBLIC "/Oi")
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 # grant IEEE 754 compliance
-  target_compile_options(${PROJECT_NAME} PUBLIC "/fp:strict")
+  target_compile_options(${PROJECT_NAME}_double PUBLIC "/fp:strict")
 endif()
 ################################################################################
 # Interval CCD
