@@ -652,26 +652,135 @@ double get_whole_mesh_shifted(
 
 double shift_vertex_face(const vf_pair& input_vf_pair, vf_pair& shifted_vf_pair)
 {
-    std::vector<vf_pair> input_vf_pairs = { { input_vf_pair } };
-    std::vector<vf_pair> shifted_vf_pairs;
-    std::vector<ee_pair> input_ee_pairs, shifted_ee_pairs;
-    Eigen::MatrixX3d V;
-    double err = get_whole_mesh_shifted(
-        input_vf_pairs, input_ee_pairs, shifted_vf_pairs, shifted_ee_pairs, V);
-    shifted_vf_pair = shifted_vf_pairs[0];
-    return err;
+    // std::vector<vf_pair> input_vf_pairs = { { input_vf_pair } };
+    // std::vector<vf_pair> shifted_vf_pairs;
+    // std::vector<ee_pair> input_ee_pairs, shifted_ee_pairs;
+    // Eigen::MatrixX3d V;
+    // double err = get_whole_mesh_shifted(
+    //     input_vf_pairs, input_ee_pairs, shifted_vf_pairs, shifted_ee_pairs, V);
+    // shifted_vf_pair = shifted_vf_pairs[0];
+    // return err;
+    Vector3d x0=input_vf_pair.x0, x1=input_vf_pair.x1,x2=input_vf_pair.x2,x3=input_vf_pair.x3,
+    x0b=input_vf_pair.x0b, x1b=input_vf_pair.x1b,x2b=input_vf_pair.x2b,x3b=input_vf_pair.x3b;
+
+    std::vector<std::pair<double, double>> subs;
+    subs.resize(6*3);
+    for(int i=0;i<3;i++){
+        subs[3*0+i].first=x0[i];subs[3*0+i].second=x1[i];
+        subs[3*1+i].first=x0[i];subs[3*1+i].second=x3[i];
+        subs[3*2+i].first=x0[i];subs[3*2+i].second=x2[i];
+
+        subs[3*3+i].first=x0b[i];subs[3*3+i].second=x1b[i];
+        subs[3*4+i].first=x0b[i];subs[3*4+i].second=x3b[i];
+        subs[3*5+i].first=x0b[i];subs[3*5+i].second=x2b[i];
+    }
+    perturbSubtractions(subs);
+    for(int i=0;i<3;i++){
+        x0[i]=subs[3*0+i].first;x1[i]=subs[3*0+i].second;
+        x3[i]=subs[3*1+i].second;
+        x2[i]=subs[3*2+i].second;
+
+        x0b[i]=subs[3*3+i].first;x1b[i]=subs[3*3+i].second;
+        x3b[i]=subs[3*4+i].second;
+        x2b[i]=subs[3*5+i].second;
+    }
+    shifted_vf_pair.x0=x0; 
+    shifted_vf_pair.x1=x1;
+    shifted_vf_pair.x2=x2;
+    shifted_vf_pair.x3=x3;
+
+    shifted_vf_pair.x0b=x0b;
+    shifted_vf_pair.x1b=x1b;
+    shifted_vf_pair.x2b=x2b;
+    shifted_vf_pair.x3b=x3b;
+    // double err = 0, temerr;
+    for(int i=0;i<subs.size();i++){
+        Rational a=subs[i].first;
+        Rational b=subs[i].second;
+        Rational rst=a-b;
+        double rd=subs[i].first-subs[i].second;
+        if(rst==rd){
+
+        }
+        else{
+            std::cout<<"diff, "<<(rst-rd)<<", "<<rst<<", "<<rd<<std::endl;
+
+        }
+    }
+
+    return vf_shift_error(input_vf_pair, shifted_vf_pair);
+ 
+
+    // for (int i = 0; i < d2size; i++) {
+    //     temerr = ee_shift_error(data2[i], shift_back2[i]);
+    //     if (temerr > err)
+    //         err = temerr;
+    // }
+    // return err;
 }
 
 double shift_edge_edge(const ee_pair& input_ee_pair, ee_pair& shifted_ee_pair)
 {
-    std::vector<vf_pair> input_vf_pairs, shifted_vf_pairs;
-    std::vector<ee_pair> input_ee_pairs = { { input_ee_pair } };
-    std::vector<ee_pair> shifted_ee_pairs;
-    Eigen::MatrixX3d V;
-    double err = get_whole_mesh_shifted(
-        input_vf_pairs, input_ee_pairs, shifted_vf_pairs, shifted_ee_pairs, V);
-    shifted_ee_pair = shifted_ee_pairs[0];
-    return err;
+    // std::vector<vf_pair> input_vf_pairs, shifted_vf_pairs;
+    // std::vector<ee_pair> input_ee_pairs = { { input_ee_pair } };
+    // std::vector<ee_pair> shifted_ee_pairs;
+    // Eigen::MatrixX3d V;
+    // double err = get_whole_mesh_shifted(
+    //     input_vf_pairs, input_ee_pairs, shifted_vf_pairs, shifted_ee_pairs, V);
+    // shifted_ee_pair = shifted_ee_pairs[0];
+    // return err;
+    Vector3d a0=input_ee_pair.a0, a1=input_ee_pair.a1,b0=input_ee_pair.b0,b1=input_ee_pair.b1,
+    a0b=input_ee_pair.a0b, a1b=input_ee_pair.a1b,b0b=input_ee_pair.b0b,b1b=input_ee_pair.b1b;
+
+    std::vector<std::pair<double, double>> subs;
+    subs.resize(8*3);
+    for(int i=0;i<3;i++){
+        subs[3*0+i].first=a0[i];subs[3*0+i].second=b0[i];
+        subs[3*1+i].first=a1[i];subs[3*1+i].second=b0[i];
+        subs[3*2+i].first=a1[i];subs[3*2+i].second=b1[i];
+        subs[3*3+i].first=a0[i];subs[3*3+i].second=b1[i];
+
+        subs[3*4+i].first=a0b[i];subs[3*4+i].second=b0b[i];
+        subs[3*5+i].first=a1b[i];subs[3*5+i].second=b0b[i];
+        subs[3*6+i].first=a1b[i];subs[3*6+i].second=b1b[i];
+        subs[3*7+i].first=a0b[i];subs[3*7+i].second=b1b[i];
+    }
+    perturbSubtractions(subs);
+    for(int i=0;i<3;i++){
+        a0[i]=subs[3*0+i].first;b0[i]=subs[3*0+i].second;
+        a1[i]=subs[3*1+i].first;
+        b1[i]=subs[3*2+i].second;
+        
+
+        a0b[i]=subs[3*4+i].first;b0b[i]=subs[3*4+i].second;
+        a1b[i]=subs[3*5+i].first;
+        b1b[i]=subs[3*6+i].second;
+        
+    }
+    shifted_ee_pair.a0=a0; 
+    shifted_ee_pair.a1=a1;
+    shifted_ee_pair.b0=b0;
+    shifted_ee_pair.b1=b1;
+
+    shifted_ee_pair.a0b=a0b;
+    shifted_ee_pair.a1b=a1b;
+    shifted_ee_pair.b0b=b0b;
+    shifted_ee_pair.b1b=b1b;
+    // double err = 0, temerr;
+    for(int i=0;i<subs.size();i++){
+        Rational a=subs[i].first;
+        Rational b=subs[i].second;
+        Rational rst=a-b;
+        double rd=subs[i].first-subs[i].second;
+        if(rst==rd){
+
+        }
+        else{
+            std::cout<<"diff, "<<(rst-rd)<<", "<<rst<<", "<<rd<<std::endl;
+
+        }
+    }
+    return ee_shift_error(input_ee_pair, shifted_ee_pair);
 }
 
 // x0 is the point, x1, x2, x3 is the triangle
