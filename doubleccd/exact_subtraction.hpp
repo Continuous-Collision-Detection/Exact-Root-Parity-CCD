@@ -10,15 +10,15 @@
 
 #pragma fenv_access (on)
 
-inline void _setFPUModeToRoundUP() { _controlfp(_RC_UP, _MCW_RC); }
-inline void _setFPUModeToRoundNEAR() { _controlfp(_RC_NEAR, _MCW_RC); }
+inline void setFPUModeToRoundUP() { _controlfp(_RC_UP, _MCW_RC); }
+inline void setFPUModeToRoundNEAR() { _controlfp(_RC_NEAR, _MCW_RC); }
 
 #else
 
 #pragma STDC FENV_ACCESS ON
 
-inline void _setFPUModeToRoundUP() { fesetround(FE_UPWARD); }
-inline void _setFPUModeToRoundNEAR() { fesetround(FE_TONEAREST); }
+inline void setFPUModeToRoundUP() { fesetround(FE_UPWARD); }
+inline void setFPUModeToRoundNEAR() { fesetround(FE_TONEAREST); }
 #endif
 
 static double sterbenzDisplacement(double x, double y)
@@ -44,7 +44,7 @@ static double maxCommonDisplacement(const std::vector<std::pair<double, double>>
 // all the pairs.
 static void displaceSubtractions(std::vector<std::pair<double, double>>& subtractions)
 {
-	_setFPUModeToRoundUP();
+	setFPUModeToRoundUP();
 
 	double z = maxCommonDisplacement(subtractions);
 	for (std::pair<double, double>& p : subtractions)
@@ -53,7 +53,7 @@ static void displaceSubtractions(std::vector<std::pair<double, double>>& subtrac
 		p.second += z;
 	}
 
-	_setFPUModeToRoundNEAR();
+	setFPUModeToRoundNEAR();
 }
 
 // This function takes a vector of pairs <x_i, y_i>, calculates a value z,
@@ -62,7 +62,7 @@ static void displaceSubtractions(std::vector<std::pair<double, double>>& subtrac
 // values guaranteeing that x_i - y_i is error free for all the pairs.
 static void perturbSubtractions(std::vector<std::pair<double, double>>& subtractions)
 {
-	_setFPUModeToRoundUP();
+	setFPUModeToRoundUP();
 
 	double z = maxCommonDisplacement(subtractions);
 	for (std::pair<double, double>& p : subtractions)
@@ -77,32 +77,12 @@ static void perturbSubtractions(std::vector<std::pair<double, double>>& subtract
 		p.second -= z;
 	}
 
-	_setFPUModeToRoundNEAR();
+	setFPUModeToRoundNEAR();
 }
 
-// use sub1 to set the shift distance
-static void perturbSubtractions(std::vector<std::pair<double, double>>& subtractions,std::vector<std::pair<double, double>>& sub1)
-{
-	_setFPUModeToRoundUP();
-
-	double z = maxCommonDisplacement(sub1);
-	for (std::pair<double, double>& p : subtractions)
-	{
-		p.first += z;
-		p.second += z;
-	}
-
-	for (std::pair<double, double>& p : subtractions)
-	{
-		p.first -= z;
-		p.second -= z;
-	}
-
-	_setFPUModeToRoundNEAR();
-}
 static double displaceSubtractions_double(std::vector<std::pair<double, double>>& subtractions)
 {
-    _setFPUModeToRoundUP();
+    setFPUModeToRoundUP();
 
     double z = maxCommonDisplacement(subtractions);
     for (std::pair<double, double>& p : subtractions) {
@@ -110,6 +90,26 @@ static double displaceSubtractions_double(std::vector<std::pair<double, double>>
         p.second += z;
     }
 
-    _setFPUModeToRoundNEAR();
+    setFPUModeToRoundNEAR();
     return z;
+}
+static void perturbSubtractions(std::vector<std::pair<double, double>>& subtractions,std::vector<std::pair<double, double>>& sub1)
+
+{
+	setFPUModeToRoundUP();
+	double z = maxCommonDisplacement(sub1);
+	for (std::pair<double, double>& p : subtractions)
+
+	{
+		p.first += z;
+		p.second += z;
+
+	}
+	for (std::pair<double, double>& p : subtractions)
+
+	{
+		p.first -= z;
+		p.second -= z;
+	}
+	setFPUModeToRoundNEAR();
 }
