@@ -98,7 +98,7 @@ void test_shift(){
 
     //     }
     // }
-    perturbSubtractions(subs);
+    displaceSubtractions_double(subs);
     for(int i=0;i<subs.size();i++){
         if(i%1000000==0){
             std::cout<<subs[i].first<<", "<<subs[i].second<<std::endl;
@@ -206,16 +206,16 @@ bool check_subs_err(std::vector<std::pair<double, double>> subs, std::string dis
 void read_and_test_shift(){
     std::vector<std::pair<double,double>> readed = read_rational_CSV(
     "/home/bolun1/interval/Round/CCD-Wrapper/build/single_ee.csv");
-    perturbSubtractions(readed);
+    displaceSubtractions_double(readed);
     check_subs_err(readed,"we successfully reproduce this problem");
     
 }
 int main(int argc, char* argv[])
 {
     
-    // case_check();
+    case_check();
     // test_shift();
-    read_and_test_shift();
+    // read_and_test_shift();
 
 
     std::cout<<"done"<<std::endl;

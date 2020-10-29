@@ -2,7 +2,8 @@
 #include <doubleCCD/double_subfunctions.h>
 #include <doubleCCD/doubleccd.hpp>
 #include <doubleCCD/exact_subtraction.hpp>
-
+#include <iomanip>
+#include <fstream>
 
 
 
@@ -212,6 +213,14 @@ bool is_cube_edges_intersect_triangle(
     return false;
 }
 
+
+
+////////////
+////////////
+////////////
+////////////
+//////////// the following codes are for shifting vf_pairs or ee_pairs to have no truncation error 
+
 // convert a array of subtraction pair to vertices
 void convert_to_shifted_v(
     const std::array<std::pair<double, double>, 18>& dt, vf_pair& vs)
@@ -283,6 +292,8 @@ void convert_to_shifted_v(
     vs.b1b[1] = dt[19].second;
     vs.b1b[2] = dt[20].second;
 }
+
+// convert vf_pairs and ee_pairs into subtraction list
 void push_vers_into_subtract_pair(
     const std::vector<vf_pair>& data1,
     const std::vector<ee_pair>& data2,
@@ -372,49 +383,37 @@ void push_vers_into_subtract_pair(
         }
     }
 }
-// void push_single_subtraction(const Vector3d& p, const Vector3d &q,
-// std::vector<std::pair<double, double>>& sub_x,
-//     std::vector<std::pair<double, double>>& sub_y,
-//     std::vector<std::pair<double, double>>& sub_z ){
-//         std::pair<double, double> temp;
-//         temp.first=p[0];
-//         temp.second=q[0];
-//         sub_x.emplace_back(temp);
 
-//         temp.first=p[1];
-//         temp.second=q[1];
-//         sub_y.emplace_back(temp);
+// convert vf_pair into matrix
+Eigen::Matrix<double, 8, 3> convert_vf_to_matrix(const vf_pair& data){
+    Eigen::Matrix<double, 8, 3> V;
+    V.row(0) = data.x0;
+    V.row(1) = data.x1;
+    V.row(2) = data.x2;
+    V.row(3) = data.x3;
+    V.row(4) = data.x0b;
+    V.row(5) = data.x1b;
+    V.row(6) = data.x2b;
+    V.row(7) = data.x3b;
+    return V;
+}
+// convert ee_pair into matrix
+Eigen::Matrix<double, 8, 3> convert_ee_to_matrix(const ee_pair& data){
+    Eigen::Matrix<double, 8, 3> V;
+    V.row(0) = data.a0;
+    V.row(1) = data.a1;
+    V.row(2) = data.b0;
+    V.row(3) = data.b1;
+    V.row(4) = data.a0b;
+    V.row(5) = data.a1b;
+    V.row(6) = data.b0b;
+    V.row(7) = data.b1b;
+    return V;
+}
 
-//         temp.first=p[2];
-//         temp.second=q[2];
-//         sub_z.emplace_back(temp);
-//     }
-// void push_VF_vers_into_subtract_pair(
-//     const std::vector<vf_pair>& data1,
-    
-//     std::vector<std::pair<double, double>>& sub_x,
-//     std::vector<std::pair<double, double>>& sub_y,
-//     std::vector<std::pair<double, double>>& sub_z)
-// {
-//     sub_x.clear();sub_y.clear();sub_z.clear();
-//     sub_x.reserve(data1.size()*6);
-//     sub_y.reserve(data1.size()*6);
-//     sub_z.reserve(data1.size()*6);
-    
-//     std::pair<double, double> temp;
 
-//     for (int j = 0; j < data1.size(); j++) {
-//         push_single_subtraction(data1[j].x0,data1[j].x1,sub_x,sub_y,sub_z);
-//         push_single_subtraction(data1[j].x0,data1[j].x3,sub_x,sub_y,sub_z);
-//         push_single_subtraction(data1[j].x0,data1[j].x2,sub_x,sub_y,sub_z);
-
-//         push_single_subtraction(data1[j].x0b,data1[j].x1b,sub_x,sub_y,sub_z);
-//         push_single_subtraction(data1[j].x0b,data1[j].x3b,sub_x,sub_y,sub_z);
-//         push_single_subtraction(data1[j].x0b,data1[j].x2b,sub_x,sub_y,sub_z);
-        
-        
-//     }
-// }
+// return the difference between two input pairs
+// TODO this is wrong because we are not shifting back
 double vf_shift_error(const vf_pair& d1, const vf_pair& d2)
 {
     double err = 0;
@@ -439,6 +438,8 @@ double vf_shift_error(const vf_pair& d1, const vf_pair& d2)
     }
     return err;
 }
+// return the difference between two input pairs
+// TODO this is wrong because we are not shifting back
 double ee_shift_error(const ee_pair& d1, const ee_pair& d2)
 {
     double err = 0;
@@ -464,6 +465,7 @@ double ee_shift_error(const ee_pair& d1, const ee_pair& d2)
     return err;
 }
 
+// push the whole mesh into subtraction-pair format
 void push_mesh_vers_into_sub_pair(
     const Eigen::MatrixX3d& V, std::vector<std::pair<double, double>>& sub)
 {
@@ -475,6 +477,7 @@ void push_mesh_vers_into_sub_pair(
         }
     }
 }
+// push the whole mesh into subtraction-pair format
 void push_mesh_vers_into_sub_pair(
     const Eigen::MatrixX3d& V, 
     std::vector<std::pair<double, double>>& sub_x,
@@ -493,7 +496,7 @@ void push_mesh_vers_into_sub_pair(
     }
 }
 
-
+// convert the subtraction pairs into vertices
 void convert_sub_pairs_to_mesh_vers(
     const std::vector<std::pair<double, double>>& sub, Eigen::MatrixX3d& V)
 {
@@ -505,6 +508,8 @@ void convert_sub_pairs_to_mesh_vers(
         }
     }
 }
+
+// convert the subtraction pairs into vertices
 void convert_sub_pairs_to_mesh_vers(
     const std::vector<std::pair<double, double>>& sub_x,
     const std::vector<std::pair<double, double>>& sub_y,
@@ -518,101 +523,105 @@ void convert_sub_pairs_to_mesh_vers(
     
 }
 
-void get_whole_mesh_shifted(
-    Eigen::MatrixX3d& vertices,
-    const Vector3d &pmin, const Vector3d& pmax){
-    std::vector<std::pair<double, double>> box_x(1), box_y(1), box_z(1),whole_x,whole_y,whole_z;
-    box_x[0].first=pmax[0];box_x[0].second=pmin[0];
-    box_y[0].first=pmax[1];box_y[0].second=pmin[1];
-    box_z[0].first=pmax[2];box_z[0].second=pmin[2];
-    push_mesh_vers_into_sub_pair(vertices,whole_x,whole_y,whole_z);
-    perturbSubtractions(whole_x,box_x);
-    perturbSubtractions(whole_y,box_y);
-    perturbSubtractions(whole_z,box_z);
-    convert_sub_pairs_to_mesh_vers(whole_x,whole_y,whole_z,vertices);
-}
-void compare_whole_mesh_err(const Eigen::MatrixX3d& vertices,const Eigen::MatrixX3d& vertices1){
-    double ex=0,ey=0,ez=0;
-    for(int i=0;i<vertices.rows();i++){
-        if(fabs(vertices(i,0)-vertices1(i,0))>ex)
-            ex=fabs(vertices(i,0)-vertices1(i,0));
+// shift whole mesh based on the bounding-box of the scene
+// void get_whole_mesh_shifted(
+//     Eigen::MatrixX3d& vertices,
+//     const Vector3d &pmin, const Vector3d& pmax){
+//     std::vector<std::pair<double, double>> box_x(1), box_y(1), box_z(1),whole_x,whole_y,whole_z;
+//     box_x[0].first=pmax[0];box_x[0].second=pmin[0];
+//     box_y[0].first=pmax[1];box_y[0].second=pmin[1];
+//     box_z[0].first=pmax[2];box_z[0].second=pmin[2];
+//     push_mesh_vers_into_sub_pair(vertices,whole_x,whole_y,whole_z);
+//     perturbSubtractions(whole_x,box_x);
+//     perturbSubtractions(whole_y,box_y);
+//     perturbSubtractions(whole_z,box_z);
+//     convert_sub_pairs_to_mesh_vers(whole_x,whole_y,whole_z,vertices);
+// }
 
-        if(fabs(vertices(i,1)-vertices1(i,1))>ey)
-            ey=fabs(vertices(i,1)-vertices1(i,1));
+// compare the error of the whole mesh
+// void compare_whole_mesh_err(const Eigen::MatrixX3d& vertices,const Eigen::MatrixX3d& vertices1){
+//     double ex=0,ey=0,ez=0;
+//     for(int i=0;i<vertices.rows();i++){
+//         if(fabs(vertices(i,0)-vertices1(i,0))>ex)
+//             ex=fabs(vertices(i,0)-vertices1(i,0));
 
-        if(fabs(vertices(i,2)-vertices1(i,2))>ez)
-            ez=fabs(vertices(i,2)-vertices1(i,2));
-    }
-    std::cout<<"vertices diff x, "<<ex<<" y, "<<ey<<" z, "<<ez<<std::endl;
-}
+//         if(fabs(vertices(i,1)-vertices1(i,1))>ey)
+//             ey=fabs(vertices(i,1)-vertices1(i,1));
+
+//         if(fabs(vertices(i,2)-vertices1(i,2))>ez)
+//             ez=fabs(vertices(i,2)-vertices1(i,2));
+//     }
+//     std::cout<<"vertices diff x, "<<ex<<" y, "<<ey<<" z, "<<ez<<std::endl;
+// }
 
 // x0 is the point, x1, x2, x3 is the triangle
-double get_whole_mesh_shifted(
-    const std::vector<vf_pair>& data1,
-    const std::vector<ee_pair>& data2,
-    std::vector<vf_pair>& shift_back1,
-    std::vector<ee_pair>& shift_back2,
-    Eigen::MatrixX3d& vertices)
-{
-    std::vector<std::pair<double, double>> whole, suback;
+// shift the whole mesh and get the shift - back vertices
+// double get_whole_mesh_shifted(
+//     const std::vector<vf_pair>& data1,
+//     const std::vector<ee_pair>& data2,
+//     std::vector<vf_pair>& shift_back1,
+//     std::vector<ee_pair>& shift_back2,
+//     Eigen::MatrixX3d& vertices)
+// {
+//     std::vector<std::pair<double, double>> whole, suback;
 
-    push_vers_into_subtract_pair(data1, data2, suback);
-    int subsize = suback.size();
-    push_mesh_vers_into_sub_pair(vertices, whole);
-    // suback = sub;// this is for shift back
-    // k = displaceSubtractions_double(sub);
-    suback.insert(suback.end(), whole.begin(), whole.end());
-    perturbSubtractions(suback); // get shifted back data
+//     push_vers_into_subtract_pair(data1, data2, suback);
+//     int subsize = suback.size();
+//     push_mesh_vers_into_sub_pair(vertices, whole);
+//     // suback = sub;// this is for shift back
+//     // k = displaceSubtractions_double(sub);
+//     suback.insert(suback.end(), whole.begin(), whole.end());
+//     perturbSubtractions(suback); // get shifted back data
 
-    shift_back1.resize(data1.size());
+//     shift_back1.resize(data1.size());
 
-    shift_back2.resize(data2.size());
-    int c = 0;
-    // Vector3d kvec(k, k, k);
-    int d1size = data1.size();
-    int d2size = data2.size();
-    int datasize = d1size + d2size;
-    std::array<std::pair<double, double>, 18> dtback1;
-    std::array<std::pair<double, double>, 24> dtback2;
-    for (int r = 0; r < datasize; r++) {
-        if (r < d1size) {
-            for (int i = 0; i < 18; i++) {
-                // dt1[i] = sub[r * 18 + i];
-                dtback1[i] = suback[r * 18 + i];
-            }
+//     shift_back2.resize(data2.size());
+//     int c = 0;
+//     // Vector3d kvec(k, k, k);
+//     int d1size = data1.size();
+//     int d2size = data2.size();
+//     int datasize = d1size + d2size;
+//     std::array<std::pair<double, double>, 18> dtback1;
+//     std::array<std::pair<double, double>, 24> dtback2;
+//     for (int r = 0; r < datasize; r++) {
+//         if (r < d1size) {
+//             for (int i = 0; i < 18; i++) {
+//                 // dt1[i] = sub[r * 18 + i];
+//                 dtback1[i] = suback[r * 18 + i];
+//             }
 
-            convert_to_shifted_v(dtback1, shift_back1[r]);
-        }      // r is d1size-1, sub has been read to d1size*18-1
-        else { // r is from d1size to datasize-1, sub is from d1*18
-            for (int i = 0; i < 24; i++) {
-                // dt2[i] = sub[d1size * 18 + (r - d1size) * 24 + i];
-                dtback2[i] = suback[d1size * 18 + (r - d1size) * 24 + i];
-            }
+//             convert_to_shifted_v(dtback1, shift_back1[r]);
+//         }      // r is d1size-1, sub has been read to d1size*18-1
+//         else { // r is from d1size to datasize-1, sub is from d1*18
+//             for (int i = 0; i < 24; i++) {
+//                 // dt2[i] = sub[d1size * 18 + (r - d1size) * 24 + i];
+//                 dtback2[i] = suback[d1size * 18 + (r - d1size) * 24 + i];
+//             }
 
-            convert_to_shifted_v(dtback2, shift_back2[r - d1size]);
-        }
-    }
-    std::vector<std::pair<double, double>> vernew;
-    vernew.resize(vertices.size());
-    int c1 = 0;
-    for (int i = subsize; i < suback.size(); i++) {
-        vernew[c1] = suback[i];
-        c1++;
-    }
-    convert_sub_pairs_to_mesh_vers(vernew, vertices);
-    double err = 0, temerr;
-    for (int i = 0; i < d1size; i++) {
-        temerr = vf_shift_error(data1[i], shift_back1[i]);
-        if (temerr > err)
-            err = temerr;
-    }
-    for (int i = 0; i < d2size; i++) {
-        temerr = ee_shift_error(data2[i], shift_back2[i]);
-        if (temerr > err)
-            err = temerr;
-    }
-    return err;
-}
+//             convert_to_shifted_v(dtback2, shift_back2[r - d1size]);
+//         }
+//     }
+//     std::vector<std::pair<double, double>> vernew;
+//     vernew.resize(vertices.size());
+//     int c1 = 0;
+//     for (int i = subsize; i < suback.size(); i++) {
+//         vernew[c1] = suback[i];
+//         c1++;
+//     }
+//     convert_sub_pairs_to_mesh_vers(vernew, vertices);
+//     double err = 0, temerr;
+//     for (int i = 0; i < d1size; i++) {
+//         temerr = vf_shift_error(data1[i], shift_back1[i]);
+//         if (temerr > err)
+//             err = temerr;
+//     }
+//     for (int i = 0; i < d2size; i++) {
+//         temerr = ee_shift_error(data2[i], shift_back2[i]);
+//         if (temerr > err)
+//             err = temerr;
+//     }
+//     return err;
+// }
 
 // x0 is the point, x1, x2, x3 is the triangle
 // double get_whole_mesh_shifted(
@@ -650,6 +659,7 @@ double get_whole_mesh_shifted(
 //     return err;
 // }
 
+// shift vertex-face pair to a far away place
 double shift_vertex_face(const vf_pair& input_vf_pair, vf_pair& shifted_vf_pair)
 {
     // std::vector<vf_pair> input_vf_pairs = { { input_vf_pair } };
@@ -674,7 +684,9 @@ double shift_vertex_face(const vf_pair& input_vf_pair, vf_pair& shifted_vf_pair)
         subs[3*4+i].first=x0b[i];subs[3*4+i].second=x3b[i];
         subs[3*5+i].first=x0b[i];subs[3*5+i].second=x2b[i];
     }
-    perturbSubtractions(subs);
+    // this perturbSubtractions shift and shift - back is wrong
+    //perturbSubtractions(subs);
+    displaceSubtractions_double(subs);
     for(int i=0;i<3;i++){
         x0[i]=subs[3*0+i].first;x1[i]=subs[3*0+i].second;
         x3[i]=subs[3*1+i].second;
@@ -694,19 +706,19 @@ double shift_vertex_face(const vf_pair& input_vf_pair, vf_pair& shifted_vf_pair)
     shifted_vf_pair.x2b=x2b;
     shifted_vf_pair.x3b=x3b;
     // double err = 0, temerr;
-    for(int i=0;i<subs.size();i++){
-        Rational a=subs[i].first;
-        Rational b=subs[i].second;
-        Rational rst=a-b;
-        double rd=subs[i].first-subs[i].second;
-        if(rst==rd){
+    // for(int i=0;i<subs.size();i++){
+    //     Rational a=subs[i].first;
+    //     Rational b=subs[i].second;
+    //     Rational rst=a-b;
+    //     double rd=subs[i].first-subs[i].second;
+    //     if(rst==rd){
 
-        }
-        else{
-            std::cout<<"diff, "<<(rst-rd)<<", "<<rst<<", "<<rd<<std::endl;
+    //     }
+    //     else{
+    //         std::cout<<"diff, "<<(rst-rd)<<", "<<rst<<", "<<rd<<std::endl;
 
-        }
-    }
+    //     }
+    // }
 
     return vf_shift_error(input_vf_pair, shifted_vf_pair);
  
@@ -719,17 +731,95 @@ double shift_vertex_face(const vf_pair& input_vf_pair, vf_pair& shifted_vf_pair)
     // return err;
 }
 
-double shift_edge_edge(const ee_pair& input_ee_pair, ee_pair& shifted_ee_pair)
-{
-    // std::vector<vf_pair> input_vf_pairs, shifted_vf_pairs;
-    // std::vector<ee_pair> input_ee_pairs = { { input_ee_pair } };
-    // std::vector<ee_pair> shifted_ee_pairs;
-    // Eigen::MatrixX3d V;
-    // double err = get_whole_mesh_shifted(
-    //     input_vf_pairs, input_ee_pairs, shifted_vf_pairs, shifted_ee_pairs, V);
-    // shifted_ee_pair = shifted_ee_pairs[0];
-    // return err;
-    Vector3d a0=input_ee_pair.a0, a1=input_ee_pair.a1,b0=input_ee_pair.b0,b1=input_ee_pair.b1,
+// check if there are error in the subtraction, comparing with rational results
+bool check_subs_err(std::vector<std::pair<double, double>> subs, std::string discribe){
+    bool have_err=false;
+    for(int i=0;i<subs.size();i++){
+        Rational a=subs[i].first;
+        Rational b=subs[i].second;
+        Rational rst=a-b;
+        double rd=subs[i].first-subs[i].second;
+        if(rst==rd){
+
+        }
+        else{
+            std::cout<<discribe<<" diff, "<<std::setprecision(17)<<i <<", "<<(rst-rd)<<", "<<rst<<", "<<rd<<std::endl;
+            have_err=true;
+        }
+    }
+    return have_err;
+}
+
+std::vector<std::pair<double,double>> read_rational_CSV(const std::string inputFileName) {
+
+
+
+    std::vector<std::pair<double,double>> vs;
+
+    vs.clear();
+
+	std::ifstream infile;
+
+	infile.open(inputFileName);
+
+    // std::array<double,3> v;
+
+	if (!infile.is_open())
+
+	{
+
+		std::cout << "Path Wrong!!!!" << std::endl;
+
+        return vs;
+
+	}
+	int l = 0;
+
+	while (infile) // there is input overload classfile
+
+	{
+		l++;
+		std::string s;
+		if (!getline(infile, s)) break;
+		if (s[0] != '#') {
+			std::istringstream ss(s);
+			std::array<std::string,4> record;
+			int c = 0;
+			while (ss) {
+				std::string line;
+				if (!getline(ss, line, ','))
+					break;
+				try {
+					record[c] = line;
+					c++;
+				}
+				catch (const std::invalid_argument e) {
+					std::cout << "NaN found in file " << inputFileName << " line " << l
+						<< std::endl;
+					e.what();
+				}
+			}
+            Rational rt;
+            double x=rt.get_double(record[0],record[1]),y=rt.get_double(record[2],record[3]);
+            std::pair<double,double> pr;pr.first=x;pr.second=y;
+            vs.push_back(pr);
+		}
+	}
+    return vs;
+    // Eigen::MatrixXd all_v(vs.size(),3);
+    // for(int i=0;i<vs.size();i++){
+    //     all_v(i,0)=vs[i][0];
+    //   all_v(i,1)=vs[i][1];
+    //     all_v(i,2)=vs[i][2];
+    // }
+	// if (!infile.eof()) {
+	// 	std::cerr << "Could not read file " << inputFileName << "\n";
+	// }
+	// return all_v;
+}
+
+void print_exact_ee_pair_file(const ee_pair& input_ee_pair,const std::string filename){
+   Vector3d a0=input_ee_pair.a0, a1=input_ee_pair.a1,b0=input_ee_pair.b0,b1=input_ee_pair.b1,
     a0b=input_ee_pair.a0b, a1b=input_ee_pair.a1b,b0b=input_ee_pair.b0b,b1b=input_ee_pair.b1b;
 
     std::vector<std::pair<double, double>> subs;
@@ -745,7 +835,88 @@ double shift_edge_edge(const ee_pair& input_ee_pair, ee_pair& shifted_ee_pair)
         subs[3*6+i].first=a1b[i];subs[3*6+i].second=b1b[i];
         subs[3*7+i].first=a0b[i];subs[3*7+i].second=b1b[i];
     }
-    perturbSubtractions(subs);
+    std::ofstream fout;
+    fout.open(filename);
+    for(int i=0;i<subs.size();i++){
+        Rational n1(subs[i].first),n2(subs[i].second);
+        fout<<n1.get_numerator_str()<<","<<n1.get_denominator_str()<<","<<n2.get_numerator_str()<<","
+        <<n2.get_denominator_str()<<std::endl;
+    }
+    fout.close();
+
+    // read the same file and compare
+    std::vector<std::pair<double,double>> readed= read_rational_CSV(filename);
+    assert(readed.size()==subs.size());
+    for(int i=0;i<subs.size();i++){
+        assert(readed[i].first==subs[i].first&&readed[i].second==subs[i].second);
+    }
+    displaceSubtractions_double(readed);
+    check_subs_err(readed,std::string("readed number"));
+}
+
+double shift_edge_edge(const ee_pair& input_ee_pair, ee_pair& shifted_ee_pair)
+{
+    // std::vector<vf_pair> input_vf_pairs, shifted_vf_pairs;
+    // std::vector<ee_pair> input_ee_pairs = { { input_ee_pair } };
+    // std::vector<ee_pair> shifted_ee_pairs;
+    // Eigen::MatrixX3d V;
+    // double err = get_whole_mesh_shifted(
+    //     input_vf_pairs, input_ee_pairs, shifted_vf_pairs, shifted_ee_pairs, V);
+    // shifted_ee_pair = shifted_ee_pairs[0];
+    // return err;
+    Vector3d a0=input_ee_pair.a0, a1=input_ee_pair.a1,b0=input_ee_pair.b0,b1=input_ee_pair.b1,
+    a0b=input_ee_pair.a0b, a1b=input_ee_pair.a1b,b0b=input_ee_pair.b0b,b1b=input_ee_pair.b1b;
+
+    std::vector<std::pair<double, double>> subs,save_subs;
+    subs.resize(8*3);
+    for(int i=0;i<3;i++){
+        subs[3*0+i].first=a0[i];subs[3*0+i].second=b0[i];
+        subs[3*1+i].first=a1[i];subs[3*1+i].second=b0[i];
+        subs[3*2+i].first=a1[i];subs[3*2+i].second=b1[i];
+        subs[3*3+i].first=a0[i];subs[3*3+i].second=b1[i];
+
+        subs[3*4+i].first=a0b[i];subs[3*4+i].second=b0b[i];
+        subs[3*5+i].first=a1b[i];subs[3*5+i].second=b0b[i];
+        subs[3*6+i].first=a1b[i];subs[3*6+i].second=b1b[i];
+        subs[3*7+i].first=a0b[i];subs[3*7+i].second=b1b[i];
+    }
+
+    save_subs=subs;// this is the value before rounding
+    
+    int counter=0;
+    // for(int i=0;i<subs.size();i++){
+    //     Rational a=subs[i].first;
+    //     Rational b=subs[i].second;
+    //     Rational rst=a-b;
+    //     double rd=subs[i].first-subs[i].second;
+    //     if(rst==rd){
+
+    //     }
+    //     else{
+    //         // std::cout<<"before shift, diff, "<<i<<", "<<(rst-rd)<<", "<<rst<<", "<<rd<<std::endl;
+    //         // counter++;
+    //         // if(counter>100) break;
+    //     }
+    // }
+    // this perturbSubtractions shift and shift - back is wrong
+    //perturbSubtractions(subs);
+    double k = displaceSubtractions_double(subs);
+    for(int i=0;i<subs.size();i++){
+        Rational a=subs[i].first;
+        Rational b=subs[i].second;
+        Rational rst=a-b;
+        double rd=subs[i].first-subs[i].second;
+        if(rst==rd){
+
+        }
+        else{
+            std::cout<<"after shift, diff, "<<i<<", "<<(rst-rd)<<", "<<rst<<", "<<rd<<std::endl;
+            std::cout<<"original two nbrs, "<<save_subs[i].first<<", "<<save_subs[i].second<<std::endl;
+            std::cout<<"shifted two nbrs, "<<subs[i].first<<", "<<subs[i].second<<", k is "<<k<<std::endl<<std::endl;
+            print_exact_ee_pair_file(input_ee_pair,"/home/bolun1/interval/Round/CCD-Wrapper/build/shifted_ee.csv");
+            exit(0);
+        }
+    }
     for(int i=0;i<3;i++){
         a0[i]=subs[3*0+i].first;b0[i]=subs[3*0+i].second;
         a1[i]=subs[3*1+i].first;
@@ -766,20 +937,13 @@ double shift_edge_edge(const ee_pair& input_ee_pair, ee_pair& shifted_ee_pair)
     shifted_ee_pair.a1b=a1b;
     shifted_ee_pair.b0b=b0b;
     shifted_ee_pair.b1b=b1b;
+    
     // double err = 0, temerr;
-    for(int i=0;i<subs.size();i++){
-        Rational a=subs[i].first;
-        Rational b=subs[i].second;
-        Rational rst=a-b;
-        double rd=subs[i].first-subs[i].second;
-        if(rst==rd){
-
-        }
-        else{
-            std::cout<<"diff, "<<(rst-rd)<<", "<<rst<<", "<<rd<<std::endl;
-
-        }
-    }
+    // bool have_err=check_subs_err(subs, std::string("after shifting"));
+    // if(have_err){
+    //     print_exact_ee_pair_file(input_ee_pair,"/home/bolun1/interval/Round/CCD-Wrapper/build/shifted_ee.csv");
+    //     exit(0);
+    // }
     return ee_shift_error(input_ee_pair, shifted_ee_pair);
 }
 
@@ -857,6 +1021,7 @@ bool have_no_truncation(const Vector3d&p1,const Vector3d&p2){
                 std::cout<<"smaller"<<std::endl;
             }
             std::cout<<"diff,"<<xr-x<<std::endl;
+            std::cout<<std::setprecision(17)<<"pair is, "<<p1[i]<<","<<p2[i]<<std::endl;
             return false;}
     }
     return true;
