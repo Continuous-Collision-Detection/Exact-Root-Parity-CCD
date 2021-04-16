@@ -660,20 +660,14 @@ void convert_sub_pairs_to_mesh_vers(
 // }
 
 // shift vertex-face pair to a far away place
-double shift_vertex_face(const vf_pair& input_vf_pair, vf_pair& shifted_vf_pair)
+double shift_vertex_face(const vf_pair& input_vf_pair, vf_pair& shifted_vf_pair, double &time)
 {
-    // std::vector<vf_pair> input_vf_pairs = { { input_vf_pair } };
-    // std::vector<vf_pair> shifted_vf_pairs;
-    // std::vector<ee_pair> input_ee_pairs, shifted_ee_pairs;
-    // Eigen::MatrixX3d V;
-    // double err = get_whole_mesh_shifted(
-    //     input_vf_pairs, input_ee_pairs, shifted_vf_pairs, shifted_ee_pairs, V);
-    // shifted_vf_pair = shifted_vf_pairs[0];
-    // return err;
+	igl::Timer timer;
+	timer.start();
     Vector3d x0=input_vf_pair.x0, x1=input_vf_pair.x1,x2=input_vf_pair.x2,x3=input_vf_pair.x3,
     x0b=input_vf_pair.x0b, x1b=input_vf_pair.x1b,x2b=input_vf_pair.x2b,x3b=input_vf_pair.x3b;
 
-    std::vector<std::pair<double, double>> subs;
+    std::vector<std::pair<double, double>> subs, subs_ori;
     subs.resize(6*3);
     for(int i=0;i<3;i++){
         subs[3*0+i].first=x0[i];subs[3*0+i].second=x1[i];
@@ -684,9 +678,10 @@ double shift_vertex_face(const vf_pair& input_vf_pair, vf_pair& shifted_vf_pair)
         subs[3*4+i].first=x0b[i];subs[3*4+i].second=x3b[i];
         subs[3*5+i].first=x0b[i];subs[3*5+i].second=x2b[i];
     }
+	subs_ori = subs;
     // this perturbSubtractions shift and shift - back is wrong
     //perturbSubtractions(subs);
-    displaceSubtractions_double(subs);
+    double k = displaceSubtractions_double(subs);
     for(int i=0;i<3;i++){
         x0[i]=subs[3*0+i].first;x1[i]=subs[3*0+i].second;
         x3[i]=subs[3*1+i].second;
@@ -705,30 +700,32 @@ double shift_vertex_face(const vf_pair& input_vf_pair, vf_pair& shifted_vf_pair)
     shifted_vf_pair.x1b=x1b;
     shifted_vf_pair.x2b=x2b;
     shifted_vf_pair.x3b=x3b;
-    // double err = 0, temerr;
-    // for(int i=0;i<subs.size();i++){
-    //     Rational a=subs[i].first;
-    //     Rational b=subs[i].second;
-    //     Rational rst=a-b;
-    //     double rd=subs[i].first-subs[i].second;
-    //     if(rst==rd){
+	timer.stop();
+	time = timer.getElapsedTimeInMicroSec();
+	double err = 0;
+	for (int i = 0; i < subs.size(); i++) {
+		double value = subs[i].first;
+		double value_ori = subs_ori[i].first;
+		Rational rvalue = Rational(value_ori) + Rational(k);
+		double diff = (rvalue - Rational(value)).to_double();
+		diff = fabs(diff);
+		if (diff > err) {
+			err = diff;
+		}
+	}
+	for (int i = 0; i < subs.size(); i++) {
+		double value = subs[i].second;
+		double value_ori = subs_ori[i].second;
+		Rational rvalue = Rational(value_ori) + Rational(k);
+		double diff = (rvalue - Rational(value)).to_double();
+		diff = fabs(diff);
+		if (diff > err) {
+			err = diff;
+		}
+	}
 
-    //     }
-    //     else{
-    //         std::cout<<"diff, "<<(rst-rd)<<", "<<rst<<", "<<rd<<std::endl;
-
-    //     }
-    // }
-
-    return vf_shift_error(input_vf_pair, shifted_vf_pair);
+    return err;
  
-
-    // for (int i = 0; i < d2size; i++) {
-    //     temerr = ee_shift_error(data2[i], shift_back2[i]);
-    //     if (temerr > err)
-    //         err = temerr;
-    // }
-    // return err;
 }
 
 // check if there are error in the subtraction, comparing with rational results
@@ -854,16 +851,10 @@ void print_exact_ee_pair_file(const ee_pair& input_ee_pair,const std::string fil
     check_subs_err(readed,std::string("readed number"));
 }
 
-double shift_edge_edge(const ee_pair& input_ee_pair, ee_pair& shifted_ee_pair)
+double shift_edge_edge(const ee_pair& input_ee_pair, ee_pair& shifted_ee_pair, double &time)
 {
-    // std::vector<vf_pair> input_vf_pairs, shifted_vf_pairs;
-    // std::vector<ee_pair> input_ee_pairs = { { input_ee_pair } };
-    // std::vector<ee_pair> shifted_ee_pairs;
-    // Eigen::MatrixX3d V;
-    // double err = get_whole_mesh_shifted(
-    //     input_vf_pairs, input_ee_pairs, shifted_vf_pairs, shifted_ee_pairs, V);
-    // shifted_ee_pair = shifted_ee_pairs[0];
-    // return err;
+	igl::Timer timer;
+	timer.start();
     Vector3d a0=input_ee_pair.a0, a1=input_ee_pair.a1,b0=input_ee_pair.b0,b1=input_ee_pair.b1,
     a0b=input_ee_pair.a0b, a1b=input_ee_pair.a1b,b0b=input_ee_pair.b0b,b1b=input_ee_pair.b1b;
 
@@ -882,41 +873,8 @@ double shift_edge_edge(const ee_pair& input_ee_pair, ee_pair& shifted_ee_pair)
     }
 
     save_subs=subs;// this is the value before rounding
-    
-    int counter=0;
-    // for(int i=0;i<subs.size();i++){
-    //     Rational a=subs[i].first;
-    //     Rational b=subs[i].second;
-    //     Rational rst=a-b;
-    //     double rd=subs[i].first-subs[i].second;
-    //     if(rst==rd){
 
-    //     }
-    //     else{
-    //         // std::cout<<"before shift, diff, "<<i<<", "<<(rst-rd)<<", "<<rst<<", "<<rd<<std::endl;
-    //         // counter++;
-    //         // if(counter>100) break;
-    //     }
-    // }
-    // this perturbSubtractions shift and shift - back is wrong
-    //perturbSubtractions(subs);
     double k = displaceSubtractions_double(subs);
-    for(int i=0;i<subs.size();i++){
-        Rational a=subs[i].first;
-        Rational b=subs[i].second;
-        Rational rst=a-b;
-        double rd=subs[i].first-subs[i].second;
-        if(rst==rd){
-
-        }
-        else{
-            std::cout<<"after shift, diff, "<<i<<", "<<(rst-rd)<<", "<<rst<<", "<<rd<<std::endl;
-            std::cout<<"original two nbrs, "<<save_subs[i].first<<", "<<save_subs[i].second<<std::endl;
-            std::cout<<"shifted two nbrs, "<<subs[i].first<<", "<<subs[i].second<<", k is "<<k<<std::endl<<std::endl;
-            print_exact_ee_pair_file(input_ee_pair,"/home/bolun1/interval/Round/CCD-Wrapper/build/shifted_ee.csv");
-            exit(0);
-        }
-    }
     for(int i=0;i<3;i++){
         a0[i]=subs[3*0+i].first;b0[i]=subs[3*0+i].second;
         a1[i]=subs[3*1+i].first;
@@ -937,14 +895,32 @@ double shift_edge_edge(const ee_pair& input_ee_pair, ee_pair& shifted_ee_pair)
     shifted_ee_pair.a1b=a1b;
     shifted_ee_pair.b0b=b0b;
     shifted_ee_pair.b1b=b1b;
+	timer.stop();
+	time = timer.getElapsedTimeInMicroSec();
+	double err = 0;
+	for (int i = 0; i < subs.size(); i++) {
+		double value = subs[i].first;
+		double value_ori = save_subs[i].first;
+		Rational rvalue = Rational(value_ori) + Rational(k);
+		double diff = (rvalue - Rational(value)).to_double();
+		diff = fabs(diff);
+		if (diff > err) {
+			err = diff;
+		}
+	}
+	for (int i = 0; i < subs.size(); i++) {
+		double value = subs[i].second;
+		double value_ori = save_subs[i].second;
+		Rational rvalue = Rational(value_ori) + Rational(k);
+		double diff = (rvalue - Rational(value)).to_double();
+		diff = fabs(diff);
+		if (diff > err) {
+			err = diff;
+		}
+	}
+
+	return err;
     
-    // double err = 0, temerr;
-    // bool have_err=check_subs_err(subs, std::string("after shifting"));
-    // if(have_err){
-    //     print_exact_ee_pair_file(input_ee_pair,"/home/bolun1/interval/Round/CCD-Wrapper/build/shifted_ee.csv");
-    //     exit(0);
-    // }
-    return ee_shift_error(input_ee_pair, shifted_ee_pair);
 }
 bool have_no_truncation(const double a, const double b) {
 	Rational sub = Rational(a) - Rational(b);
@@ -1171,7 +1147,7 @@ void hex::get_hex_vertices(
     assert(have_no_truncation(a0b,b1b));
 }
 
-double hex::get_hex_shifted_vertices_double(
+void hex::get_hex_shifted_vertices_double(
 	const Vector3d& a0,
 	const Vector3d& a1,
 	const Vector3d& b0,

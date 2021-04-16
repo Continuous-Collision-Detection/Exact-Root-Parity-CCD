@@ -60,7 +60,8 @@ void case_check(){
     // std::cout<<dt.x1b[0]<<","<<dt.x1b[1]<<","<<dt.x1b[2]<<std::endl;
     // std::cout<<dt.x2b[0]<<","<<dt.x2b[1]<<","<<dt.x2b[2]<<std::endl;
     // std::cout<<dt.x3b[0]<<","<<dt.x3b[1]<<","<<dt.x3b[2]<<std::endl;
-    double err=shift_vertex_face(dt,dtshift);
+	double time;
+	double err=shift_vertex_face(dt,dtshift,time);
     dt=dtshift;
     bool res=doubleccd::vertexFaceCCD(
         dt.x0,dt.x1,dt.x2,dt.x3,dt.x0b,dt.x1b,dt.x2b,dt.x3b

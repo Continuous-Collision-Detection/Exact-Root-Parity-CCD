@@ -93,8 +93,8 @@ void get_whole_mesh_shifted(
     const Vector3d &pmin, const Vector3d& pmax);
 // Convenience function that just wrap get_whole_mesh_shifted(...)
 double
-shift_vertex_face(const vf_pair& input_vf_pair, vf_pair& shifted_vf_pair);
-double shift_edge_edge(const ee_pair& input_ee_pair, ee_pair& shifted_ee_pair);
+shift_vertex_face(const vf_pair& input_vf_pair, vf_pair& shifted_vf_pair,double &time);
+double shift_edge_edge(const ee_pair& input_ee_pair, ee_pair& shifted_ee_pair, double &time);
 
 class cube {
 public:
@@ -258,6 +258,16 @@ public:
     std::array<Vector3d, 8> h_vertices;
 
 private:
+	void get_hex_shifted_vertices_double(
+		const Vector3d& a0,
+		const Vector3d& a1,
+		const Vector3d& b0,
+		const Vector3d& b1,
+		const Vector3d& a0b,
+		const Vector3d& a1b,
+		const Vector3d& b0b,
+		const Vector3d& b1b,
+		std::array<Vector3d, 8>& h_vertices);
     void get_hex_vertices(
         const Vector3d& a0,
         const Vector3d& a1,
