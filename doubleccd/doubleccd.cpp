@@ -87,5 +87,9 @@ bool edgeEdgeCCD(
     
 }
 
-void test() {}
+void test() {
+#ifdef CCD_ROUND_INPUTS
+	std::cout << "rounding can be enabled" << std::endl;
+#endif
+}
 } // namespace doubleccd

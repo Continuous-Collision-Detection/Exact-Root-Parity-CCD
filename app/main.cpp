@@ -210,13 +210,14 @@ void read_and_test_shift(){
     check_subs_err(readed,"we successfully reproduce this problem");
     
 }
+
 int main(int argc, char* argv[])
 {
     
-    case_check();
+   // case_check();
     // test_shift();
     // read_and_test_shift();
-
+	doubleccd::test();
 
     std::cout<<"done"<<std::endl;
 

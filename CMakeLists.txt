@@ -12,6 +12,7 @@ endif()
 # project-options
 option(CCD_WITH_UNIT_TESTS   "Build unit tests using Catch2"  ON)
 option(CCD_BUILD_RATIONAL    "Build Rational Version"         ON)
+option(CCD_ROUND_INPUTS    "Round the inputs before collision detection"         OFF)
 
 # libigl
 option(LIBIGL_USE_STATIC_LIBRARY     "Use libigl as static library" OFF)
@@ -79,7 +80,9 @@ CCD_set_source_group(${DOUBLECCD_SOURCES})
 add_library(${PROJECT_NAME}_double  ${DOUBLECCD_SOURCES})
 target_include_directories(${PROJECT_NAME}_double PUBLIC ${PROJECT_BINARY_DIR}/include)
 target_include_directories(${PROJECT_NAME}_double PUBLIC doubleccd)
-
+if(CCD_ROUND_INPUTS)
+	target_compile_definitions(${PROJECT_NAME}_double PUBLIC "CCD_ROUND_INPUTS")
+endif()
 
 # libigl
 target_link_libraries(${PROJECT_NAME}_double PUBLIC igl::core igl::predicates)

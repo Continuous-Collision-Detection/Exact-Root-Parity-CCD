@@ -946,7 +946,12 @@ double shift_edge_edge(const ee_pair& input_ee_pair, ee_pair& shifted_ee_pair)
     // }
     return ee_shift_error(input_ee_pair, shifted_ee_pair);
 }
-
+bool have_no_truncation(const double a, const double b) {
+	Rational sub = Rational(a) - Rational(b);
+	double sub_d = a - b;
+	if (sub != sub_d) { return false; }
+	return true;
+}
 // x0 is the point, x1, x2, x3 is the triangle
 void get_prism_shifted_vertices_double(
     const Vector3d& x0,
@@ -1002,6 +1007,7 @@ void get_prism_shifted_vertices_double(
     for (int i = 0; i < 6; i++) {
         for (int j = 0; j < 3; j++) {
             p_vertices[i][j] = sub[c].first - sub[c].second;
+			assert(have_no_truncation(sub[c].first, sub[c].second));
             c++;
         }
     }
@@ -1025,8 +1031,6 @@ bool have_no_truncation(const Vector3d&p1,const Vector3d&p2){
             return false;}
     }
     return true;
-
-
 }
 
 // x0 is the point, x1, x2, x3 is the triangle
@@ -1066,12 +1070,18 @@ prism::prism(
     const Vector3d& fe2)
 {
 
-   // double k;
+   // 
     // these are the 6 vertices of the prism,right hand law
-
-    get_prism_vertices(
-        vs, fs0, fs1, fs2, ve, fe0, fe1, fe2,
-        p_vertices); //  before use this we need to shift all the vertices
+	double k = 0;
+#ifdef CCD_ROUND_INPUTS
+	get_prism_shifted_vertices_double(vs, fs0, fs1, fs2, ve, fe0, fe1, fe2, k,
+		p_vertices);
+#else
+	get_prism_vertices(
+		vs, fs0, fs1, fs2, ve, fe0, fe1, fe2,
+		p_vertices); //  before use this we need to shift all the vertices
+#endif
+    
     std::array<int, 2> eid;
 
     eid[0] = 0;
@@ -1160,6 +1170,60 @@ void hex::get_hex_vertices(
     assert(have_no_truncation(a1b,b1b));
     assert(have_no_truncation(a0b,b1b));
 }
+
+double hex::get_hex_shifted_vertices_double(
+	const Vector3d& a0,
+	const Vector3d& a1,
+	const Vector3d& b0,
+	const Vector3d& b1,
+	const Vector3d& a0b,
+	const Vector3d& a1b,
+	const Vector3d& b0b,
+	const Vector3d& b1b, 
+	std::array<Vector3d, 8>& h_vertices)
+{
+	
+	
+
+	std::vector<std::pair<double, double>> subs, save_subs;
+	subs.resize(8 * 3);
+	for (int i = 0; i < 3; i++) {
+		subs[3 * 0 + i].first = a0[i]; subs[3 * 0 + i].second = b0[i];
+		subs[3 * 1 + i].first = a1[i]; subs[3 * 1 + i].second = b0[i];
+		subs[3 * 2 + i].first = a1[i]; subs[3 * 2 + i].second = b1[i];
+		subs[3 * 3 + i].first = a0[i]; subs[3 * 3 + i].second = b1[i];
+
+		subs[3 * 4 + i].first = a0b[i]; subs[3 * 4 + i].second = b0b[i];
+		subs[3 * 5 + i].first = a1b[i]; subs[3 * 5 + i].second = b0b[i];
+		subs[3 * 6 + i].first = a1b[i]; subs[3 * 6 + i].second = b1b[i];
+		subs[3 * 7 + i].first = a0b[i]; subs[3 * 7 + i].second = b1b[i];
+	}
+
+	double k = displaceSubtractions_double(subs);
+	Vector3d a0_p;
+	Vector3d a1_p;
+	Vector3d b0_p;
+	Vector3d b1_p;
+	Vector3d a0b_p;
+	Vector3d a1b_p;
+	Vector3d b0b_p;
+	Vector3d b1b_p;
+	for (int i = 0; i < 3; i++) {
+		a0_p[i] = subs[3 * 0 + i].first; b0_p[i] = subs[3 * 0 + i].second;
+		a1_p[i] = subs[3 * 1 + i].first;
+		b1_p[i] = subs[3 * 2 + i].second;
+
+
+		a0b_p[i] = subs[3 * 4 + i].first; b0b_p[i] = subs[3 * 4 + i].second;
+		a1b_p[i] = subs[3 * 5 + i].first;
+		b1b_p[i] = subs[3 * 6 + i].second;
+
+	}
+	get_hex_vertices(a0_p, a1_p, b0_p, b1_p, a0b_p, a1b_p, b0b_p, b1b_p,
+		h_vertices);
+	
+}
+
 // a0, a1 is one edge, b0, b1 is another  edge
 hex::hex(
     const Vector3d& a0,
@@ -1172,10 +1236,15 @@ hex::hex(
     const Vector3d& b1b)
 {
 
-
-    get_hex_vertices(
-        a0, a1, b0, b1, a0b, a1b, b0b, b1b,
-        h_vertices); //before use this we need to shift all the vertices
+#ifdef CCD_ROUND_INPUTS
+	get_hex_shifted_vertices_double(a0, a1, b0, b1, a0b, a1b, b0b, b1b,
+		h_vertices);
+#else
+	get_hex_vertices(
+		a0, a1, b0, b1, a0b, a1b, b0b, b1b,
+		h_vertices); //before use this we need to shift all the vertices
+#endif
+    
     std::array<int, 2> eid;
 
     eid[0] = 0;
