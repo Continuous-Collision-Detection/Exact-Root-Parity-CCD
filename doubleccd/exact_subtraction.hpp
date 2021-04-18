@@ -114,3 +114,22 @@ static double displaceSubtractions_double(std::vector<std::pair<double, double>>
     _setFPUModeToRoundNEAR();
     return z;
 }
+// sub1 contains the bounding box of the scene [pmax pmin]
+static double perturbSubtractions(std::vector<std::pair<double, double>>& subtractions, std::vector<std::pair<double, double>>& sub1)
+{
+	_setFPUModeToRoundUP();
+
+	double z = maxCommonDisplacement(sub1);
+	for (std::pair<double, double>& p : subtractions)
+	{
+		p.first += z;
+		p.second += z;
+	}
+	for (std::pair<double, double>& p : sub1)
+	{
+		p.first += z;
+		p.second += z;
+	}
+	_setFPUModeToRoundNEAR();
+	return z;
+}

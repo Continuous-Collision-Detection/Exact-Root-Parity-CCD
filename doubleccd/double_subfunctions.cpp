@@ -523,20 +523,46 @@ void convert_sub_pairs_to_mesh_vers(
     
 }
 
+double shifted_error(const std::vector<std::pair<double, double>>& before,
+	const std::vector<std::pair<double, double>>& after, const double shift) {
+	double err = 0;
+	Rational s = shift;
+	assert(before.size() == after.size());
+	for (int i = 0; i < before.size(); i++) {
+		Rational real = Rational(before[i].first) + s;
+		double terr = fabs((real - Rational(after[i].first)).to_double());
+		if (terr > err) {
+			err = terr;
+		}
+		real = Rational(before[i].second) + s;
+		terr = fabs((real - Rational(after[i].second)).to_double());
+		if (terr > err) {
+			err = terr;
+		}
+	}
+	return err;
+}
+
 // shift whole mesh based on the bounding-box of the scene
-// void get_whole_mesh_shifted(
-//     Eigen::MatrixX3d& vertices,
-//     const Vector3d &pmin, const Vector3d& pmax){
-//     std::vector<std::pair<double, double>> box_x(1), box_y(1), box_z(1),whole_x,whole_y,whole_z;
-//     box_x[0].first=pmax[0];box_x[0].second=pmin[0];
-//     box_y[0].first=pmax[1];box_y[0].second=pmin[1];
-//     box_z[0].first=pmax[2];box_z[0].second=pmin[2];
-//     push_mesh_vers_into_sub_pair(vertices,whole_x,whole_y,whole_z);
-//     perturbSubtractions(whole_x,box_x);
-//     perturbSubtractions(whole_y,box_y);
-//     perturbSubtractions(whole_z,box_z);
-//     convert_sub_pairs_to_mesh_vers(whole_x,whole_y,whole_z,vertices);
-// }
+ double get_whole_mesh_shifted(
+     Eigen::MatrixX3d& vertices,
+     const Vector3d &pmin, const Vector3d& pmax){
+     std::vector<std::pair<double, double>> box_x(1), box_y(1), box_z(1),whole_x,whole_y,whole_z;
+     box_x[0].first=pmax[0];box_x[0].second=pmin[0];
+     box_y[0].first=pmax[1];box_y[0].second=pmin[1];
+     box_z[0].first=pmax[2];box_z[0].second=pmin[2];
+	 std::vector<std::pair<double, double>> bo0 = box_x, bo1 = box_y, bo2 = box_z;
+     push_mesh_vers_into_sub_pair(vertices,whole_x,whole_y,whole_z);
+     double k1=perturbSubtractions(whole_x,box_x);
+     double k2=perturbSubtractions(whole_y,box_y);
+     double k3=perturbSubtractions(whole_z,box_z);
+     convert_sub_pairs_to_mesh_vers(whole_x,whole_y,whole_z,vertices);
+	 double error = 0;
+	 error = std::max(error, shifted_error(bo0, box_x, k1));
+	 error = std::max(error, shifted_error(bo1, box_y, k2));
+	 error = std::max(error, shifted_error(bo2, box_z, k3));
+	 return error;
+ }
 
 // compare the error of the whole mesh
 // void compare_whole_mesh_err(const Eigen::MatrixX3d& vertices,const Eigen::MatrixX3d& vertices1){
@@ -554,8 +580,8 @@ void convert_sub_pairs_to_mesh_vers(
 //     std::cout<<"vertices diff x, "<<ex<<" y, "<<ey<<" z, "<<ez<<std::endl;
 // }
 
-// x0 is the point, x1, x2, x3 is the triangle
-// shift the whole mesh and get the shift - back vertices
+ /*x0 is the point, x1, x2, x3 is the triangle
+ shift the whole mesh and get the shift - back vertices*/
 // double get_whole_mesh_shifted(
 //     const std::vector<vf_pair>& data1,
 //     const std::vector<ee_pair>& data2,
@@ -564,7 +590,7 @@ void convert_sub_pairs_to_mesh_vers(
 //     Eigen::MatrixX3d& vertices)
 // {
 //     std::vector<std::pair<double, double>> whole, suback;
-
+//
 //     push_vers_into_subtract_pair(data1, data2, suback);
 //     int subsize = suback.size();
 //     push_mesh_vers_into_sub_pair(vertices, whole);
@@ -572,9 +598,9 @@ void convert_sub_pairs_to_mesh_vers(
 //     // k = displaceSubtractions_double(sub);
 //     suback.insert(suback.end(), whole.begin(), whole.end());
 //     perturbSubtractions(suback); // get shifted back data
-
+//
 //     shift_back1.resize(data1.size());
-
+//
 //     shift_back2.resize(data2.size());
 //     int c = 0;
 //     // Vector3d kvec(k, k, k);
@@ -589,7 +615,7 @@ void convert_sub_pairs_to_mesh_vers(
 //                 // dt1[i] = sub[r * 18 + i];
 //                 dtback1[i] = suback[r * 18 + i];
 //             }
-
+//
 //             convert_to_shifted_v(dtback1, shift_back1[r]);
 //         }      // r is d1size-1, sub has been read to d1size*18-1
 //         else { // r is from d1size to datasize-1, sub is from d1*18
@@ -597,7 +623,7 @@ void convert_sub_pairs_to_mesh_vers(
 //                 // dt2[i] = sub[d1size * 18 + (r - d1size) * 24 + i];
 //                 dtback2[i] = suback[d1size * 18 + (r - d1size) * 24 + i];
 //             }
-
+//
 //             convert_to_shifted_v(dtback2, shift_back2[r - d1size]);
 //         }
 //     }
@@ -622,15 +648,15 @@ void convert_sub_pairs_to_mesh_vers(
 //     }
 //     return err;
 // }
-
-// x0 is the point, x1, x2, x3 is the triangle
+//
+//// x0 is the point, x1, x2, x3 is the triangle
 // double get_whole_mesh_shifted(
 //     const std::vector<vf_pair>& data1,
 //     const std::vector<ee_pair>& data2,
 //     Eigen::MatrixX3d& vertices)
 // {
 //     // std::vector<std::pair<double, double>> whole, suback;
-
+//
 //     // push_vers_into_subtract_pair(data1, data2, suback);
 //     // int subsize = suback.size();
 //     // push_mesh_vers_into_sub_pair(vertices, whole);
@@ -638,7 +664,7 @@ void convert_sub_pairs_to_mesh_vers(
 //     // // k = displaceSubtractions_double(sub);
 //     // suback.insert(suback.end(), whole.begin(), whole.end());
 //     // perturbSubtractions(suback); // get shifted back data
-
+//
 //     // std::vector<std::pair<double, double>> vernew;
 //     // vernew.resize(vertices.size());
 //     // int c = 0;
@@ -653,9 +679,9 @@ void convert_sub_pairs_to_mesh_vers(
 //     //         err = fabs(whole[i].first - vernew[i].first);
 //     //     }
 //     // }
-
+//
 //     // convert_sub_pairs_to_mesh_vers(vernew, vertices);
-
+//
 //     return err;
 // }
 
