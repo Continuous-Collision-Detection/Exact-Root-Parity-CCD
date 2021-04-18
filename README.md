@@ -1,1 +1,1 @@
-# Exact Minimum Separation Continuous Collision Detection
+# Fast and Exact Root Parity for Continuous Collision Detection
