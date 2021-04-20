@@ -55,10 +55,10 @@ bool retrial_ccd(
     const Vector3d& pt,
     const std::vector<bool>& is_pt_in_tet);
 bool retrial_ccd_hex(
-	std::array<bilinear, 6>& bls,
-	const Vector3d& pt,
-	const std::vector<bool>& is_pt_in_tet);
-bool shoot_origin_ray_hex( std::array<bilinear, 6>& bls);
+    std::array<bilinear, 6>& bls,
+    const Vector3d& pt,
+    const std::vector<bool>& is_pt_in_tet);
+bool shoot_origin_ray_hex(std::array<bilinear, 6>& bls);
 bool shoot_origin_ray_prism(prism& psm, std::array<bilinear, 3>& bls);
 void ray_time();
 

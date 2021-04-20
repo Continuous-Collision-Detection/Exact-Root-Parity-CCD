@@ -22,8 +22,7 @@ bool vertexFaceCCD(
         face_vertex2_start, vertex_end, face_vertex0_end, face_vertex1_end,
         face_vertex2_end);
 
-    Vector3d bmin(0, 0, 0),
-        bmax(0, 0, 0);
+    Vector3d bmin(0, 0, 0), bmax(0, 0, 0);
     bool intersection = vfprism.is_prism_bbox_cut_bbox(bmin, bmax);
     if (!intersection) {
 
@@ -41,7 +40,6 @@ bool vertexFaceCCD(
     std::array<bilinear, 3> bls = { { bl0, bl1, bl2 } };
     bool oin = shoot_origin_ray_prism(vfprism, bls);
     return oin;
-    
 }
 
 // Detect collisions between two edges as they move.
@@ -63,8 +61,7 @@ bool edgeEdgeCCD(
 
     // step 1. bounding box checking
 
-    Vector3d bmin(0, 0, 0),
-        bmax(0, 0, 0);
+    Vector3d bmin(0, 0, 0), bmax(0, 0, 0);
     bool intersection = hx.is_hex_bbox_cut_bbox(bmin, bmax);
 
     if (!intersection)
@@ -84,12 +81,12 @@ bool edgeEdgeCCD(
     std::array<bilinear, 6> bls = { { bl0, bl1, bl2, bl3, bl4, bl5 } };
     bool oin = shoot_origin_ray_hex(bls);
     return oin;
-    
 }
 
-void test() {
+void test()
+{
 #ifdef CCD_ROUND_INPUTS
-	std::cout << "rounding can be enabled" << std::endl;
+    std::cout << "rounding can be enabled" << std::endl;
 #endif
 }
 } // namespace doubleccd
