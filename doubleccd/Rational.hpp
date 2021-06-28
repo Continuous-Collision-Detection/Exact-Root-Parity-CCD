@@ -11,7 +11,35 @@ public:
     mpq_t value;
     void canonicalize() { mpq_canonicalize(value); }
     int get_sign() const { return mpq_sgn(value); }
+    std::string get_denominator_str()
+    {
+        mpz_t denominator;
+        mpz_init(denominator);
+        mpq_get_den(denominator, value);
 
+        std::string v(mpz_get_str(NULL, 10, denominator));
+
+        mpz_clear(denominator);
+        return v;
+    }
+    std::string get_numerator_str()
+    {
+        mpz_t numerator;
+        mpz_init(numerator);
+
+        mpq_get_num(numerator, value);
+        std::string v(mpz_get_str(NULL, 10, numerator));
+        ;
+
+        mpz_clear(numerator);
+        return v;
+    }
+    double get_double(const std::string& num, const std::string& denom)
+    {
+        std::string tmp = num + "/" + denom;
+        mpq_set_str(value, tmp.c_str(), 10);
+        return mpq_get_d(value);
+    }
     Rational()
     {
         mpq_init(value);
@@ -130,5 +158,5 @@ public:
         os << mpq_get_d(r.value);
         return os;
     }
-    };
-    } // namespace doubleccd
+};
+} // namespace doubleccd

@@ -12,6 +12,7 @@ endif()
 # project-options
 option(CCD_WITH_UNIT_TESTS   "Build unit tests using Catch2"  ON)
 option(CCD_BUILD_RATIONAL    "Build Rational Version"         ON)
+option(CCD_ROUND_INPUTS    "Round the inputs before collision detection"         OFF)
 
 # libigl
 option(LIBIGL_USE_STATIC_LIBRARY     "Use libigl as static library" OFF)
@@ -79,7 +80,9 @@ CCD_set_source_group(${DOUBLECCD_SOURCES})
 add_library(${PROJECT_NAME}_double  ${DOUBLECCD_SOURCES})
 target_include_directories(${PROJECT_NAME}_double PUBLIC ${PROJECT_BINARY_DIR}/include)
 target_include_directories(${PROJECT_NAME}_double PUBLIC doubleccd)
-
+if(CCD_ROUND_INPUTS)
+	target_compile_definitions(${PROJECT_NAME}_double PUBLIC "CCD_ROUND_INPUTS")
+endif()
 
 # libigl
 target_link_libraries(${PROJECT_NAME}_double PUBLIC igl::core igl::predicates)
@@ -91,31 +94,42 @@ target_link_libraries(${PROJECT_NAME}_double PRIVATE warnings::all)
 target_include_directories(${PROJECT_NAME}_double PUBLIC ${GMP_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME}_double PUBLIC ${GMP_LIBRARIES})
 
+# For perturbation vertices
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+# grant IEEE 754 compliance
+  target_compile_options(${PROJECT_NAME}_double PUBLIC  "-frounding-math")
+  message("In Fixed-Root-Parity-CCD, the -frounding-math flag is setted")
+# use intrinsic functions (CHECK WHAT TO DO FOR GCC !!!!!!!!)
+#	target_compile_options(${PROJECT_NAME} PUBLIC "/Oi")
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+# grant IEEE 754 compliance
+  target_compile_options(${PROJECT_NAME}_double PUBLIC "/fp:strict")
+endif()
 ################################################################################
 # Interval CCD
 ################################################################################
 
-add_subdirectory(interval_ccd)
-prepend_current_path(INTERVAL_SOURCES)
-intervalCCD_copy_headers(${INTERVAL_SOURCES})
-CCD_set_source_group(${INTERVAL_SOURCES})
-add_library(${PROJECT_NAME}_interval ${INTERVAL_SOURCES})
-target_include_directories(${PROJECT_NAME}_interval PUBLIC ${PROJECT_BINARY_DIR}/include)
-target_include_directories(${PROJECT_NAME}_interval PUBLIC interval_ccd)
+# add_subdirectory(interval_ccd)
+# prepend_current_path(INTERVAL_SOURCES)
+# intervalCCD_copy_headers(${INTERVAL_SOURCES})
+# CCD_set_source_group(${INTERVAL_SOURCES})
+# add_library(${PROJECT_NAME}_interval ${INTERVAL_SOURCES})
+# target_include_directories(${PROJECT_NAME}_interval PUBLIC ${PROJECT_BINARY_DIR}/include)
+# target_include_directories(${PROJECT_NAME}_interval PUBLIC interval_ccd)
 
-# boost
-find_package(Boost REQUIRED)
-target_link_libraries(${PROJECT_NAME}_interval PUBLIC Boost::boost)
+# # boost
+# find_package(Boost REQUIRED)
+# target_link_libraries(${PROJECT_NAME}_interval PUBLIC Boost::boost)
 
-# libigl
-target_link_libraries(${PROJECT_NAME}_interval PUBLIC igl::core igl::predicates)
+# # libigl
+# target_link_libraries(${PROJECT_NAME}_interval PUBLIC igl::core igl::predicates)
 
-# Extra warnings
-target_link_libraries(${PROJECT_NAME}_interval PRIVATE warnings::all)
+# # Extra warnings
+# target_link_libraries(${PROJECT_NAME}_interval PRIVATE warnings::all)
 
-#GMP
-target_include_directories(${PROJECT_NAME}_interval PUBLIC ${GMP_INCLUDE_DIRS} src)
-target_link_libraries(${PROJECT_NAME}_interval PUBLIC ${GMP_LIBRARIES})
+# #GMP
+# target_include_directories(${PROJECT_NAME}_interval PUBLIC ${GMP_INCLUDE_DIRS} src)
+# target_link_libraries(${PROJECT_NAME}_interval PUBLIC ${GMP_LIBRARIES})
 
 ################################################################################
 # Executable
@@ -124,18 +138,18 @@ target_link_libraries(${PROJECT_NAME}_interval PUBLIC ${GMP_LIBRARIES})
 if(CCD_TOPLEVEL_PROJECT AND CCD_BUILD_RATIONAL)
   add_executable(${PROJECT_NAME}_bin
     # Add executable source here
-    src/main.cpp
-    src/read_collision_data.cpp
+    app/main.cpp
+    # src/read_collision_data.cpp
   )
 
-  target_link_libraries(${PROJECT_NAME}_bin PUBLIC HighFive::HighFive)
+  # target_link_libraries(${PROJECT_NAME}_bin PUBLIC HighFive::HighFive)
 
   target_link_libraries(${PROJECT_NAME}_bin PUBLIC ${PROJECT_NAME}_rational)
   target_link_libraries(${PROJECT_NAME}_bin PUBLIC ${PROJECT_NAME}_double)
-  target_link_libraries(${PROJECT_NAME}_bin PUBLIC ${PROJECT_NAME}_interval)
+  # target_link_libraries(${PROJECT_NAME}_bin PUBLIC ${PROJECT_NAME}_interval)
   # WARNING: This requires a check  as it will break compatability with non-AVX
   #          processors.
-  target_compile_options(CCD_interval PUBLIC "-mavx2")
+  # target_compile_options(CCD_interval PUBLIC "-mavx2")
   set(DATA_PATH "${CMAKE_CURRENT_SOURCE_DIR}/data/")
   target_compile_definitions(${PROJECT_NAME}_bin PUBLIC -DCCD_DATA_PATH=\"${DATA_PATH}\")
 endif()

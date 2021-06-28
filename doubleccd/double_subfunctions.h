@@ -84,17 +84,23 @@ double get_whole_mesh_shifted(
     const std::vector<vf_pair>& data1,
     const std::vector<ee_pair>& data2,
     Eigen::MatrixX3d& vertices);
-
-//print out difference between 2 vertices lists;
-void compare_whole_mesh_err(const Eigen::MatrixX3d& vertices,const Eigen::MatrixX3d& vertices1);
-// shift the mesh accroding to the bounding box
-void get_whole_mesh_shifted(
+double get_whole_mesh_shifted(
     Eigen::MatrixX3d& vertices,
-    const Vector3d &pmin, const Vector3d& pmax);
+    const Vector3d& pmin,
+    const Vector3d& pmax,
+    Vector3d& invShift);
+
+// print out difference between 2 vertices lists;
+void compare_whole_mesh_err(
+    const Eigen::MatrixX3d& vertices, const Eigen::MatrixX3d& vertices1);
+// shift the mesh accroding to the bounding box
+double get_whole_mesh_shifted(
+    Eigen::MatrixX3d& vertices, const Vector3d& pmin, const Vector3d& pmax);
 // Convenience function that just wrap get_whole_mesh_shifted(...)
-double
-shift_vertex_face(const vf_pair& input_vf_pair, vf_pair& shifted_vf_pair);
-double shift_edge_edge(const ee_pair& input_ee_pair, ee_pair& shifted_ee_pair);
+double shift_vertex_face(
+    const vf_pair& input_vf_pair, vf_pair& shifted_vf_pair, double& time);
+double shift_edge_edge(
+    const ee_pair& input_ee_pair, ee_pair& shifted_ee_pair, double& time);
 
 class cube {
 public:
@@ -136,8 +142,10 @@ bool is_cube_edges_intersect_triangle(
 // segment and triangle are coplanar, check intersection
 
 void get_corners(const Eigen::MatrixX3d& p, Vector3d& min, Vector3d& max);
-void get_tet_corners(const std::array<Vector3d, 4>& p, Vector3d& min, Vector3d& max);
-void get_edge_coners(const Vector3d& e0, const Vector3d& e1, Vector3d &emin,Vector3d &emax);
+void get_tet_corners(
+    const std::array<Vector3d, 4>& p, Vector3d& min, Vector3d& max);
+void get_edge_coners(
+    const Vector3d& e0, const Vector3d& e1, Vector3d& emin, Vector3d& emax);
 template <typename T>
 void get_bbd_corners(const std::array<T, 6>& p, T& min, T& max)
 {
@@ -258,6 +266,16 @@ public:
     std::array<Vector3d, 8> h_vertices;
 
 private:
+    void get_hex_shifted_vertices_double(
+        const Vector3d& a0,
+        const Vector3d& a1,
+        const Vector3d& b0,
+        const Vector3d& b1,
+        const Vector3d& a0b,
+        const Vector3d& a1b,
+        const Vector3d& b0b,
+        const Vector3d& b1b,
+        std::array<Vector3d, 8>& h_vertices);
     void get_hex_vertices(
         const Vector3d& a0,
         const Vector3d& a1,
@@ -269,9 +287,11 @@ private:
         const Vector3d& b1b,
         std::array<Vector3d, 8>& h_vertices);
 };
-//pmin and pmax are the bounding box corners of bilinear bl
+// pmin and pmax are the bounding box corners of bilinear bl
 bool is_cube_intersect_tet_opposite_faces(
-    const bilinear& bl,const Vector3d &pmin, const Vector3d &pmax,
+    const bilinear& bl,
+    const Vector3d& pmin,
+    const Vector3d& pmax,
     const cube& cube,
     std::array<bool, 8>& vin,
     bool& cube_inter_tet);

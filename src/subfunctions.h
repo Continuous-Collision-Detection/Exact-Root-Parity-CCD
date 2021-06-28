@@ -26,7 +26,9 @@ bool box_box_intersection(
         return 0;
     return 1;
 }
-
+// the facets of the tet are all oriented to outside. check if p is inside of
+// OPEN tet
+bool is_point_inside_tet(const bilinear& bl, const Vector3r& p);
 bool is_seg_intersect_cube(
     const double& eps, const Vector3r& e0, const Vector3r& e1);
 bool seg_intersect_cube(const double eps, const Vector3r& e0, const Vector3r& e1);

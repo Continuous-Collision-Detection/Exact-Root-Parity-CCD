@@ -1,499 +1,518 @@
 #include <doubleCCD/double_ray_parity.h>
 #include <iomanip>
 
-
 namespace doubleccd {
-	int ray_degenerated_bilinear_parity(
-		const bilinear& bl,
-		const Vector3d& pt,
-		const Vector3d& pt1,
-		const Vector3d& dir,
-		const int dege
-	)
-	{
+int ray_degenerated_bilinear_parity(
+    const bilinear& bl,
+    const Vector3d& pt,
+    const Vector3d& pt1,
+    const Vector3d& dir,
+    const int dege)
+{
 
-		int r1, r2;
-		if (dege == BI_DEGE_PLANE) {
-			r1 = ray_triangle_intersection(// -1, 0, 1, 2
-				pt, pt1, dir, bl.v[0], bl.v[1],
-				bl.v[2], true);
-				//std::cout<<"inter t1, "<<r1<<"\n"<<std::endl;
-				//std::cout<<"v0 "<<bl.v[0][0]<<", "<<bl.v[0][1]<<", "<<bl.v[0][2]<<std::endl;
-				//std::cout<<"v1 "<<bl.v[1][0]<<", "<<bl.v[1][1]<<", "<<bl.v[1][2]<<std::endl;
-				//std::cout<<"v2 "<<bl.v[2][0]<<", "<<bl.v[2][1]<<", "<<bl.v[2][2]<<std::endl;
-				//std::cout<<"dir "<<dir[0]<<", "<<dir[1]<<", "<<dir[2]<<std::endl;
-				//ray_triangle_intersection_rational
-			if (r1 == 2)
-				return 2;
-			if (r1 == -1)
-				return -1;
-			if (r1 == 1)
-				return 1;
-			if (r1 == 3) {
-				r1 = ray_triangle_intersection(// -1, 0, 1, 2
-					pt, pt1, dir, bl.v[0], bl.v[1],
-					bl.v[2], false);//  this should have 3, if 3, see it as 1
-				if (r1 == 2) return 2;// point on t2-t3 edge
-				return 1;// ray go through t2-t3 edge
-			}
-			r2 = ray_triangle_intersection(
-				pt, pt1, dir, bl.v[0], bl.v[3],
-				bl.v[2], false);
-				//std::cout<<"inter t2, "<<r2<<std::endl;
-			if (r2 == 2)
-				return 2;
-			if (r2 == -1)
-				return -1;
-			if (r2 == 1)
-				return 1;
-			return 0;
+    int r1, r2;
+    if (dege == BI_DEGE_PLANE) {
+        r1 = ray_triangle_intersection( // -1, 0, 1, 2
+            pt, pt1, dir, bl.v[0], bl.v[1], bl.v[2], true);
+        // std::cout<<"inter t1, "<<r1<<"\n"<<std::endl;
+        // std::cout<<"v0 "<<bl.v[0][0]<<", "<<bl.v[0][1]<<",
+        // "<<bl.v[0][2]<<std::endl; std::cout<<"v1 "<<bl.v[1][0]<<",
+        // "<<bl.v[1][1]<<", "<<bl.v[1][2]<<std::endl; std::cout<<"v2
+        // "<<bl.v[2][0]<<", "<<bl.v[2][1]<<", "<<bl.v[2][2]<<std::endl;
+        // std::cout<<"dir "<<dir[0]<<", "<<dir[1]<<", "<<dir[2]<<std::endl;
+        // ray_triangle_intersection_rational
+        if (r1 == 2)
+            return 2;
+        if (r1 == -1)
+            return -1;
+        if (r1 == 1)
+            return 1;
+        if (r1 == 3) {
+            r1 = ray_triangle_intersection( // -1, 0, 1, 2
+                pt, pt1, dir, bl.v[0], bl.v[1], bl.v[2],
+                false); //  this should have 3, if 3, see it as 1
+            if (r1 == 2)
+                return 2; // point on t2-t3 edge
+            return 1;     // ray go through t2-t3 edge
+        }
+        r2 = ray_triangle_intersection(
+            pt, pt1, dir, bl.v[0], bl.v[3], bl.v[2], false);
+        // std::cout<<"inter t2, "<<r2<<std::endl;
+        if (r2 == 2)
+            return 2;
+        if (r2 == -1)
+            return -1;
+        if (r2 == 1)
+            return 1;
+        return 0;
 
-		}
-		else {
+    } else {
 
-			if (dege == BI_DEGE_XOR_02) { // triangle 0-1-2 and 0-2-3
-				r1 = ray_triangle_intersection(
-					pt, pt1, dir, bl.v[0], bl.v[1],
-					bl.v[2], true);//0: not hit, 1: hit on open triangle, 2: pt on halfopen T, since already checked, accept it
-				r2 = ray_triangle_intersection(
-					pt, pt1, dir, bl.v[0], bl.v[3],
-					bl.v[2], true);
-				return int_ray_XOR(r1, r2);
-			}
+        if (dege == BI_DEGE_XOR_02) { // triangle 0-1-2 and 0-2-3
+            r1 = ray_triangle_intersection(
+                pt, pt1, dir, bl.v[0], bl.v[1], bl.v[2],
+                true); // 0: not hit, 1: hit on open triangle, 2: pt on halfopen
+                       // T, since already checked, accept it
+            r2 = ray_triangle_intersection(
+                pt, pt1, dir, bl.v[0], bl.v[3], bl.v[2], true);
+            return int_ray_XOR(r1, r2);
+        }
 
-			if (dege == BI_DEGE_XOR_13) { // triangle 0-1-3 and 3-1-2
-				r1 = ray_triangle_intersection(
-					pt, pt1, dir, bl.v[0], bl.v[1],
-					bl.v[3], true);//0: not hit, 1: hit on open triangle, 2: pt on halfopen T, since already checked, accept it
-				r2 = ray_triangle_intersection(
-					pt, pt1, dir, bl.v[2], bl.v[1],
-					bl.v[3], true);
-				return int_ray_XOR(r1, r2);
-			}
-		}
-		std::cout << "!! THIS CANNOT HAPPEN" << std::endl;
-		return false;
-	}
-	int ray_correct_bilinear_face_pair_inter(
-		const Vector3d& p,
-		const Vector3d& p1,
-		const Rational& phi_p,
-		const Vector3d& dir,
-		const bilinear& bl)
-	{
-		int r1, r2;
-		/*if (phi_p.get_sign() == 0)
-			return 2;*/
-		if (bl.phi_f[0] * phi_p.get_sign() < 0) {
-			r1 = ray_triangle_intersection(// -1,0,1,2,3
-				p, p1, dir, bl.v[bl.facets[0][0]], bl.v[bl.facets[0][1]],
-				bl.v[bl.facets[0][2]], true);
-			r2 = ray_triangle_intersection(
-				p, p1, dir, bl.v[bl.facets[1][0]], bl.v[bl.facets[1][1]],
-				bl.v[bl.facets[1][2]], true);
-			// when there is -1, -1(shoot on one of two edges); impossible to have 2; when there is 1, 1
-			// when there is 3, pt is on t2-t3 edge(impossible), or ray go across that edge, parity +1, return 1
-			// since pt is inside of tet, then impossible on any plane of the two triangles
-			if (r1 == -1 || r2 == -1)
-				return -1;
-			if (r1 > 0 || r2 > 0)
-				return 1; // cannot be degenerated, so this can work
-			return 0;
-		}
-		else {
-			r1 = ray_triangle_intersection(
-				p, p1, dir, bl.v[bl.facets[2][0]], bl.v[bl.facets[2][1]],
-				bl.v[bl.facets[2][2]], true);
-			r2 = ray_triangle_intersection(
-				p, p1, dir, bl.v[bl.facets[3][0]], bl.v[bl.facets[3][1]],
-				bl.v[bl.facets[3][2]], true);
-			if (r1 == -1 || r2 == -1)
-				return -1;
-			if (r1 > 0 || r2 > 0)
-				return 1; // cannot be degenerated, so this can work
-			return 0;
-		}
-	}
-	// if end point pt is inside of tet or on the border
-	int ray_shoot_correct_pair(
-		bilinear& bl,
-		const Vector3d& pt,
-		const Vector3d& pt1,
-		const Vector3d& dir) {
-		if (bl.phi_f[0] == 2) { // phi never calculated, need calculated
-			get_tet_phi(bl);
-		}
-		Rational phip = phi(pt, bl.v);
-		if (phip == 0)
-			return 2;// point on bilinear
-		return ray_correct_bilinear_face_pair_inter(pt, pt1, phip, dir, bl);
-	}
-	int ray_bilinear_parity(
-		bilinear& bl,
-		const Vector3d& pt,
-		const Vector3d& pt1,
-		const Vector3d& dir,
-		const bool is_degenerated,
-		const bool is_point_in_tet)// out of tet means no touch tet
-	{
-
-		if (!is_degenerated) {
-			bool check = false;
-			if (!is_point_in_tet) { // p out of tet,or on the border
-				int r1, r2;
-				//we need to know: if shoot on any edge?(two edges return -1, one edge return 1)
-				//std::cout<<"is dege "<<is_degenerated<<std::endl;
-				
-				r1 = ray_triangle_intersection(
-					pt, pt1, dir, bl.v[bl.facets[0][0]], bl.v[bl.facets[0][1]],
-					bl.v[bl.facets[0][2]], true);
-				r2 = ray_triangle_intersection(
-					pt, pt1, dir, bl.v[bl.facets[1][0]], bl.v[bl.facets[1][1]],
-					bl.v[bl.facets[1][2]], true);
-				//std::cout<<"r1 "<<r1<<" r2 "<<r2<<std::endl;
-				// idea is: if -1
-				if (r1 == -1 || r2 == -1)
-					return -1;
-				if (r1 == 3 || r2 == 3) check = true;// 3-3(pt on t2-t3 or shoot t2-t3) or 2-3 (pt in one face, shoot another t2-t3)
-				if (r1 == 2 && r2 == 0) check = true;
-				if (r1 == 0 && r2 == 2) check = true;
-				if (r1 == 1 && r2 == 1) return 0;
-				if (r1 + r2 == 1) return 1;// 1-0 case
-				if (r1 == 1 || r2 == 1) return 0;// 1-2 case
-				if (r1 == 0 && r2 == 0) return 0;
-
-				if (check == false) return 0;
-				else {// intersect the t2-t3 edge, or point on triangle
-					if (r1 == 3 || r2 == 3) {
-						if (r1 == 2 || r2 == 2) return 0;
-						if (point_inter_triangle(pt, bl.v[bl.facets[0][0]], bl.v[bl.facets[0][1]],
-							bl.v[bl.facets[0][2]], false, false) > 0 ||
-							point_inter_triangle(pt, bl.v[bl.facets[1][0]], bl.v[bl.facets[1][1]],
-								bl.v[bl.facets[1][2]], false, false) > 0){// point on t2-t3 edge, regard as inside
-							return ray_shoot_correct_pair(bl, pt, pt1, dir);
-						}
-						else {
-							if (orient_3d(pt, bl.v[bl.facets[0][0]], bl.v[bl.facets[0][1]],
-								bl.v[bl.facets[0][2]]) > 0 && orient_3d(pt, bl.v[bl.facets[1][0]], bl.v[bl.facets[1][1]],
-									bl.v[bl.facets[1][2]]) > 0) return 1;
-							return 0;
-						}
-					}
-					if (r1 == 2 || r2 == 2) return ray_shoot_correct_pair(bl, pt, pt1, dir);
-					std::cout << "impossible to go here " << std::endl;
-					return 0;
-				}
-			}
-			else { // p inside open tet
-
-				return ray_shoot_correct_pair(bl, pt, pt1, dir);
-
-			}
-		}
-		else {// degenerated bilinear
-			int degetype = bilinear_degeneration(bl);
-			
-			return ray_degenerated_bilinear_parity(bl, pt, pt1, dir, degetype);
-		}
-	}
-
-	int ray_triangle_parity(
-		const Vector3d& pt,
-		const Vector3d& pt1,
-		const Vector3d& dir,
-		const Vector3d& t0,
-		const Vector3d& t1,
-		const Vector3d& t2,
-		const bool is_triangle_degenerated)
-	{
-		if (!is_triangle_degenerated) {
-			
-			int res=ray_triangle_intersection(pt, pt1, dir, t0, t1, t2, false);
-			
-			return res;
-			// 0 not hit, 1 hit on open triangle, -1 parallel or hit on edge, need
-			// another shoot.
-		}
-		else {
-			// if pt on it (2), return 2; if 1(including overlap) return -1
-			int i1 = ray_segment_intersection(pt, pt1, dir, t0, t1);// 2 means pt on the segment
-			if (i1 == 2) return 2;
-			if (i1 == 1) return -1;
-			int i2 = ray_segment_intersection(pt, pt1, dir, t1, t2);
-			if (i2 == 2) return 2;
-			if (i2 == 1) return -1;
-			
-
-			return 0;
-		}
-	}
-	// dir = pt1 - pt
-	int point_inside_prism(prism& psm, std::array<bilinear, 3> &bls,
-		const Vector3d& pt, const Vector3d& pt1, const Vector3d& dir, const std::vector<bool>& is_pt_in_tet)
-	{
-		int S = 0;
-		if (dir[0] == 0 && dir[1] == 0 && dir[2] == 0) {
-			std::cout << "random direction wrong" << std::endl;
-			return -1;
-		}
-		
-		
-		for (int patch = 0; patch < 3; ++patch) {
-			
-			int is_ray_patch = ray_bilinear_parity(
-				bls[patch], pt, pt1, dir, bls[patch].is_degenerated, is_pt_in_tet[patch]);
-			
-			
-			if (is_ray_patch == 2)
-				return 1;
-
-			if (is_ray_patch == -1)
-				return -1;
-
-			if (is_ray_patch == 1)
-				S++;
-		}
-
-		int res;
-		
-		
-		res = ray_triangle_parity(
-			pt, pt1, dir, psm.p_vertices[0], psm.p_vertices[1], psm.p_vertices[2],
-			psm.is_triangle_degenerated(0));
-			
-		
-		if (res == 2)
-			return 1;// it should be impossible
-		if (res == -1)
-			return -1;
-
-		if (res > 0)
-			S++;
-		
-		
-		res = ray_triangle_parity(
-			pt, pt1, dir, psm.p_vertices[3], psm.p_vertices[4], psm.p_vertices[5],
-			psm.is_triangle_degenerated(1));
-			
-		
-		if (res == 2)
-			return 1; // it should be impossible
-		if (res == -1)
-			return -1;
-
-		if (res > 0)
-			S++;
-
-		
-		return ((S % 2) == 1) ? 1 : 0;
-	}
-	
-	int point_inside_hex(std::array<bilinear, 6> &bls,
-		const Vector3d& pt, const Vector3d& pt1, const Vector3d& dir, const std::vector<bool>& is_pt_in_tet)
-	{
-		int S = 0;
-		if (dir[0] == 0 && dir[1] == 0 && dir[2] == 0) {
-			std::cout << "random direction wrong" << std::endl;
-			return -1;
-		}
-		for (int patch = 0; patch < 6; ++patch) {
-
-			int is_ray_patch = ray_bilinear_parity(
-				bls[patch], pt, pt1, dir, bls[patch].is_degenerated, is_pt_in_tet[patch]);
-			//std::cout<<"\nis ray parity "<<is_ray_patch<<" is pt in tet "<<is_pt_in_tet[patch]<<std::endl;
-			//std::cout<<"bilinear ori, "<<orient_3d(bls[patch].v[0],bls[patch].v[1],bls[patch].v[2],bls[patch].v[3])<<"this bilinear finished\n"<<std::endl;
-
-			if (is_ray_patch == 2)
-				return 1;
-
-			if (is_ray_patch == -1)
-				return -1;
-
-			if (is_ray_patch == 1)
-				S++;
-		}
-		return ((S % 2) == 1) ? 1 : 0;
-	}
-	//this function can give a random double number between b/2 and 2*b, b~1.5b
-	// to make a-b have no truncation
-	void get_correct_rand(const double b, double &a) {
-		double rd;
-		if (b == 0) {
-			a = 1; return;
-		}
-		//if (b > 0) {
-		rd = double(rand()) / RAND_MAX;//random number from 0 to 1
-		rd = 0.25 + rd / 2;
-		a = b / 2 + 3 * rd * b / 4;// a random number from b/2 to 2b
-		
-
-		assert((b>=0 && b < 2*a && b > a/2) || (b < 0 && b > 2 * a && b < a / 2));
-		
-		
-		return;
-
-	}
-	//this function can get a random direction and a random point np, so that np-pt=dir
-	void get_direction(const Vector3d&pt, Vector3d &np, Vector3d&dir) {
-		
-		get_correct_rand(pt[0], np[0]);
-		get_correct_rand(pt[1], np[1]);
-		get_correct_rand(pt[2], np[2]);
-
-		dir = np - pt;
-		//test
-		
-		
-	}
-	bool shoot_origin_ray_prism(prism& psm, std::array<bilinear, 3>& bls){
-			static const int max_trials = 8;
-
-		// if a/2<=b<=2*a, then a-b is exact.
-		std::vector<bool> is_pt_in_tet;
-		is_pt_in_tet.resize(3);
-		for(int i=0;i<3;i++){
-			if(bls[i].is_degenerated)
-				is_pt_in_tet[i]=false;
-			else
-				is_pt_in_tet[i]=is_point_inside_tet(bls[i],ORIGIN);
-		}
-		
-		
-		Vector3d  dir(1,0,0);
-		Vector3d pt2=dir;
-		
-		int res = -1;
-		int trials;
-		
-		
-		for (trials = 0; trials < max_trials; ++trials) {
-			res = point_inside_prism(psm, bls, ORIGIN,pt2, dir, is_pt_in_tet);
-
-			if (res >= 0)
-				break;
-
-			dir=Vector3d::Random();
-			pt2=dir;
-		}
-
-		if (trials == max_trials) {
-
-			std::cout << "All rays are on edges, increase trials" << std::endl;
-			throw "All rays are on edges, increase trials";
-			return false;
-		}
-
-		return res >= 1; // >=1 means point inside of prism
-		}
-	bool retrial_ccd(
-		prism& psm, std::array<bilinear, 3>& bls,
-		const Vector3d& pt,
-		const std::vector<bool>& is_pt_in_tet)
-	{
-
-		static const int max_trials = 8;
-
-		// if a/2<=b<=2*a, then a-b is exact.
-		
-		
-		Vector3d pt2, dir;
-		get_direction(pt, pt2, dir);
-		
-		int res = -1;
-		int trials;
-		
-		
-		for (trials = 0; trials < max_trials; ++trials) {
-			res = point_inside_prism(psm, bls, pt,pt2, dir, is_pt_in_tet);
-
-			if (res >= 0)
-				break;
-
-			get_direction(pt, pt2, dir);
-		}
-
-		if (trials == max_trials) {
-
-			std::cout << "All rays are on edges, increase trials" << std::endl;
-			throw "All rays are on edges, increase trials";
-			return false;
-		}
-
-		return res >= 1; // >=1 means point inside of prism
-	}
-	bool shoot_origin_ray_hex( std::array<bilinear, 6>& bls){
-			static const int max_trials = 8;
-
-		// if a/2<=b<=2*a, then a-b is exact.
-		std::vector<bool> is_pt_in_tet;
-		is_pt_in_tet.resize(6);
-		for(int i=0;i<6;i++){
-			if(bls[i].is_degenerated)
-				is_pt_in_tet[i]=false;
-			else
-				is_pt_in_tet[i]=is_point_inside_tet(bls[i],ORIGIN);
-		}
-		Vector3d  dir(1,0,0);
-		Vector3d pt2=dir;
-
-		int res = -1;
-		int trials;
-
-		for (trials = 0; trials < max_trials; ++trials) {
-			res = point_inside_hex(bls, ORIGIN, pt2, dir, is_pt_in_tet);
-			
-			if (res >= 0)
-				break;
-
-			dir=Vector3d::Random();
-			pt2=dir;
-		}
-
-		if (trials == max_trials) {
-
-			std::cout << "All rays are on edges, increase trials" << std::endl;
-			throw "All rays are on edges, increase trials";
-			return false;
-		}
-
-		return res >= 1; // >=1 means point inside of prism
-		}
-	bool retrial_ccd_hex(
-		 std::array<bilinear, 6>& bls,
-		const Vector3d& pt,
-		const std::vector<bool>& is_pt_in_tet)
-	{
-
-		static const int max_trials = 8;
-
-		// if a/2<=b<=2*a, then a-b is exact.
-
-		Vector3d pt2, dir;
-		get_direction(pt, pt2, dir);
-		
-
-		int res = -1;
-		int trials;
-
-		for (trials = 0; trials < max_trials; ++trials) {
-			res = point_inside_hex(bls, pt, pt2, dir, is_pt_in_tet);
-			
-			if (res >= 0)
-				break;
-
-			get_direction(pt, pt2, dir);
-		}
-
-		if (trials == max_trials) {
-
-			std::cout << "All rays are on edges, increase trials" << std::endl;
-			throw "All rays are on edges, increase trials";
-			return false;
-		}
-
-		return res >= 1; // >=1 means point inside of prism
-	}
-	void ray_time() {
-		
-	}
+        if (dege == BI_DEGE_XOR_13) { // triangle 0-1-3 and 3-1-2
+            r1 = ray_triangle_intersection(
+                pt, pt1, dir, bl.v[0], bl.v[1], bl.v[3],
+                true); // 0: not hit, 1: hit on open triangle, 2: pt on halfopen
+                       // T, since already checked, accept it
+            r2 = ray_triangle_intersection(
+                pt, pt1, dir, bl.v[2], bl.v[1], bl.v[3], true);
+            return int_ray_XOR(r1, r2);
+        }
+    }
+    std::cout << "!! THIS CANNOT HAPPEN" << std::endl;
+    return false;
 }
+int ray_correct_bilinear_face_pair_inter(
+    const Vector3d& p,
+    const Vector3d& p1,
+    const Rational& phi_p,
+    const Vector3d& dir,
+    const bilinear& bl)
+{
+    int r1, r2;
+    /*if (phi_p.get_sign() == 0)
+            return 2;*/
+    if (bl.phi_f[0] * phi_p.get_sign() < 0) {
+        r1 = ray_triangle_intersection( // -1,0,1,2,3
+            p, p1, dir, bl.v[bl.facets[0][0]], bl.v[bl.facets[0][1]],
+            bl.v[bl.facets[0][2]], true);
+        r2 = ray_triangle_intersection(
+            p, p1, dir, bl.v[bl.facets[1][0]], bl.v[bl.facets[1][1]],
+            bl.v[bl.facets[1][2]], true);
+        // when there is -1, -1(shoot on one of two edges); impossible to have
+        // 2; when there is 1, 1 when there is 3, pt is on t2-t3
+        // edge(impossible), or ray go across that edge, parity +1, return 1
+        // since pt is inside of tet, then impossible on any plane of the two
+        // triangles
+        if (r1 == -1 || r2 == -1)
+            return -1;
+        if (r1 > 0 || r2 > 0)
+            return 1; // cannot be degenerated, so this can work
+        return 0;
+    } else {
+        r1 = ray_triangle_intersection(
+            p, p1, dir, bl.v[bl.facets[2][0]], bl.v[bl.facets[2][1]],
+            bl.v[bl.facets[2][2]], true);
+        r2 = ray_triangle_intersection(
+            p, p1, dir, bl.v[bl.facets[3][0]], bl.v[bl.facets[3][1]],
+            bl.v[bl.facets[3][2]], true);
+        if (r1 == -1 || r2 == -1)
+            return -1;
+        if (r1 > 0 || r2 > 0)
+            return 1; // cannot be degenerated, so this can work
+        return 0;
+    }
+}
+// if end point pt is inside of tet or on the border
+int ray_shoot_correct_pair(
+    bilinear& bl, const Vector3d& pt, const Vector3d& pt1, const Vector3d& dir)
+{
+    if (bl.phi_f[0] == 2) { // phi never calculated, need calculated
+        get_tet_phi(bl);
+    }
+    Rational phip = phi(pt, bl.v);
+    if (phip == 0)
+        return 2; // point on bilinear
+    return ray_correct_bilinear_face_pair_inter(pt, pt1, phip, dir, bl);
+}
+int ray_bilinear_parity(
+    bilinear& bl,
+    const Vector3d& pt,
+    const Vector3d& pt1,
+    const Vector3d& dir,
+    const bool is_degenerated,
+    const bool is_point_in_tet) // out of tet means no touch tet
+{
+
+    if (!is_degenerated) {
+        bool check = false;
+        if (!is_point_in_tet) { // p out of tet,or on the border
+            int r1, r2;
+            // we need to know: if shoot on any edge?(two edges return -1, one
+            // edge return 1) std::cout<<"is dege "<<is_degenerated<<std::endl;
+
+            r1 = ray_triangle_intersection(
+                pt, pt1, dir, bl.v[bl.facets[0][0]], bl.v[bl.facets[0][1]],
+                bl.v[bl.facets[0][2]], true);
+            r2 = ray_triangle_intersection(
+                pt, pt1, dir, bl.v[bl.facets[1][0]], bl.v[bl.facets[1][1]],
+                bl.v[bl.facets[1][2]], true);
+            // std::cout<<"r1 "<<r1<<" r2 "<<r2<<std::endl;
+            // idea is: if -1
+            if (r1 == -1 || r2 == -1)
+                return -1;
+            if (r1 == 3 || r2 == 3)
+                check = true; // 3-3(pt on t2-t3 or shoot t2-t3) or 2-3 (pt in
+                              // one face, shoot another t2-t3)
+            if (r1 == 2 && r2 == 0)
+                check = true;
+            if (r1 == 0 && r2 == 2)
+                check = true;
+            if (r1 == 1 && r2 == 1)
+                return 0;
+            if (r1 + r2 == 1)
+                return 1; // 1-0 case
+            if (r1 == 1 || r2 == 1)
+                return 0; // 1-2 case
+            if (r1 == 0 && r2 == 0)
+                return 0;
+
+            if (check == false)
+                return 0;
+            else { // intersect the t2-t3 edge, or point on triangle
+                if (r1 == 3 || r2 == 3) {
+                    if (r1 == 2 || r2 == 2)
+                        return 0;
+                    if (point_inter_triangle(
+                            pt, bl.v[bl.facets[0][0]], bl.v[bl.facets[0][1]],
+                            bl.v[bl.facets[0][2]], false, false)
+                            > 0
+                        || point_inter_triangle(
+                               pt, bl.v[bl.facets[1][0]], bl.v[bl.facets[1][1]],
+                               bl.v[bl.facets[1][2]], false, false)
+                            > 0) { // point on t2-t3 edge, regard as inside
+                        return ray_shoot_correct_pair(bl, pt, pt1, dir);
+                    } else {
+                        if (orient_3d(
+                                pt, bl.v[bl.facets[0][0]],
+                                bl.v[bl.facets[0][1]], bl.v[bl.facets[0][2]])
+                                > 0
+                            && orient_3d(
+                                   pt, bl.v[bl.facets[1][0]],
+                                   bl.v[bl.facets[1][1]], bl.v[bl.facets[1][2]])
+                                > 0)
+                            return 1;
+                        return 0;
+                    }
+                }
+                if (r1 == 2 || r2 == 2)
+                    return ray_shoot_correct_pair(bl, pt, pt1, dir);
+                std::cout << "impossible to go here " << std::endl;
+                return 0;
+            }
+        } else { // p inside open tet
+
+            return ray_shoot_correct_pair(bl, pt, pt1, dir);
+        }
+    } else { // degenerated bilinear
+        int degetype = bilinear_degeneration(bl);
+
+        return ray_degenerated_bilinear_parity(bl, pt, pt1, dir, degetype);
+    }
+}
+
+int ray_triangle_parity(
+    const Vector3d& pt,
+    const Vector3d& pt1,
+    const Vector3d& dir,
+    const Vector3d& t0,
+    const Vector3d& t1,
+    const Vector3d& t2,
+    const bool is_triangle_degenerated)
+{
+    if (!is_triangle_degenerated) {
+
+        int res = ray_triangle_intersection(pt, pt1, dir, t0, t1, t2, false);
+
+        return res;
+        // 0 not hit, 1 hit on open triangle, -1 parallel or hit on edge, need
+        // another shoot.
+    } else {
+        // if pt on it (2), return 2; if 1(including overlap) return -1
+        int i1 = ray_segment_intersection(
+            pt, pt1, dir, t0, t1); // 2 means pt on the segment
+        if (i1 == 2)
+            return 2;
+        if (i1 == 1)
+            return -1;
+        int i2 = ray_segment_intersection(pt, pt1, dir, t1, t2);
+        if (i2 == 2)
+            return 2;
+        if (i2 == 1)
+            return -1;
+
+        return 0;
+    }
+}
+// dir = pt1 - pt
+int point_inside_prism(
+    prism& psm,
+    std::array<bilinear, 3>& bls,
+    const Vector3d& pt,
+    const Vector3d& pt1,
+    const Vector3d& dir,
+    const std::vector<bool>& is_pt_in_tet)
+{
+    int S = 0;
+    if (dir[0] == 0 && dir[1] == 0 && dir[2] == 0) {
+        std::cout << "random direction wrong" << std::endl;
+        return -1;
+    }
+
+    for (int patch = 0; patch < 3; ++patch) {
+
+        int is_ray_patch = ray_bilinear_parity(
+            bls[patch], pt, pt1, dir, bls[patch].is_degenerated,
+            is_pt_in_tet[patch]);
+
+        if (is_ray_patch == 2)
+            return 1;
+
+        if (is_ray_patch == -1)
+            return -1;
+
+        if (is_ray_patch == 1)
+            S++;
+    }
+
+    int res;
+
+    res = ray_triangle_parity(
+        pt, pt1, dir, psm.p_vertices[0], psm.p_vertices[1], psm.p_vertices[2],
+        psm.is_triangle_degenerated(0));
+
+    if (res == 2)
+        return 1; // it should be impossible
+    if (res == -1)
+        return -1;
+
+    if (res > 0)
+        S++;
+
+    res = ray_triangle_parity(
+        pt, pt1, dir, psm.p_vertices[3], psm.p_vertices[4], psm.p_vertices[5],
+        psm.is_triangle_degenerated(1));
+
+    if (res == 2)
+        return 1; // it should be impossible
+    if (res == -1)
+        return -1;
+
+    if (res > 0)
+        S++;
+
+    return ((S % 2) == 1) ? 1 : 0;
+}
+
+int point_inside_hex(
+    std::array<bilinear, 6>& bls,
+    const Vector3d& pt,
+    const Vector3d& pt1,
+    const Vector3d& dir,
+    const std::vector<bool>& is_pt_in_tet)
+{
+    int S = 0;
+    if (dir[0] == 0 && dir[1] == 0 && dir[2] == 0) {
+        std::cout << "random direction wrong" << std::endl;
+        return -1;
+    }
+    for (int patch = 0; patch < 6; ++patch) {
+
+        int is_ray_patch = ray_bilinear_parity(
+            bls[patch], pt, pt1, dir, bls[patch].is_degenerated,
+            is_pt_in_tet[patch]);
+        // std::cout<<"\nis ray parity "<<is_ray_patch<<" is pt in tet
+        // "<<is_pt_in_tet[patch]<<std::endl; std::cout<<"bilinear ori,
+        // "<<orient_3d(bls[patch].v[0],bls[patch].v[1],bls[patch].v[2],bls[patch].v[3])<<"this
+        // bilinear finished\n"<<std::endl;
+
+        if (is_ray_patch == 2)
+            return 1;
+
+        if (is_ray_patch == -1)
+            return -1;
+
+        if (is_ray_patch == 1)
+            S++;
+    }
+    return ((S % 2) == 1) ? 1 : 0;
+}
+// this function can give a random double number between b/2 and 2*b, b~1.5b
+// to make a-b have no truncation
+void get_correct_rand(const double b, double& a)
+{
+    double rd;
+    if (b == 0) {
+        a = 1;
+        return;
+    }
+    // if (b > 0) {
+    rd = double(rand()) / RAND_MAX; // random number from 0 to 1
+    rd = 0.25 + rd / 2;
+    a = b / 2 + 3 * rd * b / 4; // a random number from b/2 to 2b
+
+    assert(
+        (b >= 0 && b < 2 * a && b > a / 2)
+        || (b < 0 && b > 2 * a && b < a / 2));
+
+    return;
+}
+// this function can get a random direction and a random point np, so that
+// np-pt=dir
+void get_direction(const Vector3d& pt, Vector3d& np, Vector3d& dir)
+{
+
+    get_correct_rand(pt[0], np[0]);
+    get_correct_rand(pt[1], np[1]);
+    get_correct_rand(pt[2], np[2]);
+
+    dir = np - pt;
+    // test
+}
+bool shoot_origin_ray_prism(prism& psm, std::array<bilinear, 3>& bls)
+{
+    static const int max_trials = 8;
+
+    // if a/2<=b<=2*a, then a-b is exact.
+    std::vector<bool> is_pt_in_tet;
+    is_pt_in_tet.resize(3);
+    for (int i = 0; i < 3; i++) {
+        if (bls[i].is_degenerated)
+            is_pt_in_tet[i] = false;
+        else
+            is_pt_in_tet[i] = is_point_inside_tet(bls[i], ORIGIN);
+    }
+
+    Vector3d dir(1, 0, 0);
+    Vector3d pt2 = dir;
+
+    int res = -1;
+    int trials;
+
+    for (trials = 0; trials < max_trials; ++trials) {
+        res = point_inside_prism(psm, bls, ORIGIN, pt2, dir, is_pt_in_tet);
+
+        if (res >= 0)
+            break;
+
+        dir = Vector3d::Random();
+        pt2 = dir;
+    }
+
+    if (trials == max_trials) {
+
+        std::cout << "All rays are on edges, increase trials" << std::endl;
+        throw "All rays are on edges, increase trials";
+        return false;
+    }
+
+    return res >= 1; // >=1 means point inside of prism
+}
+bool retrial_ccd(
+    prism& psm,
+    std::array<bilinear, 3>& bls,
+    const Vector3d& pt,
+    const std::vector<bool>& is_pt_in_tet)
+{
+
+    static const int max_trials = 8;
+
+    // if a/2<=b<=2*a, then a-b is exact.
+
+    Vector3d pt2, dir;
+    get_direction(pt, pt2, dir);
+
+    int res = -1;
+    int trials;
+
+    for (trials = 0; trials < max_trials; ++trials) {
+        res = point_inside_prism(psm, bls, pt, pt2, dir, is_pt_in_tet);
+
+        if (res >= 0)
+            break;
+
+        get_direction(pt, pt2, dir);
+    }
+
+    if (trials == max_trials) {
+
+        std::cout << "All rays are on edges, increase trials" << std::endl;
+        throw "All rays are on edges, increase trials";
+        return false;
+    }
+
+    return res >= 1; // >=1 means point inside of prism
+}
+bool shoot_origin_ray_hex(std::array<bilinear, 6>& bls)
+{
+    static const int max_trials = 8;
+
+    // if a/2<=b<=2*a, then a-b is exact.
+    std::vector<bool> is_pt_in_tet;
+    is_pt_in_tet.resize(6);
+    for (int i = 0; i < 6; i++) {
+        if (bls[i].is_degenerated)
+            is_pt_in_tet[i] = false;
+        else
+            is_pt_in_tet[i] = is_point_inside_tet(bls[i], ORIGIN);
+    }
+    Vector3d dir(1, 0, 0);
+    Vector3d pt2 = dir;
+
+    int res = -1;
+    int trials;
+
+    for (trials = 0; trials < max_trials; ++trials) {
+        res = point_inside_hex(bls, ORIGIN, pt2, dir, is_pt_in_tet);
+
+        if (res >= 0)
+            break;
+
+        dir = Vector3d::Random();
+        pt2 = dir;
+    }
+
+    if (trials == max_trials) {
+
+        std::cout << "All rays are on edges, increase trials" << std::endl;
+        throw "All rays are on edges, increase trials";
+        return false;
+    }
+
+    return res >= 1; // >=1 means point inside of prism
+}
+bool retrial_ccd_hex(
+    std::array<bilinear, 6>& bls,
+    const Vector3d& pt,
+    const std::vector<bool>& is_pt_in_tet)
+{
+
+    static const int max_trials = 8;
+
+    // if a/2<=b<=2*a, then a-b is exact.
+
+    Vector3d pt2, dir;
+    get_direction(pt, pt2, dir);
+
+    int res = -1;
+    int trials;
+
+    for (trials = 0; trials < max_trials; ++trials) {
+        res = point_inside_hex(bls, pt, pt2, dir, is_pt_in_tet);
+
+        if (res >= 0)
+            break;
+
+        get_direction(pt, pt2, dir);
+    }
+
+    if (trials == max_trials) {
+
+        std::cout << "All rays are on edges, increase trials" << std::endl;
+        throw "All rays are on edges, increase trials";
+        return false;
+    }
+
+    return res >= 1; // >=1 means point inside of prism
+}
+void ray_time() {}
+} // namespace doubleccd
