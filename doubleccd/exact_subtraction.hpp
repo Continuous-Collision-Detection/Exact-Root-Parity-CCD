@@ -3,7 +3,7 @@
 // On GNU GCC: use -frounding-math
 // In any case: compile for 64bit target to avoid X87 ugly extended precision
 
-#include <fenv.h>
+#include <cfenv>
 #include <utility>
 
 #ifdef _MSC_VER

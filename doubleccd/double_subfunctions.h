@@ -226,7 +226,7 @@ public:
     std::array<Vector3d, 6> p_vertices;
 
 private:
-    void get_prism_vertices(
+    static void get_prism_vertices(
         const Vector3d& x0,
         const Vector3d& x1,
         const Vector3d& x2,
@@ -266,7 +266,7 @@ public:
     std::array<Vector3d, 8> h_vertices;
 
 private:
-    void get_hex_shifted_vertices_double(
+    static void get_hex_shifted_vertices_double(
         const Vector3d& a0,
         const Vector3d& a1,
         const Vector3d& b0,
@@ -276,7 +276,7 @@ private:
         const Vector3d& b0b,
         const Vector3d& b1b,
         std::array<Vector3d, 8>& h_vertices);
-    void get_hex_vertices(
+    static void get_hex_vertices(
         const Vector3d& a0,
         const Vector3d& a1,
         const Vector3d& b0,
