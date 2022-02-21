@@ -8,7 +8,7 @@ You can read more about this work in our EUROGRAPHICS 2022 paper:
 
 ["Fast and Exact Root Parity for Continuous Collision Detection"](https://todo)
 ```bibtex
-@article{Wang:2021:Benchmark,
+@article{Wang:2022:ERPCCD,
     title        = {Fast and Exact Root Parity for Continuous Collision Detection},
     author       = {Bolun Wang and Zachary Ferguson and Xin Jiang and Marco Attene and Daniele Panozzo and Teseo Schneider},
     year         = 2022,
