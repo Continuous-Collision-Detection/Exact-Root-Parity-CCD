@@ -126,7 +126,7 @@ target_link_libraries(ccd_double PUBLIC gmp::gmp)
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   # grant IEEE 754 compliance
   target_compile_options(ccd_double PUBLIC  "-frounding-math")
-  message(STATUS "In Fixed Root Parity CCD, the -frounding-math flag is setted")
+  message(STATUS "In Exact Root Parity CCD, the -frounding-math flag is setted")
   # use intrinsic functions (CHECK WHAT TO DO FOR GCC !!!!!!!!)
   #	target_compile_options(ccd_double PUBLIC "/Oi")
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")

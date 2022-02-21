@@ -15,24 +15,6 @@
 using namespace doubleccd;
 void case_check(){
     doubleccd::vf_pair dt,dtshift;
-    
-// const Eigen::Vector3d a0s(-30022200, 2362580, 165247);
-//     const Eigen::Vector3d a1s(-32347850, 8312380, -1151003);
-//     const Eigen::Vector3d a0e(-28995600, 345838, 638580);
-//     const Eigen::Vector3d a1e(-31716930, 6104858, -713340);
-//     const Eigen::Vector3d b0s(-30319900, 3148750, 0);
-//     const Eigen::Vector3d b1s(-28548800, 900349, 0);
-//     const Eigen::Vector3d b0e(-30319900, 3148750, 0);
-//     const Eigen::Vector3d b1e(-28548800, 900349, 0);
-
-    // const Eigen::Vector3d a0s(5.55495e-11,    0.160014,    0.914204);
-    // const Eigen::Vector3d a1s(0.098607, 0.160014, 0.898586);
-    // const Eigen::Vector3d a0e(-1.02941e-07     ,0.470588          ,0.6);
-    // const Eigen::Vector3d a1e(0.19509, -0.529412,   1.58079 );
-    // const Eigen::Vector3d b0s(1.42931e-05 ,   0.159178,    0.914963);
-    // const Eigen::Vector3d b1s(0.098703, 0.159491, 0.899153);
-    // const Eigen::Vector3d b0e(-1.02941e-07,     0.470588,          0.6);
-    // const Eigen::Vector3d b1e(0.19509, -0.529412,   1.58079);
     dt.x0 = Vector3d(0,0,1);
     dt.x1 = Vector3d(0,1,1);
     dt.x2 = Vector3d(0.1, 0.2, 2);
@@ -42,24 +24,7 @@ void case_check(){
     dt.x1b = Vector3d(0,0,0);
     dt.x2b = Vector3d(0.1, 0.2, 2);
     dt.x3b = Vector3d(0.1, 0.2, -1);
-    // std::vector<vf_pair> data1;std::vector<ee_pair> data2;
-    // Eigen::MatrixX3d vertices;
-    // data1.push_back(dt);
-    
-    // get_whole_mesh_shifted(
-    // data1,data2,vertices
-    // );
-    // std::cout<<"data1 size, "<<data1.size()<<std::endl;
-    // std::cout<<"data2 size, "<<data2.size()<<std::endl;
-    // dt=data1[0];
-    // std::cout<<dt.x0[0]<<","<<dt.x0[1]<<","<<dt.x0[2]<<std::endl;
-    // std::cout<<dt.x1[0]<<","<<dt.x1[1]<<","<<dt.x1[2]<<std::endl;
-    // std::cout<<dt.x2[0]<<","<<dt.x2[1]<<","<<dt.x2[2]<<std::endl;
-    // std::cout<<dt.x3[0]<<","<<dt.x3[1]<<","<<dt.x3[2]<<std::endl;
-    // std::cout<<dt.x0b[0]<<","<<dt.x0b[1]<<","<<dt.x0b[2]<<std::endl;
-    // std::cout<<dt.x1b[0]<<","<<dt.x1b[1]<<","<<dt.x1b[2]<<std::endl;
-    // std::cout<<dt.x2b[0]<<","<<dt.x2b[1]<<","<<dt.x2b[2]<<std::endl;
-    // std::cout<<dt.x3b[0]<<","<<dt.x3b[1]<<","<<dt.x3b[2]<<std::endl;
+
 	double time;
 	double err=shift_vertex_face(dt,dtshift,time);
     dt=dtshift;
@@ -82,23 +47,6 @@ void test_shift(){
         subs.emplace_back(double(rand())/double((RAND_MAX)),double(rand())/double((RAND_MAX)));
     }
 
-    // for(int i=0;i<subs.size();i++){
-    //     if(i%1000000==0){
-    //         std::cout<<subs[i].first<<", "<<subs[i].second<<std::endl;
-    //     }
-    //     Rational a=subs[i].first;
-    //     Rational b=subs[i].second;
-    //     Rational rst=a-b;
-    //     double rd=subs[i].first-subs[i].second;
-    //     if(rst==rd){
-    //         // std::cout<<"no truncation err"<<std::endl;
-    //     }
-    //     else{
-    //         std::cout<<"before perturb, diff, "<<(rst-rd)<<", "<<rst<<", "<<rd<<std::endl;
-    //         // exit(0);
-
-    //     }
-    // }
     displaceSubtractions_double(subs);
     for(int i=0;i<subs.size();i++){
         if(i%1000000==0){
@@ -215,7 +163,7 @@ void read_and_test_shift(){
 int main(int argc, char* argv[])
 {
     
-   // case_check();
+   case_check();
     // test_shift();
     // read_and_test_shift();
 	doubleccd::test();
