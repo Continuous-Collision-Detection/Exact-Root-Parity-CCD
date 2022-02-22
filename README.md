@@ -41,7 +41,7 @@ when you are compling the code, then run `build/ccd_bin` to see the results of a
 
 As described in the paper, our root-parity counter is exact, only when the computation of the corners of the co-domain of the CCD function generates no rounding error. It often requires us to round the queries, sacrificing a little bit precision to return EXACT root-parity counting results. You can use `double shift_vertex_face()` or `double shift_edge_edge()` to round the query before running it, or you can set CMake option `CCD_ROUND_INPUTS` as `ON` when compling the code, then run the query, and the query will be rounded internally. The method of integrating our algorithm into simulators is introduced in the chapter "Usage" in the following context.
 
-We also provide you an benchmark dataset [Rounded Queries](https://todo), which is generated from the [database](https://archive.nyu.edu/handle/2451/61518) provided by [Wang et al. 2020](https://github.com/Continuous-Collision-Detection) and pre-rounded. You can use the [CCD-Wrapper](https://github.com/Continuous-Collision-Detection/CCD-Wrapper), and set its CMake option `CCD_WRAPPER_WITH_FPRP=ON` to run the rounded queries.
+We also provide you an benchmark dataset [Rounded Queries](https://todo), which is generated from the [database](https://archive.nyu.edu/handle/2451/61518) provided by [Wang et al. 2020](https://github.com/Continuous-Collision-Detection) and pre-rounded. You can use the [CCD-Wrapper](https://github.com/Continuous-Collision-Detection/CCD-Wrapper), and set its CMake option `CCD_WRAPPER_WITH_FPRP=ON` to run the rounded queries using our method.
 
 ## Usage
 
