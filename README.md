@@ -3,23 +3,27 @@
 
 An exact root-parity counter for continuous collision detection (CCD).
 
-
 You can read more about this work in our EUROGRAPHICS 2022 paper:
 
 ["Fast and Exact Root Parity for Continuous Collision Detection"](https://cims.nyu.edu/gcl/papers/2022-RootParityCCD.pdf)
 ```bibtex
-@article{Wang:2022:ERPCCD,
+@article{Wang:2022:FastRootParity,
     title        = {Fast and Exact Root Parity for Continuous Collision Detection},
     author       = {Bolun Wang and Zachary Ferguson and Xin Jiang and Marco Attene and Daniele Panozzo and Teseo Schneider},
     year         = 2022,
-    month        = april,
-    journal      = {Computer Graphics Forum},
-    volume       = Forthcoming,
-    number       = Forthcoming,
-    articleno    = Forthcoming,
-    numpages     = Forthcoming
+    journal      = {Computer Graphics Forum (Proceedings of Eurographics)},
+    volume       = 41,
+    number       = 2,
+    numpages     = 9
 }
 ```
+
+> **Warning**
+> 
+> Similar to the original root-parity CCD [Brochu et al. 2012], our algorithm is only able to count the parity of the roots and might miss collisions when there are two roots. These cases are rare (7 cases out of 60 million queries) in applications. Additionally, double roots can be reduced by using a smaller simulation time-step.
+> 
+> For a conservative method that is able to detect all collisions, see our [Tight Inclusion](https://github.com/Continuous-Collision-Detection/Tight-Inclusion) work.
+
 ## Compiling Instruction
 
 To compile the code, first make sure CMake and GMP are installed.
