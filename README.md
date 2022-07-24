@@ -73,6 +73,6 @@ It still requires to use the rounding strategy to guarantee the exactness of our
 
 6. Run the simulation with the shifted meshes, using our CCD algorithm.
 
-In this way, during the simulation, the meshes are shifted to another place, but the root-parity counting of CCD will be exact. Although our algorithm cannot give exact collision detection results, but it still makes sure collision free in the begining and the end of each time step. It means if the step lengths are properly small, our algorithm will not miss collisions.
+In this way, during the simulation, the meshes are shifted to another place, but the root-parity counting of CCD will be exact. Although our algorithm cannot give exact collision detection results, but it still makes sure collision free in the begining and the end of each time step for closed meshes. Smaller step lengths will also help avoid missing collisions.
 
 To have a better understand, or to get more details of our Exact Root Parity CCD algorithm, please refer to our paper.
